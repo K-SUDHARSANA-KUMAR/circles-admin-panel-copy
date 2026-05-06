@@ -1,14 +1,14 @@
 'use client';
 
-import signInCover from '@/assets/pngs/naga-cover.png';
+
 import quoteLine from '@/assets/pngs/quote-line.png';
 import { TextAnimate } from '@/components/magicui/text-animate';
 
 export const AuthHero = () => {
   return (
     <div
-      className="bg-freshleaf relative hidden h-1/2 w-full flex-col items-center justify-center bg-contain bg-center bg-no-repeat px-20 md:flex md:h-auto md:w-1/2"
-      style={{ backgroundImage: `url(${signInCover.src})` }}
+      className="bg-freshleaf relative hidden h-1/2 w-full flex-col items-center justify-center px-20 md:flex md:h-auto md:w-1/2"
+      style={{ background: 'linear-gradient(135deg, #c63f35 0%, #8b2c25 100%)' }}
     >
       <div className="text-centerflex flex h-fit flex-col gap-10 text-center text-neutral-200">
         <div>
@@ -21,7 +21,7 @@ export const AuthHero = () => {
             by="character"
             once
           >
-            Welcome to Naga Limited
+            Welcome to Opal
           </TextAnimate>
           <TextAnimate
             className="px-20 text-base"
@@ -45,8 +45,8 @@ export const AuthHero = () => {
       </div>
 
       <div className="absolute right-0 bottom-6 left-0 flex flex-col items-center justify-center gap-1 text-white">
-        <div className="text-base">Since 1962</div>
-        <div className="text-xs">Powering Food, Hygiene, Minerals</div>
+        <div className="text-base">Modern Admin Solutions</div>
+        <div className="text-xs">Powering Efficiency and Innovation</div>
       </div>
 
       <div className="absolute top-0 left-0">
