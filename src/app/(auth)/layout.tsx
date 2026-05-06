@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'SFA Admin - Login',
-  description: 'Naga SFA Admin Panel',
+  title: 'Circles - Login',
+  description: 'Circles Admin Panel',
 };
 
 export default function RootLayout({

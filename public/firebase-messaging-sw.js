@@ -4,13 +4,13 @@ importScripts(
 );
 
 firebase.initializeApp({
-  apiKey: 'AIzaSyAPqE9XaWons4yn-HzIOBRR3eqvLUgsXZY',
-  authDomain: 'naga-sfa-mobile-app.firebaseapp.com',
-  projectId: 'naga-sfa-mobile-app',
-  storageBucket: 'naga-sfa-mobile-app.firebasestorage.app',
-  messagingSenderId: '21682097662',
-  appId: '1:21682097662:web:bab7f045e86879411904af',
-  measurementId: 'G-3LH9JE72Q0',
+  apiKey: '',
+  authDomain: '',
+  projectId: '',
+  storageBucket: '',
+  messagingSenderId: '',
+  appId: '',
+  measurementId: '',
 });
 
 const messaging = firebase.messaging();
