@@ -43,7 +43,7 @@ export const LoginForm = ({
       >
         <div className="flex flex-col items-center justify-center gap-2 pb-6">
           <div>
-            <img src="/naga-logo.png" alt="logo" className="h-auto w-25" />
+            <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-25" />
           </div>
           <div className="space-y-1 text-center">
             <h3 className="font-montserrat text-3xl font-bold">Log In</h3>

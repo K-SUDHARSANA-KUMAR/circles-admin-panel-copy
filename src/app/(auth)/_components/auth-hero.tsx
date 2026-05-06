@@ -8,7 +8,7 @@ export const AuthHero = () => {
   return (
     <div
       className="bg-freshleaf relative hidden h-1/2 w-full flex-col items-center justify-center px-20 md:flex md:h-auto md:w-1/2"
-      style={{ background: 'linear-gradient(135deg, #c63f35 0%, #8b2c25 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #000000 0%, #333333 100%)' }}
     >
       <div className="text-centerflex flex h-fit flex-col gap-10 text-center text-neutral-200">
         <div>
@@ -21,7 +21,7 @@ export const AuthHero = () => {
             by="character"
             once
           >
-            Welcome to Opal
+            Welcome to Circles Admin Panel
           </TextAnimate>
           <TextAnimate
             className="px-20 text-base"

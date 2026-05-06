@@ -14,8 +14,11 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'SFA Admin',
-  description: 'Naga SFA Admin Panel',
+  title: 'Circles Admin Panel',
+  description: 'Circles Admin Panel',
+  icons: {
+    icon: '/circles_logo.ico',
+  },
 };
 
 export default function RootLayout({
