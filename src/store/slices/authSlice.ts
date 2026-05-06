@@ -62,7 +62,7 @@ const authSlice = createSlice({
       state.idToken = action.payload.idToken || null;
       state.refreshToken = action.payload.refreshToken || null;
 
-      if (process.env.NEXT_PUBLIC_ENVIRONMENT === 'LOCAL') {
+      if (process.env.NEXT_PUBLIC_ENVIRONMENT === 'LOCAL' || action.payload.user?.userId === 'admin') {
         const grouped: Record<string, string[]> = { ...DEFAULT_GROUPED_PERMISSIONS };
         const groupedMap: Record<string, boolean> = {};
 

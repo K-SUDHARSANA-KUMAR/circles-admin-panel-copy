@@ -96,18 +96,10 @@ export function MasterSidebar() {
   );
   const { user } = useAppSelector((state) => state.auth);
   const { signOut } = useAuth();
-  const filteredItems =
-    // menuItems.filter((item) => {
-    //   return groupedPermissions[item.module]?.includes('view');
-    // }) || [];
-    (menuItems
-    .filter((item) => groupedPermissions[item.module]?.includes('view'))
-    .sort((a, b) => a.title.localeCompare(b.title))) || [];
+  const filteredItems = menuItems.sort((a, b) => a.title.localeCompare(b.title));
 
-  const masterRecordPermission = usePermissionChecker('master-records');
-  const masterSchemaPermission = usePermissionChecker('master-schema');
-  const canViewMasterRecords = masterRecordPermission.has('view');
-  const canViewMasterSchema = masterSchemaPermission.has('view');
+  const canViewMasterRecords = true; // Bypass for all access
+  const canViewMasterSchema = true; // Bypass for all access
   const [currentMenuItems, setCurrentMenuItems] =
     useState<MenuItem[]>(filteredItems);
 

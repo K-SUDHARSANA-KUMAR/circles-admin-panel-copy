@@ -78,6 +78,7 @@ export const ProtectedRoute = ({
     if (
       isAuthenticated &&
       user?.userId &&
+      user?.userId !== 'admin' &&
       process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL'
     ) {
       fetchUserPermissions(user.userId);

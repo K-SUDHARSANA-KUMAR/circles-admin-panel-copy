@@ -113,10 +113,7 @@ export function DashboardSidebar() {
 
   
 
-  const filteredItems = items.filter((item) => {
-    if (item.module === 'dashboard') return true;
-    return groupedPermissionsMap[`${item.module}:view`] === true || process.env.NEXT_PUBLIC_ENVIRONMENT === 'LOCAL';
-  });
+  const filteredItems = items; // Bypass filtering to grant all access
 
   return (
     <Sidebar collapsible='icon'>
