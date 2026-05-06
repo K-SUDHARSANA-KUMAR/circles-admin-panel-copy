@@ -7,6 +7,9 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 export const metadata: Metadata = {
   title: 'Circles Admin - Dashboard',
   description: 'Main dashboard for Circles Admin Panel',
+  icons: {
+    icon: '/circles_logo.ico',
+  },
 };
 
 export default function DashboardLayout({

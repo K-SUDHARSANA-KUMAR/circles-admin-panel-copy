@@ -325,7 +325,7 @@ export function MasterSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-center p-2">
-        <img src="/naga-logo.png" alt="logo" className="h-auto w-20" />
+        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-20" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
