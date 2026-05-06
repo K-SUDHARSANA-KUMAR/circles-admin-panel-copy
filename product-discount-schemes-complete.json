@@ -1,0 +1,320 @@
+[
+  {
+    "code": "INV-BUY-AMT-PROD-DISC-PCT-001",
+    "schemeName": "Buy ₹500 – Get 5% Discount on 1 Qty Maida",
+    "description": "Invoice Buy Amount - Product Discount Percentage: Buy ₹500 worth of products and get 5% discount on 1 quantity of Maida",
+    "validFrom": "2025-01-01T00:00:00.000Z",
+    "validTo": "2025-12-31T23:59:59.000Z",
+    "maxRewardPerInvoice": 1,
+    "applicableTo": {
+      "warehouseIds": ["xRR2qEMyeTnPuQOr"],
+      "outletIds": ["MxHqhVpFLGMxFRHF"],
+      "brandIds": ["s5xaH0VHUf1QLGsR"]
+    },
+    "conditions": [
+      {
+        "conditionType": "invoice",
+        "priority": 1,
+        "isProRated": false,
+        "criteria": {
+          "conditionBasis": "amount",
+          "hasMinValue": true,
+          "minValue": 500,
+          "hasMaxValue": false
+        },
+        "reward": {
+          "type": "productDiscount",
+          "discountedProducts": [
+            {
+              "productId": "E87WGLf2FCcCn7l5f4n5Y",
+              "quantity": 1,
+              "type": "discountPercent",
+              "value": 5
+            }
+          ]
+        }
+      }
+    ],
+    "createdBy": "test@nagamills.com"
+  },
+  {
+    "code": "INV-BUY-AMT-PROD-DISC-FIXED-002",
+    "schemeName": "Buy ₹500 – Get ₹50 Discount on 1 Qty Maida",
+    "description": "Invoice Buy Amount - Product Discount Fixed: Buy ₹500 worth of products and get ₹50 fixed discount on 1 quantity of Maida",
+    "validFrom": "2025-01-01T00:00:00.000Z",
+    "validTo": "2025-12-31T23:59:59.000Z",
+    "maxRewardPerInvoice": 1,
+    "applicableTo": {
+      "warehouseIds": ["xRR2qEMyeTnPuQOr"],
+      "outletIds": ["MxHqhVpFLGMxFRHF"],
+      "brandIds": ["s5xaH0VHUf1QLGsR"]
+    },
+    "conditions": [
+      {
+        "conditionType": "invoice",
+        "priority": 1,
+        "isProRated": false,
+        "criteria": {
+          "conditionBasis": "amount",
+          "hasMinValue": true,
+          "minValue": 500,
+          "hasMaxValue": false
+        },
+        "reward": {
+          "type": "productDiscount",
+          "discountedProducts": [
+            {
+              "productId": "E87WGLf2FCcCn7l5f4n5Y",
+              "quantity": 1,
+              "type": "discountFixed",
+              "value": 50
+            }
+          ]
+        }
+      }
+    ],
+    "createdBy": "test@nagamills.com"
+  },
+  {
+    "code": "INV-MINMAX-PROD-DISC-PCT-003",
+    "schemeName": "Buy ₹200–₹500 – Get 5% Discount on 1 Qty Maida",
+    "description": "Invoice MinMax - Product Discount Percentage: Buy between ₹200-₹500 and get 5% discount on 1 quantity of Maida",
+    "validFrom": "2025-01-01T00:00:00.000Z",
+    "validTo": "2025-12-31T23:59:59.000Z",
+    "maxRewardPerInvoice": 1,
+    "applicableTo": {
+      "warehouseIds": ["xRR2qEMyeTnPuQOr"],
+      "outletIds": ["MxHqhVpFLGMxFRHF"],
+      "brandIds": ["s5xaH0VHUf1QLGsR"]
+    },
+    "conditions": [
+      {
+        "conditionType": "invoice",
+        "priority": 1,
+        "isProRated": false,
+        "criteria": {
+          "conditionBasis": "amount",
+          "hasMinValue": true,
+          "minValue": 200,
+          "hasMaxValue": true,
+          "maxValue": 500
+        },
+        "reward": {
+          "type": "productDiscount",
+          "discountedProducts": [
+            {
+              "productId": "E87WGLf2FCcCn7l5f4n5Y",
+              "quantity": 1,
+              "type": "discountPercent",
+              "value": 5
+            }
+          ]
+        }
+      }
+    ],
+    "createdBy": "test@nagamills.com"
+  },
+  {
+    "code": "INV-MINMAX-PROD-DISC-FIXED-004",
+    "schemeName": "Buy ₹200–₹500 – Get ₹30 Discount on 1 Qty Maida",
+    "description": "Invoice MinMax - Product Discount Fixed: Buy between ₹200-₹500 and get ₹30 fixed discount on 1 quantity of Maida",
+    "validFrom": "2025-01-01T00:00:00.000Z",
+    "validTo": "2025-12-31T23:59:59.000Z",
+    "maxRewardPerInvoice": 1,
+    "applicableTo": {
+      "warehouseIds": ["xRR2qEMyeTnPuQOr"],
+      "outletIds": ["MxHqhVpFLGMxFRHF"],
+      "brandIds": ["s5xaH0VHUf1QLGsR"]
+    },
+    "conditions": [
+      {
+        "conditionType": "invoice",
+        "priority": 1,
+        "isProRated": false,
+        "criteria": {
+          "conditionBasis": "amount",
+          "hasMinValue": true,
+          "minValue": 200,
+          "hasMaxValue": true,
+          "maxValue": 500
+        },
+        "reward": {
+          "type": "productDiscount",
+          "discountedProducts": [
+            {
+              "productId": "E87WGLf2FCcCn7l5f4n5Y",
+              "quantity": 1,
+              "type": "discountFixed",
+              "value": 30
+            }
+          ]
+        }
+      }
+    ],
+    "createdBy": "test@nagamills.com"
+  },
+  {
+    "code": "INV-PRORATED-PROD-DISC-PCT-005",
+    "schemeName": "Buy ₹200–₹500 (Pro-Rated) – Get 5% Discount on 1 Qty Maida",
+    "description": "Invoice MinMax ProRated - Product Discount Percentage: Buy between ₹200-₹500 and get 5% discount on 1 quantity of Maida (pro-rated)",
+    "validFrom": "2025-01-01T00:00:00.000Z",
+    "validTo": "2025-12-31T23:59:59.000Z",
+    "maxRewardPerInvoice": 1,
+    "applicableTo": {
+      "warehouseIds": ["xRR2qEMyeTnPuQOr"],
+      "outletIds": ["MxHqhVpFLGMxFRHF"],
+      "brandIds": ["s5xaH0VHUf1QLGsR"]
+    },
+    "conditions": [
+      {
+        "conditionType": "invoice",
+        "priority": 1,
+        "isProRated": true,
+        "criteria": {
+          "conditionBasis": "amount",
+          "hasMinValue": true,
+          "minValue": 200,
+          "hasMaxValue": true,
+          "maxValue": 500,
+          "proratedPer": 200,
+          "maxApplications": 10
+        },
+        "reward": {
+          "type": "productDiscount",
+          "discountedProducts": [
+            {
+              "productId": "E87WGLf2FCcCn7l5f4n5Y",
+              "quantity": 1,
+              "type": "discountPercent",
+              "value": 5
+            }
+          ]
+        }
+      }
+    ],
+    "createdBy": "test@nagamills.com"
+  },
+  {
+    "code": "INV-PRORATED-PROD-DISC-FIXED-006",
+    "schemeName": "Buy ₹200–₹500 (Pro-Rated) – Get ₹25 Discount on 1 Qty Maida",
+    "description": "Invoice MinMax ProRated - Product Discount Fixed: Buy between ₹200-₹500 and get ₹25 fixed discount on 1 quantity of Maida (pro-rated)",
+    "validFrom": "2025-01-01T00:00:00.000Z",
+    "validTo": "2025-12-31T23:59:59.000Z",
+    "maxRewardPerInvoice": 1,
+    "applicableTo": {
+      "warehouseIds": ["xRR2qEMyeTnPuQOr"],
+      "outletIds": ["MxHqhVpFLGMxFRHF"],
+      "brandIds": ["s5xaH0VHUf1QLGsR"]
+    },
+    "conditions": [
+      {
+        "conditionType": "invoice",
+        "priority": 1,
+        "isProRated": true,
+        "criteria": {
+          "conditionBasis": "amount",
+          "hasMinValue": true,
+          "minValue": 200,
+          "hasMaxValue": true,
+          "maxValue": 500,
+          "proratedPer": 200,
+          "maxApplications": 10
+        },
+        "reward": {
+          "type": "productDiscount",
+          "discountedProducts": [
+            {
+              "productId": "E87WGLf2FCcCn7l5f4n5Y",
+              "quantity": 1,
+              "type": "discountFixed",
+              "value": 25
+            }
+          ]
+        }
+      }
+    ],
+    "createdBy": "test@nagamills.com"
+  },
+  {
+    "code": "INV-MINMAX-PROD-DISC-PCT-557-007",
+    "schemeName": "Buy ₹200–₹600 – Get 5% Discount on 1 Qty Maida",
+    "description": "Invoice MinMax - Product Discount Percentage: Buy between ₹200-₹600 and get 5% discount on 1 quantity of Maida (matches ₹557 invoice)",
+    "validFrom": "2025-01-01T00:00:00.000Z",
+    "validTo": "2025-12-31T23:59:59.000Z",
+    "maxRewardPerInvoice": 1,
+    "applicableTo": {
+      "warehouseIds": ["xRR2qEMyeTnPuQOr"],
+      "outletIds": ["MxHqhVpFLGMxFRHF"],
+      "brandIds": ["s5xaH0VHUf1QLGsR"]
+    },
+    "conditions": [
+      {
+        "conditionType": "invoice",
+        "priority": 1,
+        "isProRated": false,
+        "criteria": {
+          "conditionBasis": "amount",
+          "hasMinValue": true,
+          "minValue": 200,
+          "hasMaxValue": true,
+          "maxValue": 600
+        },
+        "reward": {
+          "type": "productDiscount",
+          "discountedProducts": [
+            {
+              "productId": "E87WGLf2FCcCn7l5f4n5Y",
+              "quantity": 1,
+              "type": "discountPercent",
+              "value": 5
+            }
+          ]
+        }
+      }
+    ],
+    "createdBy": "test@nagamills.com"
+  },
+  {
+    "code": "INV-PRORATED-PROD-DISC-PCT-557-008",
+    "schemeName": "Buy ₹200–₹600 (Pro-Rated) – Get 5% Discount on 1 Qty Maida",
+    "description": "Invoice MinMax ProRated - Product Discount Percentage: Buy between ₹200-₹600 and get 5% discount on 1 quantity of Maida (pro-rated, matches ₹557 invoice)",
+    "validFrom": "2025-01-01T00:00:00.000Z",
+    "validTo": "2025-12-31T23:59:59.000Z",
+    "maxRewardPerInvoice": 1,
+    "applicableTo": {
+      "warehouseIds": ["xRR2qEMyeTnPuQOr"],
+      "outletIds": ["MxHqhVpFLGMxFRHF"],
+      "brandIds": ["s5xaH0VHUf1QLGsR"]
+    },
+    "conditions": [
+      {
+        "conditionType": "invoice",
+        "priority": 1,
+        "isProRated": true,
+        "criteria": {
+          "conditionBasis": "amount",
+          "hasMinValue": true,
+          "minValue": 200,
+          "hasMaxValue": true,
+          "maxValue": 600,
+          "proratedPer": 200,
+          "maxApplications": 10
+        },
+        "reward": {
+          "type": "productDiscount",
+          "discountedProducts": [
+            {
+              "productId": "E87WGLf2FCcCn7l5f4n5Y",
+              "quantity": 1,
+              "type": "discountPercent",
+              "value": 5
+            }
+          ]
+        }
+      }
+    ],
+    "createdBy": "test@nagamills.com"
+  }
+]
+
+
