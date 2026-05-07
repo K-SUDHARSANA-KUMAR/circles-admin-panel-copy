@@ -40,7 +40,7 @@ export const OutletInfoSection = ({
   disabled = false,
 }: Props) => {
   return (
-    <div className="rounded-lg bg-white p-4">
+    <div className="rounded-lg bg-card p-4">
       <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">Outlet Information</div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <FormField

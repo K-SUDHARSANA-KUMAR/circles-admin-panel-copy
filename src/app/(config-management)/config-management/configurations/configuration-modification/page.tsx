@@ -114,7 +114,7 @@ function ConfigurationModificationContent() {
     return (
       <section className="w-full space-y-6">
         <BreadcrumbHeader {...breadcrumb} />
-        <div className="w-full space-y-3 rounded-lg bg-white p-4">
+        <div className="w-full space-y-3 rounded-lg bg-card p-4">
           <GenericError text="Context and Config ID are required. Please select a configuration to edit." />
         </div>
       </section>
@@ -125,7 +125,7 @@ function ConfigurationModificationContent() {
     return (
       <section className="w-full space-y-6">
         <BreadcrumbHeader {...breadcrumb} />
-        <div className="w-full space-y-3 rounded-lg bg-white p-4">
+        <div className="w-full space-y-3 rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <Loading text="Loading configuration..." />
           </div>
@@ -138,7 +138,7 @@ function ConfigurationModificationContent() {
     return (
       <section className="w-full space-y-6">
         <BreadcrumbHeader {...breadcrumb} />
-        <div className="w-full space-y-3 rounded-lg bg-white p-4">
+        <div className="w-full space-y-3 rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <GenericError text="Error loading configuration. Please try again." />
           </div>
@@ -151,7 +151,7 @@ function ConfigurationModificationContent() {
     return (
       <section className="w-full space-y-6">
         <BreadcrumbHeader {...breadcrumb} />
-        <div className="w-full space-y-3 rounded-lg bg-white p-4">
+        <div className="w-full space-y-3 rounded-lg bg-card p-4">
           <GenericError text="No configuration data found for the provided context." />
         </div>
       </section>
@@ -162,7 +162,7 @@ function ConfigurationModificationContent() {
     <section className="w-full space-y-6">
       <BreadcrumbHeader {...breadcrumb} />
 
-      <div className="w-full space-y-3 rounded-lg bg-white p-4">
+      <div className="w-full space-y-3 rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Configuration Settings
         </div>

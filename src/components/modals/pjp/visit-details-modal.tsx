@@ -143,7 +143,7 @@ export function VisitDetailsModal({
             <label className="text-sm font-medium text-gray-600">
               Visit Date
             </label>
-            <p className="text-base font-medium text-gray-900">
+            <p className="text-base font-medium text-foreground">
               {visitData?.visitDate ? formatDate(visitData?.visitDate) : 'N/A'}
             </p>
           </div>
@@ -152,7 +152,7 @@ export function VisitDetailsModal({
             <label className="text-sm font-medium text-gray-600">
               Visit Order ID
             </label>
-            <p className="font-mono text-base font-medium text-gray-900">
+            <p className="font-mono text-base font-medium text-foreground">
               {visitData.visitOrderId}
             </p>
           </div>
@@ -161,7 +161,7 @@ export function VisitDetailsModal({
             <label className="text-sm font-medium text-gray-600">
               Sales Person
             </label>
-            <p className="text-base font-medium text-gray-900">
+            <p className="text-base font-medium text-foreground">
               {visitData?.userInfo?.name}
             </p>
           </div>
@@ -170,7 +170,7 @@ export function VisitDetailsModal({
             <label className="text-sm font-medium text-gray-600">
               Outlet Name
             </label>
-            <p className="text-base font-medium text-gray-900">
+            <p className="text-base font-medium text-foreground">
               {visitData?.outletName}
             </p>
           </div>
@@ -179,7 +179,7 @@ export function VisitDetailsModal({
             <label className="text-sm font-medium text-gray-600">
               Checked In
             </label>
-            <p className="text-base font-medium text-gray-900">
+            <p className="text-base font-medium text-foreground">
               {getCheckInTime()
                 ? formatDateTime(getCheckInTime() || '')
                 : '-'}
@@ -190,7 +190,7 @@ export function VisitDetailsModal({
             <label className="text-sm font-medium text-gray-600">
               Checked Out
             </label>
-            <p className="text-base font-medium text-gray-900">
+            <p className="text-base font-medium text-foreground">
               {getCheckOutTime()
                 ? formatDateTime(getCheckOutTime() || '')
                 : '-'}
@@ -213,7 +213,7 @@ export function VisitDetailsModal({
             <label className="text-sm font-medium text-gray-600">
               No Order Reason
             </label>
-            <p className="text-base font-medium text-gray-900">
+            <p className="text-base font-medium text-foreground">
               {(visitData as any)?.noOrderReasonName || '-'}
             </p>
           </div>
@@ -241,7 +241,7 @@ export function VisitDetailsModal({
                 >
                   <Popup>
                     <div className="text-center">
-                      <div className="font-semibold text-blue-600 mb-1">
+                      <div className="font-semibold text-secondary mb-1">
                         {visitData.outletName || 'Outlet'}
                       </div>
                       <div className="text-sm text-gray-600">
@@ -295,7 +295,7 @@ export function VisitDetailsModal({
                     >
                       <Popup>
                         <div className="text-center">
-                          <div className={`font-semibold mb-1 ${punch.type === 'IN' ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className={`font-semibold mb-1 ${punch.type === 'IN' ? 'text-primary' : 'text-red-600'}`}>
                             {punch.type === 'IN' ? 'Check-in' : 'Check-out'}
                           </div>
                           <div className="text-sm text-gray-600 mb-1">
@@ -320,7 +320,7 @@ export function VisitDetailsModal({
           {/* Legend */}
           <div className="mt-3 flex gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full border-2 border-blue-500 bg-white flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full border-2 border-secondary bg-card flex items-center justify-center">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9,22 9,12 15,12 15,22" />
@@ -329,7 +329,7 @@ export function VisitDetailsModal({
               <span>Outlet Location</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full bg-primary border-2 border-white flex items-center justify-center">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />

@@ -181,7 +181,7 @@ const JourneyPlanContent = () => {
   return (
     <section className="w-full space-y-6">
       <PageHeader title={pagetittleConfig.pjp.pageTitle} />
-      <div className="w-full space-y-3 rounded-lg bg-white p-4">
+      <div className="w-full space-y-3 rounded-lg bg-card p-4">
         <PjpTab />
         <div className="flex flex-col justify-between gap-4 md:flex-row">
           <div className="flex flex-col gap-2 md:flex-row">

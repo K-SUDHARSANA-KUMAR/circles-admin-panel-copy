@@ -18,7 +18,7 @@ const UserHierarchy = () => {
     <section className="w-full space-y-6">
       <PageHeader title="User Hierarchy" />
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="mb-4">
           <SearchInput
             placeholder="Search by name, code, phone..."

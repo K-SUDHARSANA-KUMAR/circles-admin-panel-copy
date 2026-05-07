@@ -7,7 +7,7 @@ const GenericProvider = ({ children }: { children: React.ReactNode }) => {
         position="top-right"
         toastOptions={{
           classNames: {
-            toast: '!font-poppins',
+            toast: '!font-inter',
             error: '!text-red-700 !border-red-100',
             success: '!text-emerald-600 !border-emerald-200',
             warning: '!text-yellow-700 !border-yellow-100',

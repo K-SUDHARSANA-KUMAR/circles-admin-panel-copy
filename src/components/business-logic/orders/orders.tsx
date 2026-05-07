@@ -76,7 +76,7 @@ export default function OrdersSection() {
 		return actions;
 	}, [permission]);
 	return (
-		<section className="w-full space-y-4 rounded-lg bg-white ">
+		<section className="w-full space-y-4 rounded-lg bg-card ">
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div className="relative w-full md:w-1/3">
 					<Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-500" />

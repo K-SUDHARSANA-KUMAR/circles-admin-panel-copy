@@ -357,7 +357,7 @@ export const ReportingManagerModal: React.FC<ReportingManagerModalProps> = ({
               {/* Warehouse Filter - Only show if enabled */}
               {showWarehouseFilter && (
                 <div className="flex-1">
-                  <Label className="text-sm font-medium text-gray-700 mb-1 block">
+                  <Label className="text-sm font-medium text-muted-foreground mb-1 block">
                     Filter by Warehouse
                   </Label>
                   <CheckboxMultiSelect
@@ -373,7 +373,7 @@ export const ReportingManagerModal: React.FC<ReportingManagerModalProps> = ({
 
               {/* Reporting Division */}
               <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700 mb-1 block">
+                <Label className="text-sm font-medium text-muted-foreground mb-1 block">
                  Filter by Reporting Division
                 </Label>
                 <MasterRecordSelect
@@ -387,7 +387,7 @@ export const ReportingManagerModal: React.FC<ReportingManagerModalProps> = ({
 
               {/* Search Bar */}
               <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700 mb-1 block">
+                <Label className="text-sm font-medium text-muted-foreground mb-1 block">
                   Search
                 </Label>
                 <div className="relative">
@@ -406,7 +406,7 @@ export const ReportingManagerModal: React.FC<ReportingManagerModalProps> = ({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Division Filter */}
               <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700 mb-1 block"> Filter by Division</Label>
+                <Label className="text-sm font-medium text-muted-foreground mb-1 block"> Filter by Division</Label>
                 <MasterRecordSelect
                   masterName="division"
                   value={selectedBusinessDivisionId}
@@ -418,7 +418,7 @@ export const ReportingManagerModal: React.FC<ReportingManagerModalProps> = ({
 
               {/* Channel Filter - shown only when Division selected */}
               <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700 mb-1 block">Filter by Channel</Label>
+                <Label className="text-sm font-medium text-muted-foreground mb-1 block">Filter by Channel</Label>
                 <MasterRecordSelect
                   masterName="channel"
                   value={selectedChannelId}
@@ -431,7 +431,7 @@ export const ReportingManagerModal: React.FC<ReportingManagerModalProps> = ({
 
               {/* Zone Filter - shown only when Channel selected */}
               <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700 mb-1 block">Filter by Zone</Label>
+                <Label className="text-sm font-medium text-muted-foreground mb-1 block">Filter by Zone</Label>
                 <MasterRecordSelect
                   masterName="zone"
                   value={selectedZoneId}
@@ -444,7 +444,7 @@ export const ReportingManagerModal: React.FC<ReportingManagerModalProps> = ({
 
               {/* Sub Zone Filter - shown only when Zone selected */}
               <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700 mb-1 block">Filter by Sub Zone</Label>
+                <Label className="text-sm font-medium text-muted-foreground mb-1 block">Filter by Sub Zone</Label>
                 <MasterRecordSelect
                   masterName="subZone"
                   value={selectedSubZoneId}

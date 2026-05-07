@@ -85,7 +85,7 @@ export const createColumns = (currentUserId?: string, getActionsForRow?: (item: 
         return (
           <div className="flex items-center justify-start">
             <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-200">
-              <Check className="h-3 w-3 text-green-600" />
+              <Check className="h-3 w-3 text-primary" />
             </div>
           </div>
         );

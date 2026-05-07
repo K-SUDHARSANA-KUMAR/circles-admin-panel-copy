@@ -237,10 +237,10 @@ const SalesPersonViewContent = () => {
   if (isLoading) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white">
+        <div className="flex flex-col gap-3 rounded-lg bg-card">
           <BreadcrumbHeader {...breadcrumb} />
         </div>
-        <div className="flex h-64 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-64 items-center justify-center rounded-lg bg-card">
           <GenericPageLoading inline={true} loadingText="Loading journey plan..." />
         </div>
       </section>
@@ -250,10 +250,10 @@ const SalesPersonViewContent = () => {
   if (error) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white">
+        <div className="flex flex-col gap-3 rounded-lg bg-card">
           <BreadcrumbHeader {...breadcrumb} />
         </div>
-        <div className="flex h-64 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-64 items-center justify-center rounded-lg bg-card">
           <GenericError text="Error loading journey plan. Please try again." />
         </div>
       </section>
@@ -262,11 +262,11 @@ const SalesPersonViewContent = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white">
+      <div className="flex flex-col gap-3 rounded-lg bg-card">
         <BreadcrumbHeader {...breadcrumb} />
       </div>
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-6 rounded-lg p-3 text-lg font-medium">
           Sales Person PJP View
         </div>
@@ -274,7 +274,7 @@ const SalesPersonViewContent = () => {
         {/* PJP Configuration */}
         <div className="rounded-lg border border-gray-200 p-4">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-700">PJP Configuration</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">PJP Configuration</h3>
             <Button
               onClick={() => setIsMapModalOpen(true)}
               className="flex items-center gap-2"
@@ -326,7 +326,7 @@ const SalesPersonViewContent = () => {
           showAssignedAreas={false} // Hide assigned areas for auto PJP
         />
       ) : (
-        <div className="flex h-64 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-64 items-center justify-center rounded-lg bg-card">
           <EmptyState text="No outlets found in the journey plan." />
         </div>
       )}

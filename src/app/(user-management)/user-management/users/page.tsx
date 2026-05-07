@@ -277,7 +277,7 @@ const UserListContent = () => {
     <section className="w-full space-y-6">
       <PageHeader title="Users " />
 
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         <div className="flex items-center justify-between">
           <div className="w-full md:w-[30%]">
             <SearchInput
@@ -309,7 +309,7 @@ const UserListContent = () => {
             )}
           </div>
           {isSyncHrSuccess && syncHrMessage && (
-            <div className="mt-2 font-medium text-green-600">
+            <div className="mt-2 font-medium text-primary">
               {syncHrMessage}
             </div>
           )}

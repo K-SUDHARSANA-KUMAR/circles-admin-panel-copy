@@ -533,7 +533,7 @@ const MasterRecordsManagePage = () => {
         currentPage={editMode ? 'Edit Record' : 'Create Record'}
       />
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Record Information
         </div>

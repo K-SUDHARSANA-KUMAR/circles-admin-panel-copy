@@ -309,7 +309,7 @@ const PincodeSelectionModal = ({
         </div>
 
         {/* Modal Actions - Fixed at Bottom */}
-        <div className="flex justify-end gap-2 border-t bg-white px-6 py-4">
+        <div className="flex justify-end gap-2 border-t bg-card px-6 py-4">
           <Button
             type="button"
             variant="outline"

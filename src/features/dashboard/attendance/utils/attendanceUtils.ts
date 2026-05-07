@@ -34,7 +34,7 @@ export const getAttendanceStatus = (
 export const getAttendanceStatusColor = (status: AttendanceStatus): string => {
   switch (status) {
     case 'Present':
-      return 'bg-green-300/20 text-green-500';
+      return 'bg-green-300/20 text-primary';
     case 'Punched In':
       return 'bg-yellow-300/20 text-yellow-500';
     case 'Absent':

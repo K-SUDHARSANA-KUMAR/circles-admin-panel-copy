@@ -35,25 +35,25 @@ export default function ViewClaimModal({
         <div className="flex items-center  rounded-md bg-gray-100 ">
           <div className="flex items-center text-sm font-medium">
             <div className="flex items-center gap-1 rounded-full px-2">
-              <span className="bg-green-600 px-3.5 py-1.5 rounded text-white">1</span>
+              <span className="bg-primary px-3.5 py-1.5 rounded text-white">1</span>
               <span>Status AI</span>
             </div>
           </div>
         
-          <div className="w-14 h-0.5 bg-green-600 mx-auto my-4" />
+          <div className="w-14 h-0.5 bg-primary mx-auto my-4" />
 
           <div className="flex items-center gap-2 text-sm font-medium">
             <div className="flex items-center gap-1 rounded-full px-3 py-1">
-              <span className="bg-green-600 px-3.5 py-1.5 rounded text-white">2</span>
+              <span className="bg-primary px-3.5 py-1.5 rounded text-white">2</span>
               <span>Zone Head</span>
             </div>
           </div>
 
-          <div className="w-14 h-0.5 bg-green-600 mx-auto my-4" />
+          <div className="w-14 h-0.5 bg-primary mx-auto my-4" />
 
           <div className="flex items-center gap-2 text-sm font-medium">
             <div className="flex items-center gap-1 rounded-full px-3 py-1">
-              <span className="bg-white px-3.5 py-1.5 rounded text-green-600 border border-green-600">3</span>
+              <span className="bg-card px-3.5 py-1.5 rounded text-primary border border-primary">3</span>
               <span>Manager</span>
             </div>
           </div>
@@ -83,15 +83,15 @@ export default function ViewClaimModal({
         <div className="flex justify-between">
           <div>
             <p className="text-sm">Claim Type</p>
-            <p className="text-base font-bold text-gray-900">Travel</p>
+            <p className="text-base font-bold text-foreground">Travel</p>
           </div>
           <div>
             <p className="text-sm ">Claim Amount</p>
-            <p className="text-base font-bold text-gray-900">400</p>
+            <p className="text-base font-bold text-foreground">400</p>
           </div>
           <div>
             <p className="text-sm ">Claim Date</p>
-            <p className=" font-bold text-gray-900">25 May, 2025</p>
+            <p className=" font-bold text-foreground">25 May, 2025</p>
           </div>
         </div>
 

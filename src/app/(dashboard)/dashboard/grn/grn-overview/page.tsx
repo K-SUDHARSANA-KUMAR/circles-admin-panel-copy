@@ -33,7 +33,7 @@ export default function GrnOverviewPage() {
 
 
 
-      <div className="rounded-lg bg-white p-4 space-y-4">
+      <div className="rounded-lg bg-card p-4 space-y-4">
         <div className="mb-4 flex gap-4">
           <div className="bg-background flex-1 rounded-lg p-2 text-lg font-medium text-center">
             Total Order: 10

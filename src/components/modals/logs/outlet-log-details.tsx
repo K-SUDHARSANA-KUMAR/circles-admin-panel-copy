@@ -30,9 +30,9 @@ const statusIconMap: Record<
   { icon: React.ReactNode; label: string; color: string }
 > = {
   verified: {
-    icon: <CheckCircle className="text-green-500 h-5 w-5" />,
+    icon: <CheckCircle className="text-primary h-5 w-5" />,
     label: 'Verified',
-    color: 'text-green-600',
+    color: 'text-primary',
   },
   invalid: {
     icon: <XCircle className="text-red-500 h-5 w-5" />,
@@ -97,7 +97,7 @@ export const OutletLogDetailsModal: React.FC<OutletLogDetailsModalProps> = ({
 
         <div className="mt-4 border rounded-lg overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-4 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 border-b">
+          <div className="grid grid-cols-4 bg-gray-100 px-4 py-2 text-sm font-semibold text-muted-foreground border-b">
             <div>S.No</div>
             <div>Document Type</div>
             <div>Status</div>

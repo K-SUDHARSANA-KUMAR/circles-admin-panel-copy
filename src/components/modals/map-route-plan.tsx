@@ -371,7 +371,7 @@ const MapRoutePlan = ({
                         icon={createDayIcon(selectedDay, outlet.index)}
                       >
                         <Popup>
-                          <div className="font-poppins flex flex-col justify-center gap-1">
+                          <div className="font-inter flex flex-col justify-center gap-1">
                             <div className="text-base font-semibold">
                               {outlet.outletName || 'Unknown Outlet'}
                             </div>

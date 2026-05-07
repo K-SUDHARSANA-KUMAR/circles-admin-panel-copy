@@ -37,7 +37,7 @@ export const DynamicLogsComponent = ({ config, enabled = true }: LogsComponentPr
   const content = (
     <section className="w-full space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <Breadcrumb>
           <BreadcrumbList>
             {config.customBreadcrumbItems ? (
@@ -83,7 +83,7 @@ export const DynamicLogsComponent = ({ config, enabled = true }: LogsComponentPr
           <div className="flex items-center gap-3">
             <Link
               href={config.backPath}
-              className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+              className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </Link>
@@ -98,7 +98,7 @@ export const DynamicLogsComponent = ({ config, enabled = true }: LogsComponentPr
       </div>
 
       {/* Table */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         {isLoading ? (
           <GenericPageLoading 
             title={config.loadingTitle} 

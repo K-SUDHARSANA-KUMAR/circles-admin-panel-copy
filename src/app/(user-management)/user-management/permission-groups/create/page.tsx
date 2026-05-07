@@ -287,7 +287,7 @@ const PermissionGroupCreateContent = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -314,7 +314,7 @@ const PermissionGroupCreateContent = () => {
           <div className="flex items-center gap-3">
             <Link
               href={NavKeys.PermissionGroups}
-              className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+              className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </Link>
@@ -346,8 +346,8 @@ const PermissionGroupCreateContent = () => {
                 Edit
               </Button>
             )}
-            <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-              <Shield className="text-freshleaf h-5 w-5" />
+            <div className="bg-primary/10 w-fit rounded-full p-2">
+              <Shield className="text-primary h-5 w-5" />
             </div>
           </div>
         </div>
@@ -355,7 +355,7 @@ const PermissionGroupCreateContent = () => {
 
       <div className="space-y-6">
         {/* Group Information */}
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background rounded-lg p-2 text-lg font-medium">
             Group Information
           </div>
@@ -431,7 +431,7 @@ const PermissionGroupCreateContent = () => {
 
         {/* Permissions Loading */}
         {selectedDivisions.length > 0 && permissions?.isLoading && (
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <Loading text="Loading Permissions" className="py-8" />
           </div>
         )}
@@ -439,7 +439,7 @@ const PermissionGroupCreateContent = () => {
         {selectedDivisions.length > 0 &&
           !permissions?.isLoading &&
           permissionGroupMap.get('web') && (
-            <div className="rounded-lg bg-white p-4">
+            <div className="rounded-lg bg-card p-4">
               <div className="bg-background rounded-lg p-2 text-lg font-medium">
                 Web Permission Information
               </div>
@@ -531,7 +531,7 @@ const PermissionGroupCreateContent = () => {
         {selectedDivisions.length > 0 &&
           !permissions?.isLoading &&
           permissionGroupMap.get('mobile') && (
-            <div className="mt-6 rounded-lg bg-white p-4">
+            <div className="mt-6 rounded-lg bg-card p-4">
               <div className="bg-background rounded-lg p-2 text-lg font-medium">
                 Mobile Permission Information
               </div>

@@ -78,7 +78,7 @@ interface ApprovalModalProps {
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'approved':
-      return <CheckCircle className="h-4 w-4 text-green-600" />;
+      return <CheckCircle className="h-4 w-4 text-primary" />;
     case 'rejected':
       return <XCircle className="h-4 w-4 text-red-600" />;
     case 'pending':
@@ -106,7 +106,7 @@ const getStatusBadge = (status: string) => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'approved':
-      return 'text-green-600';
+      return 'text-primary';
     case 'rejected':
       return 'text-red-600';
     case 'changes_required':
@@ -121,7 +121,7 @@ const getStatusColor = (status: string) => {
 const getBorderColor = (status: string) => {
   switch (status) {
     case 'approved':
-      return 'border-green-500';
+      return 'border-primary';
     case 'rejected':
       return 'border-red-500';
     case 'changes_required':
@@ -189,13 +189,13 @@ const ApprovalItem = ({
   const roleId = 'roleId' in approval ? approval.roleId : '';
   
   return (
-    <div className={`bg-white flex items-start gap-3 rounded-lg border-2 p-3 shadow-sm ${getBorderColor(status)}`}>
+    <div className={`bg-card flex items-start gap-3 rounded-lg border-2 p-3 shadow-sm ${getBorderColor(status)}`}>
       <div className="flex-shrink-0 mt-0.5">
         {getStatusIcon(status)}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start">
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-foreground">
             {isHistory ? `Level ${level} - ${'approvedBy' in approval ? approval.approvedBy : 'System'}` : `Level ${level} - ${roleName || `Role ${roleId}`}`}
           </div>
           <div className={`text-xs font-medium capitalize ${getStatusColor(status)}`}>
@@ -434,8 +434,8 @@ export default function ApprovalModal({
         <DialogHeader className="flex-shrink-0 space-y-4">
           <DialogTitle>
             <div className="flex flex-col gap-1">
-              <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-                <CheckCircle2Icon className="text-freshleaf h-5 w-5" />
+              <div className="bg-primary/10 w-fit rounded-full p-2">
+                <CheckCircle2Icon className="text-primary h-5 w-5" />
               </div>
               <div className="text-lg font-medium">Approval Details</div>
 
@@ -469,7 +469,7 @@ export default function ApprovalModal({
             {/* History Section */}
             {finalApprovalData?.history && finalApprovalData.history.length > 0 && (
               <div className="space-y-3 mb-6">
-                <h3 className="text-base font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                <h3 className="text-base font-semibold text-foreground border-b border-gray-200 pb-2">
                   Approval History
                 </h3>
                 <div className="space-y-3">
@@ -486,7 +486,7 @@ export default function ApprovalModal({
             
             {/* Pending Approvers Section */}
             <div className="space-y-3">
-              <h3 className="text-base font-semibold text-gray-900 border-b border-gray-200 pb-2">
+              <h3 className="text-base font-semibold text-foreground border-b border-gray-200 pb-2">
                 Current Pending Approvers
               </h3>
               {finalLoading ? (

@@ -243,7 +243,7 @@ const ApprovalHierarchyTable = () => {
     <section className="w-full space-y-6">
       <PageHeader title={`Approval Hierarchy${selectedTypeLabel ? ` - ${selectedTypeLabel}` : ''}`} />
 
-      <div className="w-full space-y-3 rounded-lg bg-white p-4">
+      <div className="w-full space-y-3 rounded-lg bg-card p-4">
         <div className="mb-4 flex flex-col items-center justify-between gap-2 md:flex-row">
           <div className="flex gap-2">
             {/* Filter removed - now handled by sidebar navigation */}

@@ -194,10 +194,10 @@ const EditPricingGroupContent = () => {
   if (isLoadingData || pricingGroupQuery.isLoading) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+        <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
           <BreadcrumbHeader {...breadcrumb} />
         </div>
-        <div className="w-full rounded-lg bg-white p-6">
+        <div className="w-full rounded-lg bg-card p-6">
           <div className="flex h-64 items-center justify-center">
             <Loading text="Loading..." />
           </div>
@@ -209,10 +209,10 @@ const EditPricingGroupContent = () => {
   if (pricingGroupQuery.error) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+        <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
           <BreadcrumbHeader {...breadcrumb} />
         </div>
-        <div className="w-full rounded-lg bg-white p-6">
+        <div className="w-full rounded-lg bg-card p-6">
           <div className="flex h-64 items-center justify-center">
             <div className="text-sm text-red-600">Failed to load pricing group</div>
           </div>
@@ -223,11 +223,11 @@ const EditPricingGroupContent = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <BreadcrumbHeader {...breadcrumb} />
       </div>
 
-      <div className="w-full rounded-lg bg-white p-6">
+      <div className="w-full rounded-lg bg-card p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-2">

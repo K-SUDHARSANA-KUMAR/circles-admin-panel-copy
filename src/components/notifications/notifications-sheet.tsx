@@ -187,7 +187,7 @@ const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ open, onOpenCha
             {isLoading && totalItems > 10 && (
               <div className="flex items-center justify-center py-8">
                 <div className="flex flex-col items-center gap-2">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-secondary"></div>
                   <p className="text-sm text-gray-600">Loading notifications...</p>
                 </div>
               </div>
@@ -221,10 +221,10 @@ const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ open, onOpenCha
             )}
             <div className="space-y-3">
               {getFilteredItems().map((item, index) => (
-                <div key={item._id} className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${index === 0 ? 'relative z-10' : ''}`}>
+                <div key={item._id} className={`bg-card border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${index === 0 ? 'relative z-10' : ''}`}>
                   {/* Title Flex Container */}
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-gray-900 flex-1 pr-2">
+                    <h3 className="text-sm font-semibold text-foreground flex-1 pr-2">
                       {item.title}
                     </h3>
                     <time className="text-xs text-gray-500 flex-shrink-0" aria-label="created at">
@@ -234,7 +234,7 @@ const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ open, onOpenCha
                   
                   {/* Body Flex Container */}
                   <div className="flex mb-3">
-                    <p className="text-sm text-gray-700 leading-relaxed flex-1">
+                    <p className="text-sm text-muted-foreground leading-relaxed flex-1">
                       {item.body}
                     </p>
                   </div>
@@ -270,7 +270,7 @@ const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ open, onOpenCha
                             handleMarkAsUnread(item.notificationId || item._id);
                           }}
                           disabled={markAsUnread.isPending}
-                          className={`text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed ${index === 0 ? 'relative z-20 pointer-events-auto' : ''}`}
+                          className={`text-xs text-secondary hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed ${index === 0 ? 'relative z-20 pointer-events-auto' : ''}`}
                         >
                           {markAsUnread.isPending ? 'Updating...' : 'Mark as Unread'}
                         </button>
@@ -291,7 +291,7 @@ const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ open, onOpenCha
                             handleMarkAsRead(item.notificationId || item._id);
                           }}
                           disabled={markAsRead.isPending}
-                          className={`text-xs text-green-600 hover:text-green-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed ${index === 0 ? 'relative z-20 pointer-events-auto' : ''}`}
+                          className={`text-xs text-primary hover:text-green-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed ${index === 0 ? 'relative z-20 pointer-events-auto' : ''}`}
                         >
                           {markAsRead.isPending ? 'Updating...' : 'Mark as Read'}
                         </button>

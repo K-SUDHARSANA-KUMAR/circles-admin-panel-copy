@@ -257,7 +257,7 @@ const MasterSchemaCreationContent = () => {
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-lg bg-white">
+      <div className="flex flex-col gap-3 rounded-lg bg-card">
         <BreadcrumbHeader 
           {...getBreadcrumbData('masterShema', editMode ? 'edit' : 'create')}
           backHref={groupIdFromUrl 
@@ -268,7 +268,7 @@ const MasterSchemaCreationContent = () => {
       </div>
 
       {/* The Schema Information Fields */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background rounded-lg p-2 text-lg">
           Schema Information
         </div>
@@ -321,7 +321,7 @@ const MasterSchemaCreationContent = () => {
       </div>
 
       {/* The Master Schema Fields */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background rounded-lg p-2 text-lg">Fields</div>
         <div className="mt-6 space-y-8">
           {fields.map((field, index) => (

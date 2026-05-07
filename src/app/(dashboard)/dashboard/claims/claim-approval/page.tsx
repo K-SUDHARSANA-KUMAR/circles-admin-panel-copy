@@ -116,7 +116,7 @@ export default function ApprovalClaimsPage() {
     <>
       <section className="w-full space-y-6">
         <PageHeader title={pagetittleConfig.claim.pageTitle} />
-        <div className="w-full space-y-4 rounded-lg bg-white p-4">
+        <div className="w-full space-y-4 rounded-lg bg-card p-4">
           <ClaimsTab />
           <div className="flex flex-col justify-between gap-10 md:flex-row">
             <div className="flex flex-col gap-2 md:flex-row">
@@ -159,7 +159,7 @@ export default function ApprovalClaimsPage() {
           </div>
         </div>
 
-        <div className="w-full rounded-lg bg-white p-6">
+        <div className="w-full rounded-lg bg-card p-6">
           {claims?.data?.data?.items.length > 0 ? (
             <DataTable
               columns={columns}

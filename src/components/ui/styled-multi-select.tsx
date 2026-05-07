@@ -80,7 +80,7 @@ const customStyles: StylesConfig = {
       background: '#888',
     },
     '::-webkit-scrollbar-thumb:hover': {
-      background: '#00a551',
+      background: '#7C3AED',
     },
     scrollbarWidth: 'thin',
     scrollbarColor: 'var(--freshleaf) #f1f1f1',

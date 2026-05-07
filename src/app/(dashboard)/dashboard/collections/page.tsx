@@ -222,7 +222,7 @@ const CollectionListPage = () => {
     <section className="w-full space-y-6">
       <PageHeader title="Collections" />
       
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         <div className="flex flex-col">
           <div className="flex flex-col justify-between gap-10 pb-4 md:flex-row">
             <div className="relative w-full">

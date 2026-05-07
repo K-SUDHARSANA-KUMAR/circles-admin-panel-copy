@@ -402,7 +402,7 @@ const MapRoutePlanSalesView = ({
                       icon={createSalesPersonIcon()}
                     >
                       <Popup>
-                        <div className="font-poppins flex flex-col gap-1">
+                        <div className="font-inter flex flex-col gap-1">
                           <div className="text-base font-semibold">
                             {routePlan?.userInfo?.name || 'Sales Person'}
                           </div>
@@ -458,7 +458,7 @@ const MapRoutePlanSalesView = ({
                         icon={createDateIcon(getDateColor(selectedDate), outlet.index)}
                       >
                         <Popup>
-                          <div className="font-poppins flex flex-col justify-center gap-1">
+                          <div className="font-inter flex flex-col justify-center gap-1">
                             <div className="text-base font-semibold">
                               {outlet.outletName || 'Unknown Outlet'}
                             </div>
@@ -492,7 +492,7 @@ const MapRoutePlanSalesView = ({
                           icon={createDateIcon(color, outlet.index)}
                         >
                           <Popup>
-                            <div className="font-poppins flex flex-col justify-center gap-1">
+                            <div className="font-inter flex flex-col justify-center gap-1">
                               <div className="text-base font-semibold">{outlet.outletName || 'Unknown Outlet'}</div>
                               <div className="text-sm text-gray-600">{format(new Date(date), 'MMM dd, yyyy')}</div>
                               <div className="text-sm text-gray-600">Visit Order: {outlet.index || 0}</div>

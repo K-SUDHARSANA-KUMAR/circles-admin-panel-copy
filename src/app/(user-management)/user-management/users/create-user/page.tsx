@@ -1187,7 +1187,7 @@ const UserCreateContent = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -1210,7 +1210,7 @@ const UserCreateContent = () => {
           <div className="flex items-center gap-3">
             <Link
               href={NavKeys.Users}
-              className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+              className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </Link>
@@ -1247,8 +1247,8 @@ const UserCreateContent = () => {
                 Cancel
               </Button>
             )}
-            <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-              <User className="text-freshleaf h-5 w-5" />
+            <div className="bg-primary/10 w-fit rounded-full p-2">
+              <User className="text-primary h-5 w-5" />
             </div>
           </div>
         </div>
@@ -1276,7 +1276,7 @@ const UserCreateContent = () => {
           )}
           className="space-y-6"
         >
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Basic Information
             </div>
@@ -1310,7 +1310,7 @@ const UserCreateContent = () => {
                       Phone Number <span style={{ color: 'red' }}>*</span>
                     </FormLabel>
                     <FormControl>
-                      <div className="border-input focus-within:border-freshleaf focus-within:ring-freshleaf/40 flex overflow-hidden rounded-md border bg-white transition-[color,box-shadow] focus-within:ring-[3px] focus-within:outline-none">
+                      <div className="border-input focus-within:border-primary focus-within:ring-freshleaf/40 flex overflow-hidden rounded-md border bg-card transition-[color,box-shadow] focus-within:ring-[3px] focus-within:outline-none">
                         <span className="border-input flex items-center border-r bg-gray-50 px-2 text-gray-500 select-none">
                           +91
                         </span>
@@ -1345,7 +1345,7 @@ const UserCreateContent = () => {
                   <FormItem>
                     <FormLabel>Secondary Phone Number</FormLabel>
                     <FormControl>
-                      <div className="border-input focus-within:border-freshleaf focus-within:ring-freshleaf/40 flex overflow-hidden rounded-md border bg-white transition-[color,box-shadow] focus-within:ring-[3px] focus-within:outline-none">
+                      <div className="border-input focus-within:border-primary focus-within:ring-freshleaf/40 flex overflow-hidden rounded-md border bg-card transition-[color,box-shadow] focus-within:ring-[3px] focus-within:outline-none">
                         <span className="border-input flex items-center border-r bg-gray-50 px-2 text-gray-500 select-none">
                           +91
                         </span>
@@ -1589,7 +1589,7 @@ const UserCreateContent = () => {
                       <FormControl>
                         <div className="relative">
                           <div
-                            className={`flex items-center justify-between border rounded-md px-3 py-2 bg-white cursor-pointer hover:bg-gray-50 transition-colors ${(isViewMode && !isEditing) ? 'cursor-not-allowed opacity-50' : ''}`}
+                            className={`flex items-center justify-between border rounded-md px-3 py-2 bg-card cursor-pointer hover:bg-gray-50 transition-colors ${(isViewMode && !isEditing) ? 'cursor-not-allowed opacity-50' : ''}`}
                             onClick={() => {
                               if (!(isViewMode && !isEditing)) {
                                 setIsReportingManagerModalOpen(true);
@@ -1732,7 +1732,7 @@ const UserCreateContent = () => {
             </div>
           </div>
 
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Address Information
             </div>
@@ -1750,7 +1750,7 @@ const UserCreateContent = () => {
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            className="bg-freshleaf/20 text-freshleaf flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-0.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-primary/20 text-primary flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-0.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => setIsLocationModalOpen(true)}
                             disabled={!!(isViewMode && !isEditing)}
                           >
@@ -1814,7 +1814,7 @@ const UserCreateContent = () => {
             </div>
           </div>
 
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               User Access Mappings
             </div>
@@ -1990,7 +1990,7 @@ const UserCreateContent = () => {
             }}
           />
 
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium flex justify-between">
               User PJP Settings
               <Button onClick={handlePJPClear} type="button">
@@ -2042,7 +2042,7 @@ const UserCreateContent = () => {
             </div>
           </div>
 
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               PJP Access Mappings
             </div>
@@ -2229,7 +2229,7 @@ const UserCreateContent = () => {
             })()}
           </div>
           {userId && (
-            <div className="rounded-lg bg-white p-4">
+            <div className="rounded-lg bg-card p-4">
               <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
                 Account Information
               </div>

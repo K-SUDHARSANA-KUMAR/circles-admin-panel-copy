@@ -27,8 +27,8 @@ const CalendarDay = ({
     <div
       className={cn(
         'h-30 rounded-md border-2 border-neutral-200 p-2 transition-colors hover:bg-gray-50',
-        isDayInCurrentMonth ? 'bg-white' : 'bg-neutral-100',
-        isToday(day) && 'border-freshleaf',
+        isDayInCurrentMonth ? 'bg-card' : 'bg-neutral-100',
+        isToday(day) && 'border-primary',
         isSunday && 'border-red-100 bg-red-200/10'
       )}
     >
@@ -37,8 +37,8 @@ const CalendarDay = ({
           <span
             className={cn(
               'text-base font-semibold',
-              isToday(day) && 'text-freshleaf',
-              isDayInCurrentMonth && !isToday(day) && 'text-gray-900',
+              isToday(day) && 'text-primary',
+              isDayInCurrentMonth && !isToday(day) && 'text-foreground',
               !isDayInCurrentMonth && 'text-gray-400'
             )}
           >

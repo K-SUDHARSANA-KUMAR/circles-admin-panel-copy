@@ -513,7 +513,7 @@ export const ProductMultiSelectSection: React.FC<
     };
 
     return (
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Map Products
         </div>
@@ -546,7 +546,7 @@ export const ProductMultiSelectSection: React.FC<
         {!shouldHideFilters && (
           <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-muted-foreground">
                 Brand
               </label>
               <MasterRecordDropdown
@@ -558,7 +558,7 @@ export const ProductMultiSelectSection: React.FC<
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-muted-foreground">
                 Category
               </label>
               <MasterRecordDropdown
@@ -570,7 +570,7 @@ export const ProductMultiSelectSection: React.FC<
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-muted-foreground">
                 Subcategory
               </label>
               <MasterRecordDropdown
@@ -600,7 +600,7 @@ export const ProductMultiSelectSection: React.FC<
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="mb-2 text-sm font-medium text-gray-700">
+            <div className="mb-2 text-sm font-medium text-muted-foreground">
               {shouldHideFilters
                 ? 'Mapped Products'
                 : 'Selected Products'}

@@ -168,7 +168,7 @@ function OutletApprovalContent() {
     <section className="w-full space-y-6">
       <PageHeader title="Outlets" />
 
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         <OutletsTab />
         <div>
           <div className="flex flex-col justify-between gap-10 pb-4 md:flex-row">

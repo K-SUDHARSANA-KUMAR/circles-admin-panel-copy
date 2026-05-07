@@ -306,7 +306,7 @@ function OutletContent() {
     <section className="w-full space-y-6">
       <PageHeader title="Outlets" />
 
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         <OutletsTab />
         <div>
           <div className="flex flex-col justify-between gap-10 pb-4 md:flex-row">
@@ -348,7 +348,7 @@ function OutletContent() {
                 type="button"
                 variant="outline"
                 onClick={() => setBeatModalOpen(true)}
-                className="w-full justify-between h-10 px-3 py-2 text-left font-normal border border-input bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                className="w-full justify-between h-10 px-3 py-2 text-left font-normal border border-input bg-card hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               >
                 <span className="truncate">
                   {selectedBeat ? selectedBeat.beatName : 'Beat'}

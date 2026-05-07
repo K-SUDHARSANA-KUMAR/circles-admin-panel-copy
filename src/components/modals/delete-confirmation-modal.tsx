@@ -35,7 +35,7 @@ export const DeleteConfirmationModal = ({
             <AlertTriangle className="h-6 w-6 text-red-600" />
           </div>
           
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-foreground">
             {title}
           </h2>
           

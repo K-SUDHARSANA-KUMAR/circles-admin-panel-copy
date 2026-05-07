@@ -150,11 +150,11 @@ export const PricingGroupProductsViewer = ({
                       {/* Pricing Group Information */}
                       {product.pricingGroup && product.pricingGroup.length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-blue-600">
+                          <div className="text-xs font-medium text-secondary">
                             Pricing Group Details:
                           </div>
                           {product.pricingGroup.map((pricing, index) => (
-                            <div key={index} className="bg-blue-50 p-2 rounded text-xs">
+                            <div key={index} className="bg-secondary/10 p-2 rounded text-xs">
                               <div className="flex items-center gap-1 mb-1">
                                 <MapPin className="h-3 w-3" />
                                 <span>Warehouse: {pricing.warehouseId}</span>

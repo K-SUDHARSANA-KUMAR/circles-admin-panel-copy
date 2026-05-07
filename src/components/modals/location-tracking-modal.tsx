@@ -59,8 +59,8 @@ export function LocationTrackingModal({
         <DialogHeader>
           <DialogTitle>
             <div className="flex flex-col gap-1">
-              <div className="bg-freshleaf/10 w-fit rounded-full p-2"> Location Tracking
-                <MapPin className="text-freshleaf h-5 w-25" /> 
+              <div className="bg-primary/10 w-fit rounded-full p-2"> Location Tracking
+                <MapPin className="text-primary h-5 w-25" /> 
               </div>
             </div>
           </DialogTitle>
@@ -77,7 +77,7 @@ export function LocationTrackingModal({
 
           {selectedCoordinates && (
             <div className="bg-neutral-100 p-3 rounded-lg">
-              <div className="text-sm font-medium text-gray-700 mb-1">
+              <div className="text-sm font-medium text-muted-foreground mb-1">
                 Selected Coordinates:
               </div>
               <div className="text-sm text-gray-600">

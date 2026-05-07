@@ -124,7 +124,7 @@ function OrderContent() {
   return (
     <section className="w-full space-y-6">
       <PageHeader title="Orders" />
-      <div className="w-full space-y-3 rounded-lg bg-white p-4">
+      <div className="w-full space-y-3 rounded-lg bg-card p-4">
         <OrdersTab />
 
         <div className="w-full space-y-4">

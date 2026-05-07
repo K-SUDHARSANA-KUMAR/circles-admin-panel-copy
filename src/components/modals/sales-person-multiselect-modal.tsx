@@ -291,7 +291,7 @@ export const SalesPersonMultiSelectModal = ({
             ) : null}
           </div>
 
-          <div className="flex-1 overflow-hidden rounded-lg border bg-white">
+          <div className="flex-1 overflow-hidden rounded-lg border bg-card">
             {warehouseIds.length === 0 ? (
               <div className="flex h-full items-center justify-center px-6 text-sm text-muted-foreground">
                 Sales person list will appear once warehouses are selected.

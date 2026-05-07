@@ -112,7 +112,7 @@ export function UserSidebar() {
                   <SidebarMenuButton
                     className={cn(
                       'w-full justify-between',
-                      isMenuItemActive(item) && 'bg-freshleaf text-white'
+                      isMenuItemActive(item) && 'bg-primary text-white'
                     )}
                     asChild
                   >

@@ -152,7 +152,7 @@ const PricingGroupContent = () => {
       <section className="w-full space-y-6">
         <PageHeader title="Customer Groups" />
 
-        <div className="w-full rounded-lg bg-white p-4">
+        <div className="w-full rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <GenericError text="Error loading pricing groups. Please try again." />
           </div>
@@ -165,7 +165,7 @@ const PricingGroupContent = () => {
     <section className="w-full space-y-6">
       <PageHeader title="Customer Groups" />
 
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         <ProductTabs />
         <div className="flex flex-col">
           <div className="flex flex-col justify-between gap-10 pb-4 md:flex-row">

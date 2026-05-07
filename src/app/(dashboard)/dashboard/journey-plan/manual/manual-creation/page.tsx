@@ -841,10 +841,10 @@ const ManualCreationContent = () => {
   if (isEditMode && isLoadingExistingData) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white">
+        <div className="flex flex-col gap-3 rounded-lg bg-card">
           <BreadcrumbHeader {...breadcrumb} />
         </div>
-        <div className="flex h-64 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-64 items-center justify-center rounded-lg bg-card">
           <GenericPageLoading inline={true} loadingText="Please Wait..." />
         </div>
       </section>
@@ -853,11 +853,11 @@ const ManualCreationContent = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white">
+      <div className="flex flex-col gap-3 rounded-lg bg-card">
         <BreadcrumbHeader {...breadcrumb} />
       </div>
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-6 rounded-lg p-3 text-lg font-medium">
           {isEditMode
             ? 'Edit Manual PJP Information'
@@ -918,7 +918,7 @@ const ManualCreationContent = () => {
               hidePagination={!isEditMode}
             />
           ) : isEditMode && canAddMoreDays ? (
-            <div className="rounded-lg bg-white p-4">
+            <div className="rounded-lg bg-card p-4">
               <div className="bg-background mb-6 flex items-center justify-between rounded-lg p-3">
                 <span className="text-lg font-medium">Outlet Visit</span>
                 <Button

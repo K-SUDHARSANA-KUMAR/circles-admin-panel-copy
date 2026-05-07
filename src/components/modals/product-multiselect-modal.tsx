@@ -376,7 +376,7 @@ export const ProductMultiSelectModal: React.FC<ProductMultiSelectModalProps> = (
           <div className="flex-shrink-0 space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Search</label>
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">Search</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
@@ -388,7 +388,7 @@ export const ProductMultiSelectModal: React.FC<ProductMultiSelectModalProps> = (
                 </div>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Brand</label>
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">Brand</label>
                 <MasterRecordSelect
                   masterName="brand"
                   value={selectedBrandId}
@@ -397,7 +397,7 @@ export const ProductMultiSelectModal: React.FC<ProductMultiSelectModalProps> = (
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">Category</label>
                 <MasterRecordSelect
                   masterName="category"
                   value={selectedCategoryId}
@@ -406,7 +406,7 @@ export const ProductMultiSelectModal: React.FC<ProductMultiSelectModalProps> = (
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Subcategory</label>
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">Subcategory</label>
                 <MasterRecordSelect
                   masterName="subcategory"
                   value={selectedSubcategoryId}

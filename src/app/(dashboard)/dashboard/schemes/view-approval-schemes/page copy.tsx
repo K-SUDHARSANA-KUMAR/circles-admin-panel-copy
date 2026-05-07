@@ -227,7 +227,7 @@ const SchemeCreatePage = () => {
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Basic Information - Left Column */}
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Basic Information
           </div>
@@ -272,7 +272,7 @@ const SchemeCreatePage = () => {
         </div>
 
         {/* Applicable To - Right Column */}
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Applicable To
           </div>
@@ -507,7 +507,7 @@ const SchemeCreatePage = () => {
       </div>
 
       {/* Scheme Details / Conditions */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Scheme Details
         </div>

@@ -320,7 +320,7 @@ const PJPConfigFormContent = () => {
   if (configQuery?.isLoading) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+        <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -344,7 +344,7 @@ const PJPConfigFormContent = () => {
             </BreadcrumbList>
           </Breadcrumb>
         </div>
-        <div className="w-full rounded-lg bg-white p-6">
+        <div className="w-full rounded-lg bg-card p-6">
           <div className="flex h-64 items-center justify-center">
             <Loading text="Loading configuration..." />
           </div>
@@ -357,7 +357,7 @@ const PJPConfigFormContent = () => {
   if (configQuery?.error) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+        <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -381,7 +381,7 @@ const PJPConfigFormContent = () => {
             </BreadcrumbList>
           </Breadcrumb>
         </div>
-        <div className="w-full rounded-lg bg-white p-6">
+        <div className="w-full rounded-lg bg-card p-6">
           <div className="flex h-64 items-center justify-center">
             <GenericError text="Error loading configuration. Please try again." />
           </div>
@@ -395,7 +395,7 @@ const PJPConfigFormContent = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -422,7 +422,7 @@ const PJPConfigFormContent = () => {
           <div className="flex items-center gap-3">
             <Link
               href={NavKeys.PjpConfig}
-              className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+              className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </Link>
@@ -467,7 +467,7 @@ const PJPConfigFormContent = () => {
         </div>
       </div>
 
-      <div className="w-full rounded-lg bg-white p-6">
+      <div className="w-full rounded-lg bg-card p-6">
         {/* Form for Create/Edit/View modes */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -801,7 +801,7 @@ const PJPConfigFormContent = () => {
 
 
       {(isViewMode || isEditMode) && (
-        <div className="w-full rounded-lg bg-white p-6">
+        <div className="w-full rounded-lg bg-card p-6">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             PJP Configuration Insights
           </div>
