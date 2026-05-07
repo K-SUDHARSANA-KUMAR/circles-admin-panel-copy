@@ -80,7 +80,7 @@ export const BeatDetailsSection = ({ form, stateId, districtId, disabled = false
   const beatPriority = form.watch('beatDetails.beatPriority');
 
   return (
-    <div className="rounded-lg bg-white p-4">
+    <div className="rounded-lg bg-card p-4">
       <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
         Beat Details
       </div>

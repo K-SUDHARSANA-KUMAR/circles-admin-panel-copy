@@ -30,7 +30,7 @@ export default function GenericPageError({
         <div className="text-xl font-medium">{title || ''}</div>
         {showSpringBoard && <SpringBoard />}
       </div>
-      <div className="w-full rounded-lg bg-white p-4">
+      <div className="w-full rounded-lg bg-card p-4">
         <div className="flex h-64 items-center justify-center">
           <GenericError text={errorText} />
         </div>

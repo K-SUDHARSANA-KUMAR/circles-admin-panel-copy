@@ -213,7 +213,7 @@ const PJPConfigContent = () => {
       <section className="w-full space-y-6">
         <PageHeader title="PJP Configuration" />
 
-        <div className="w-full rounded-lg bg-white p-4">
+        <div className="w-full rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <Loading text="Loading PJP configurations..." />
           </div>
@@ -227,7 +227,7 @@ const PJPConfigContent = () => {
       <section className="w-full space-y-6">
         <PageHeader title="PJP Configuration" />
 
-        <div className="w-full rounded-lg bg-white p-4">
+        <div className="w-full rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <GenericError text="Error loading PJP configurations. Please try again." />
           </div>
@@ -240,7 +240,7 @@ const PJPConfigContent = () => {
     <section className="w-full space-y-6">
       <PageHeader title="PJP Configuration" />
 
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         <div className="flex flex-col gap-4 pb-4 md:flex-row md:items-center md:justify-between">
           <div className="flex w-full md:w-auto md:min-w-[350px]">
             <WarehouseDropdown
@@ -255,7 +255,7 @@ const PJPConfigContent = () => {
             <Button 
               type="button" 
               variant="outline" 
-              className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 whitespace-nowrap"
+              className="bg-secondary/10 border-blue-200 text-secondary hover:bg-blue-100 whitespace-nowrap"
               title="test"
               onClick={handleCreatePJP}
             >

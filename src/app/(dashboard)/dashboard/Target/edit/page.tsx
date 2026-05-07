@@ -278,12 +278,12 @@ export default function TargetEditPage() {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <BreadcrumbHeader {...breadcrumb} />
       </div>
 
       {/* Target Information */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Target Information
         </div>
@@ -389,7 +389,7 @@ export default function TargetEditPage() {
 
       {/* Applicable To - only editable for draft */}
       {areApplicableFieldsVisible && (
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Applicable To <span className="text-red-500">*</span>
           </div>
@@ -643,7 +643,7 @@ export default function TargetEditPage() {
         </Button>
         <Button
           type="button"
-          className="bg-freshleaf text-white hover:bg-freshleaf/90"
+          className="bg-primary text-white hover:bg-primary/90"
           disabled={updateTarget.isPending}
           onClick={async () => {
             // Always validate name

@@ -57,7 +57,7 @@ export const ImageUploadGroup: React.FC<ImageUploadGroupProps> = ({
                     <p className="mb-2 px-2 text-center text-sm text-neutral-500">
                       Click to upload Image {imgIdx + 1}
                     </p>
-                    <div className="bg-freshleaf rounded-md p-2 text-white">
+                    <div className="bg-primary rounded-md p-2 text-white">
                       <Plus className="h-5 w-5" />
                     </div>
                   </div>

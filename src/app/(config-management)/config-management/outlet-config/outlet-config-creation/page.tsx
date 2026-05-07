@@ -240,7 +240,7 @@ const OutletConfigCreationContent = () => {
       <div className="flex items-center gap-3 mb-2">
         <Link
           href={NavKeys.OutletConfig}
-          className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+          className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
         >
           <ArrowLeftIcon className="h-5 w-5" />
         </Link>
@@ -248,7 +248,7 @@ const OutletConfigCreationContent = () => {
           <h1 className="text-xl font-medium">Outlet Hierarchy Configuration</h1>
         </div>
       </div>
-      <div className="w-full space-y-3 rounded-lg bg-white p-4">
+      <div className="w-full space-y-3 rounded-lg bg-card p-4">
         <div className="flex flex-col justify-between gap-10 md:flex-row">
           <div className="flex flex-col gap-2 md:flex-row">
             <MasterRecordDropdown
@@ -291,12 +291,12 @@ const OutletConfigCreationContent = () => {
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-3 min-w-fit">
                         <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 rounded-xl">
-                          <span className="text-xs font-semibold text-gray-700">
+                          <span className="text-xs font-semibold text-muted-foreground">
                             {level.replace('Level ', 'L')}
                           </span>
                         </div>
                         <div className="hidden sm:block">
-                          <div className="text-sm font-medium text-gray-900">{level}</div>
+                          <div className="text-sm font-medium text-foreground">{level}</div>
                           <div className="text-xs text-gray-500">Approval Stage</div>
                         </div>
                       </div>
@@ -311,7 +311,7 @@ const OutletConfigCreationContent = () => {
                                 <div className="w-64 bg-gradient-to-br from-white to-gray-50/30 border border-gray-200/60 rounded-2xl p-5 hover:border-gray-300/60 transition-all duration-300 backdrop-blur-sm">
                                   <div className="flex items-center justify-between">
                                     <div className="flex-1 min-w-0">
-                                      <h4 className="font-medium text-gray-900 mb-2 truncate pr-2">
+                                      <h4 className="font-medium text-foreground mb-2 truncate pr-2">
                                         {approver.approver}
                                       </h4>
                                       <div className="inline-flex items-center">
@@ -319,7 +319,7 @@ const OutletConfigCreationContent = () => {
                                           className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                                             approver.mandatory
                                               ? 'bg-red-50 text-red-700 border-red-200'
-                                              : 'bg-blue-50 text-blue-700 border-blue-200'
+                                              : 'bg-secondary/10 text-secondary border-blue-200'
                                           }`}
                                         >
                                           {approver.approvalType}
@@ -348,9 +348,9 @@ const OutletConfigCreationContent = () => {
                                 <Button
                                   variant="outline"
                                   onClick={() => handleAddApprover(level)}
-                                  className="h-12 w-12 border-2 border-dashed border-gray-300 hover:border-freshleaf hover:bg-freshleaf/5 transition-all duration-200 rounded-full group p-0"
+                                  className="h-12 w-12 border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-all duration-200 rounded-full group p-0"
                                 >
-                                  <PlusIcon className="h-5 w-5 group-hover:text-freshleaf transition-colors" />
+                                  <PlusIcon className="h-5 w-5 group-hover:text-primary transition-colors" />
                                 </Button>
                               </div>
                             )}
@@ -366,7 +366,7 @@ const OutletConfigCreationContent = () => {
                             <Button
                               variant="outline"
                               onClick={() => handleAddApprover(`Level ${parseInt(level.replace('Level ', '')) + 1}`, true)}
-                              className="h-10 px-4 mx-4 border-2 border-dashed border-gray-300 hover:border-freshleaf hover:bg-freshleaf/5 hover:text-freshleaf transition-all duration-200 rounded-xl group bg-white"
+                              className="h-10 px-4 mx-4 border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-200 rounded-xl group bg-card"
                             >
                               <PlusIcon className="mr-2 h-3 w-3 group-hover:scale-110 transition-transform" />
                               Add Level
@@ -385,7 +385,7 @@ const OutletConfigCreationContent = () => {
                     <Button
                       variant="outline"
                       onClick={() => handleAddApprover(`Level ${levels.length + 1}`)}
-                      className="h-10 px-4 border-2 border-dashed border-gray-300 hover:border-freshleaf hover:bg-freshleaf/5 hover:text-freshleaf transition-all duration-200 rounded-xl group bg-white"
+                      className="h-10 px-4 border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-200 rounded-xl group bg-card"
                     >
                       <PlusIcon className="mr-2 h-3 w-3 group-hover:scale-110 transition-transform" />
                       Add Level
@@ -400,7 +400,7 @@ const OutletConfigCreationContent = () => {
                     <Settings className="h-10 w-10 text-gray-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <h3 className="text-lg font-medium text-foreground mb-2">
                       No Configuration Found
                     </h3>
                     <p className="text-gray-500 text-sm leading-relaxed">
@@ -417,7 +417,7 @@ const OutletConfigCreationContent = () => {
                   <Settings className="h-10 w-10 text-gray-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     No Configuration Selected
                   </h3>
                   <p className="text-gray-500 text-sm leading-relaxed">

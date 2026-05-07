@@ -161,12 +161,12 @@ const ApprovalItem = ({
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-lg border-2 bg-white p-3 shadow-sm ${getBorderColor(status)}`}
+      className={`flex items-start gap-3 rounded-lg border-2 bg-card p-3 shadow-sm ${getBorderColor(status)}`}
     >
       <div className="mt-0.5 flex-shrink-0">{getStatusIcon(status)}</div>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between">
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-foreground">
             {isHistory
               ? `Level ${level} - ${'approvedBy' in approval ? approval.approvedBy : 'System'}`
               : `Level ${level} - ${roleName || `Role ${roleId}`}`}
@@ -205,7 +205,7 @@ const ApprovalItem = ({
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'approved':
-      return <CheckCircle className="h-4 w-4 text-green-600" />;
+      return <CheckCircle className="h-4 w-4 text-primary" />;
     case 'rejected':
       return <XCircle className="h-4 w-4 text-red-600" />;
     case 'pending':
@@ -218,7 +218,7 @@ const getStatusIcon = (status: string) => {
 const getBorderColor = (status: string) => {
   switch (status) {
     case 'approved':
-      return 'border-green-500';
+      return 'border-primary';
     case 'rejected':
       return 'border-red-500';
     case 'changes_required':
@@ -233,7 +233,7 @@ const getBorderColor = (status: string) => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'approved':
-      return 'text-green-600';
+      return 'text-primary';
     case 'rejected':
       return 'text-red-600';
     case 'changes_required':
@@ -528,7 +528,7 @@ const SchemeApprovalPage = ({
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Basic Information - Left Column */}
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Basic Information
           </div>
@@ -573,7 +573,7 @@ const SchemeApprovalPage = ({
         </div>
 
         {/* Applicable To - Right Column */}
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Applicable To
           </div>
@@ -846,7 +846,7 @@ const SchemeApprovalPage = ({
       </div>
 
       {/* Scheme Details / Conditions */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Scheme Details
         </div>
@@ -968,7 +968,7 @@ const SchemeApprovalPage = ({
       </div>
 
       {/* Scheme Approval Details */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Approval Details
         </div>
@@ -1000,7 +1000,7 @@ const SchemeApprovalPage = ({
               {finalApprovalData?.history &&
                 finalApprovalData.history.length > 0 && (
                   <div className="mb-6 space-y-3">
-                    <h3 className="border-b border-gray-200 pb-2 text-base font-semibold text-gray-900">
+                    <h3 className="border-b border-gray-200 pb-2 text-base font-semibold text-foreground">
                       Approval History
                     </h3>
                     <div className="space-y-3">
@@ -1019,7 +1019,7 @@ const SchemeApprovalPage = ({
 
               {/* Pending Approvers Section */}
               <div className="space-y-3">
-                <h3 className="border-b border-gray-200 pb-2 text-base font-semibold text-gray-900">
+                <h3 className="border-b border-gray-200 pb-2 text-base font-semibold text-foreground">
                   Current Pending Approvers
                 </h3>
                 <div className="space-y-3">

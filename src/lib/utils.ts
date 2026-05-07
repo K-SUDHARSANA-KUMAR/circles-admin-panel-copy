@@ -22,9 +22,9 @@ export const getStatusColor = (value: string): string => {
     case 'pending':
       return 'bg-yellow-100 text-yellow-800';
     case 'blocked':
-      return 'bg-gray-300 text-gray-700';
+      return 'bg-gray-300 text-muted-foreground';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-100 text-foreground';
   }
 };
 

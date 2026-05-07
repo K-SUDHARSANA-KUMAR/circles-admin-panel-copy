@@ -412,8 +412,8 @@ export const AddProductModal = ({
         <DialogHeader className="flex-shrink-0 space-y-4">
           <DialogTitle>
             <div className="flex flex-col gap-1">
-              <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-                <ShoppingCart className="text-freshleaf h-5 w-5" />
+              <div className="bg-primary/10 w-fit rounded-full p-2">
+                <ShoppingCart className="text-primary h-5 w-5" />
               </div>
               <div className="text-lg font-medium">Add Products</div>
               <div className="text-sm font-normal text-zinc-500">
@@ -513,7 +513,7 @@ export const AddProductModal = ({
                               </Badge>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-lg font-semibold text-green-600">
+                              <span className="text-lg font-semibold text-primary">
                                 ₹{getProductPrice(product)}
                               </span>
                               <span className="text-xs text-gray-500">
@@ -625,7 +625,7 @@ export const AddProductModal = ({
                                 <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
                                   Discounted Product
                                 </Badge>
-                                <span className="text-base font-semibold text-green-600">
+                                <span className="text-base font-semibold text-primary">
                                   ₹{getProductPrice(product)}
                                 </span>
                               </>
@@ -634,7 +634,7 @@ export const AddProductModal = ({
                                 Free Product
                               </Badge>
                             ) : (
-                              <span className="text-base font-semibold text-green-600">
+                              <span className="text-base font-semibold text-primary">
                                 ₹{getProductPrice(product)}
                               </span>
                             )}

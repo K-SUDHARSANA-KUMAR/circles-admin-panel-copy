@@ -32,7 +32,7 @@ export const DuplicateOutletsCard = ({ outletId }: DuplicateOutletsCardProps) =>
 
   if (duplicateQuery.isLoading) {
     return (
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Duplicate Outlets
         </div>
@@ -60,7 +60,7 @@ export const DuplicateOutletsCard = ({ outletId }: DuplicateOutletsCardProps) =>
   const footerHeight = maxReasons > 0 ? Math.max(80, 42 + (maxReasons * 20)) : 80;
 
   return (
-    <div className="rounded-lg bg-white p-4 w-full max-w-full overflow-x-hidden">
+    <div className="rounded-lg bg-card p-4 w-full max-w-full overflow-x-hidden">
       <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium flex items-center gap-2">
         <AlertTriangle className="h-5 w-5 text-amber-600" />
         Duplicate Outlets
@@ -70,7 +70,7 @@ export const DuplicateOutletsCard = ({ outletId }: DuplicateOutletsCardProps) =>
           {duplicateOutlets.map((outlet) => (
             <div
               key={outlet.outletId}
-              className="flex-shrink-0 w-[450px] rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col"
+              className="flex-shrink-0 w-[450px] rounded-lg border border-gray-200 bg-card shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col"
               style={{ height: `${200 + footerHeight}px` }}
             >
               {/* Top Section - Image and Details - Fixed Height */}
@@ -108,14 +108,14 @@ export const DuplicateOutletsCard = ({ outletId }: DuplicateOutletsCardProps) =>
                 {/* Right side - Details */}
                 <div className="flex-1 min-w-0 space-y-2.5">
                   <div className="space-y-1.5">
-                    <h3 className="font-semibold text-gray-900 text-lg truncate">
+                    <h3 className="font-semibold text-foreground text-lg truncate">
                       {outlet.outletName}
                     </h3>
                     <div className="flex flex-col gap-1">
                       {outlet.outletCode && (
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-gray-500">Code:</span>
-                          <span className="text-sm text-gray-700 font-medium">{outlet.outletCode}</span>
+                          <span className="text-sm text-muted-foreground font-medium">{outlet.outletCode}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2">
@@ -128,16 +128,16 @@ export const DuplicateOutletsCard = ({ outletId }: DuplicateOutletsCardProps) =>
                   <div className="space-y-1.5 pt-1 border-t border-gray-100">
                     <div className="flex items-start gap-2">
                       <span className="text-xs font-medium text-gray-500 min-w-[50px]">Owner:</span>
-                      <span className="text-sm text-gray-700 truncate">{outlet.ownerName}</span>
+                      <span className="text-sm text-muted-foreground truncate">{outlet.ownerName}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-xs font-medium text-gray-500 min-w-[50px]">Phone:</span>
-                      <span className="text-sm text-gray-700">{outlet.phoneNumber}</span>
+                      <span className="text-sm text-muted-foreground">{outlet.phoneNumber}</span>
                     </div>
                     {outlet.email && (
                       <div className="flex items-start gap-2">
                         <span className="text-xs font-medium text-gray-500 min-w-[50px]">Email:</span>
-                        <span className="text-sm text-gray-700 truncate">{outlet.email}</span>
+                        <span className="text-sm text-muted-foreground truncate">{outlet.email}</span>
                       </div>
                     )}
                   </div>
@@ -151,7 +151,7 @@ export const DuplicateOutletsCard = ({ outletId }: DuplicateOutletsCardProps) =>
                         const url = `${NavKeys.OutletCreation}?mode=view&outletId=${outlet.outletId}`;
                         window.open(url, '_blank');
                       }}
-                      className="absolute bottom-4 right-4 p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 bg-white shadow-sm"
+                      className="absolute bottom-4 right-4 p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 bg-card shadow-sm"
                       aria-label="View outlet details"
                     >
                       <ChevronRight className="h-5 w-5" />

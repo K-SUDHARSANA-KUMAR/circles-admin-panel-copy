@@ -10,7 +10,7 @@ type Props = {
 
 export const OutletAccountsInfoSection = ({ form, disabled = false }: Props) => {
   return (
-    <div className="rounded-lg bg-white p-4">
+    <div className="rounded-lg bg-card p-4">
       <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
         Outlet Accounts Informations
       </div>

@@ -90,7 +90,7 @@ export default function TargetPage() {
     const actions = [
       {
         title: "Edit",
-        icon: <span className="text-blue-600"></span>,
+        icon: <span className="text-secondary"></span>,
         handleAction: () => handleEdit(row),
       },
     ];
@@ -99,7 +99,7 @@ export default function TargetPage() {
     if (row.status === 'active') {
       actions.push({
         title: "View",
-        icon: <span className="text-blue-600"></span>,
+        icon: <span className="text-secondary"></span>,
         handleAction: () => handleView(row),
       });
     }
@@ -111,7 +111,7 @@ export default function TargetPage() {
     <section className="w-full space-y-6">
       <PageHeader title="Target" />
 
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row">
           <div className="relative">
             <SearchInput

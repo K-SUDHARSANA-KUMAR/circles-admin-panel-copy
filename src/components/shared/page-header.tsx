@@ -15,7 +15,7 @@ const PageHeader = ({ title }: PageHeaderProps) => {
         <div className="md:hidden">
           <SidebarTrigger />
         </div>
-        <div className="text-xl font-medium">{title}</div>
+        <h1 className="text-3xl font-bold">{title}</h1>
       </div>
 
       <SpringBoard />

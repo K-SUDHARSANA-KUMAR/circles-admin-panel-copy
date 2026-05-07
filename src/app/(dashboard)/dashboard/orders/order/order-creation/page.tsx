@@ -1144,7 +1144,7 @@ const PlaceOrdersContent = () => {
     return (
       <section className="w-full space-y-6">
         <BreadcrumbHeader {...breadcrumb} />
-        <div className="flex h-64 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-64 items-center justify-center rounded-lg bg-card">
           <Loading text="Loading order details..." />
         </div>
       </section>
@@ -1154,7 +1154,7 @@ const PlaceOrdersContent = () => {
   if ((isViewMode || isViewEditMode) && orderQuery.error) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+        <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -1175,7 +1175,7 @@ const PlaceOrdersContent = () => {
             <div className="flex items-center gap-3">
               <Link
                 href={NavKeys.Orders}
-                className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+                className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
               >
                 <ArrowLeftIcon className="h-5 w-5" />
               </Link>
@@ -1198,7 +1198,7 @@ const PlaceOrdersContent = () => {
   if ((isViewMode || isViewEditMode) && orderQuery.isFetching) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+        <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -1219,7 +1219,7 @@ const PlaceOrdersContent = () => {
             <div className="flex items-center gap-3">
               <Link
                 href={NavKeys.Orders}
-                className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+                className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
               >
                 <ArrowLeftIcon className="h-5 w-5" />
               </Link>
@@ -1230,7 +1230,7 @@ const PlaceOrdersContent = () => {
             </div>
           </div>
         </div>
-        <div className="flex h-64 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-64 items-center justify-center rounded-lg bg-card">
           <Loading text="Updating order..." />
         </div>
       </section>
@@ -1305,7 +1305,7 @@ const PlaceOrdersContent = () => {
       />
 
       {!isViewMode && !isViewEditMode && (
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Order Details
           </div>
@@ -1451,7 +1451,7 @@ const PlaceOrdersContent = () => {
 
       {/* Selected Outlet Information */}
       {((selectedOutlet && selectedOutletName) || ((isViewMode || isViewEditMode) && orderQuery.data?.outletDetails)) && (
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Selected Outlet Information
           </div>
@@ -1545,7 +1545,7 @@ const PlaceOrdersContent = () => {
         </div>
       )}
 
-      <div className="space-y-4 rounded-lg bg-white p-4">
+      <div className="space-y-4 rounded-lg bg-card p-4">
         <div className="bg-background mb-2 flex items-center rounded-lg p-2">
           <span className="text-lg font-medium">Product List</span>
         </div>
@@ -1553,7 +1553,7 @@ const PlaceOrdersContent = () => {
         {!selectedOutlet && !(isViewMode || isViewEditMode) ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Store className="mb-4 h-12 w-12 text-gray-300" />
-            <h3 className="mb-2 text-lg font-medium text-gray-900">
+            <h3 className="mb-2 text-lg font-medium text-foreground">
               No Outlet Selected
             </h3>
             <p className="mb-4 max-w-md text-sm text-gray-500">
@@ -1563,9 +1563,9 @@ const PlaceOrdersContent = () => {
             <div className="flex flex-col gap-2 text-xs text-gray-400">
               <div className="flex items-center gap-2">
                 <span
-                  className={`h-2 w-2 rounded-full ${selectedWarehouse ? 'bg-green-500' : 'bg-gray-300'}`}
+                  className={`h-2 w-2 rounded-full ${selectedWarehouse ? 'bg-primary' : 'bg-gray-300'}`}
                 ></span>
-                <span className={selectedWarehouse ? 'text-green-600' : ''}>
+                <span className={selectedWarehouse ? 'text-primary' : ''}>
                   {selectedWarehouse
                     ? 'Warehouse selected'
                     : 'Select warehouse'}
@@ -1573,9 +1573,9 @@ const PlaceOrdersContent = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`h-2 w-2 rounded-full ${selectedOutlet ? 'bg-green-500' : 'bg-gray-300'}`}
+                  className={`h-2 w-2 rounded-full ${selectedOutlet ? 'bg-primary' : 'bg-gray-300'}`}
                 ></span>
-                <span className={selectedOutlet ? 'text-green-600' : ''}>
+                <span className={selectedOutlet ? 'text-primary' : ''}>
                   {selectedOutlet ? 'Outlet selected' : 'Select outlet'}
                 </span>
               </div>
@@ -1630,7 +1630,7 @@ const PlaceOrdersContent = () => {
       </div>
 
       {/* Bill Details Section */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Bill Details
         </div>
@@ -1646,7 +1646,7 @@ const PlaceOrdersContent = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Discount:</span>
-              <span className="font-medium text-green-600">
+              <span className="font-medium text-primary">
                 -₹{orderQuery.data.totalDiscountAmount?.toLocaleString() || '0'}
               </span>
             </div>
@@ -1702,12 +1702,12 @@ const PlaceOrdersContent = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Discount:</span>
-              <span className="font-medium text-green-600">-₹0</span>
+              <span className="font-medium text-primary">-₹0</span>
             </div>
             {calculatedRewards && calculatedRewards.totalDiscount > 0 && !hasProductLevelDiscounts() && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Scheme Discount:</span>
-                <span className="font-medium text-green-600">
+                <span className="font-medium text-primary">
                   -₹{calculatedRewards.totalDiscount.toLocaleString()}
                 </span>
               </div>
@@ -1745,7 +1745,7 @@ const PlaceOrdersContent = () => {
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
-                <span className="font-medium text-green-600">
+                <span className="font-medium text-primary">
                   -₹{calculateCustomDiscountAmount().toLocaleString()}
                 </span>
               </div>
@@ -1798,7 +1798,7 @@ const PlaceOrdersContent = () => {
         if (allAppliedSchemeIds.length === 0) return null;
 
         return (
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Applied Schemes
             </div>
@@ -1827,7 +1827,7 @@ const PlaceOrdersContent = () => {
                         </Badge>
                       </div>
                       {scheme.description && (
-                        <p className="text-sm text-green-700 mt-1">
+                        <p className="text-sm text-primary mt-1">
                           {scheme.description}
                         </p>
                       )}
@@ -1866,7 +1866,7 @@ const PlaceOrdersContent = () => {
         if (availableSchemesToShow.length === 0) return null;
 
         return (
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Available Schemes
             </div>
@@ -1884,11 +1884,11 @@ const PlaceOrdersContent = () => {
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-foreground">
                           {scheme.schemeName}
                         </span>
                         {isExcluded && (
-                          <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                          <Badge variant="secondary" className="bg-gray-100 text-foreground">
                             Excluded
                           </Badge>
                         )}
@@ -1909,7 +1909,7 @@ const PlaceOrdersContent = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleIncludeScheme(scheme.schemeId)}
-                        className="flex items-center gap-1 text-green-600 hover:bg-green-50 border-green-200"
+                        className="flex items-center gap-1 text-primary hover:bg-green-50 border-green-200"
                         disabled={isReadOnly}
                       >
                         <span className="text-xs">✓</span>

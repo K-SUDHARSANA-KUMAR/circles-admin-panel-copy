@@ -40,13 +40,13 @@ const ClaimCreatePage = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white">
+      <div className="flex flex-col gap-3 rounded-lg bg-card">
         <BreadcrumbHeader {...breadcrumbProps} />
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="rounded-lg bg-white p-4 w-full">
+          <div className="rounded-lg bg-card p-4 w-full">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium w-full">
               Claim Information
             </div>
@@ -182,7 +182,7 @@ const ClaimCreatePage = () => {
             </div>
           </div>
           {/* Deductions Section */}
-          <div className="rounded-lg bg-white p-4 w-full">
+          <div className="rounded-lg bg-card p-4 w-full">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium w-full">
               Deductions
             </div>
@@ -243,7 +243,7 @@ const ClaimCreatePage = () => {
                 style={{ background: 'color(display-p3 0.957 0.957 0.957)' }}
               >
                 <Plus className="w-[20px] h-[20px] text-[#333]" />
-                <span style={{ fontFamily: 'Poppins', lineHeight: '27px' }}>Add Deduction</span>
+                <span style={{ fontFamily: 'var(--font-inter)', lineHeight: '27px' }}>Add Deduction</span>
               </button>
             </div>
           </div>

@@ -191,7 +191,7 @@ export default function NewClaimPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Claim Information
             </div>
@@ -266,7 +266,7 @@ export default function NewClaimPage() {
                             className={
                               billData.IsHandwritten
                                 ? 'text-yellow-600'
-                                : 'text-green-600'
+                                : 'text-primary'
                             }
                           >
                             {billData.IsHandwritten ? 'Yes' : 'No'}

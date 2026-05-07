@@ -58,7 +58,7 @@ export const DuplicateOutletsModal = ({
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-foreground">
                       {outlet.outletName}
                     </h3>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
@@ -75,18 +75,18 @@ export const DuplicateOutletsModal = ({
 
                 <div className="grid grid-cols-1 gap-2 text-sm">
                   <div className="flex gap-2">
-                    <span className="font-medium text-gray-700">Owner:</span>
+                    <span className="font-medium text-muted-foreground">Owner:</span>
                     <span className="text-gray-600">{outlet.ownerName}</span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="font-medium text-gray-700">Phone:</span>
+                    <span className="font-medium text-muted-foreground">Phone:</span>
                     <span className="text-gray-600">{outlet.phoneNumber}</span>
                   </div>
                 </div>
 
                 {outlet.reasons && outlet.reasons.length > 0 && (
                   <div className="pt-2 border-t border-gray-200">
-                    <p className="text-xs font-medium text-gray-700 mb-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">
                       Matching Criteria:
                     </p>
                     <ul className="list-disc list-inside space-y-0.5">

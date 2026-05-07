@@ -43,7 +43,7 @@ const ReportViewPage = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -64,7 +64,7 @@ const ReportViewPage = () => {
           <div className="flex items-center gap-3">
             <Link
               href={NavKeys.DashboardOrders}
-              className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+              className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </Link>
@@ -78,7 +78,7 @@ const ReportViewPage = () => {
         </div>
       </div>
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Report Information
         </div>
@@ -102,14 +102,14 @@ const ReportViewPage = () => {
         </div>
       </div>
 
-      <div className="rounded-lg bg-white p-4 space-y-4">
+      <div className="rounded-lg bg-card p-4 space-y-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Product Information
         </div>
         <DataTable columns={createColumns()} data={reportViewMock} tableId="report-view-table" />
       </div>
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -120,7 +120,7 @@ const ReportViewPage = () => {
               onChange={e => setRemarks(e.target.value)}
               placeholder="Enter remarks"
               rows={4}
-              className="bg-white"
+              className="bg-card"
             />
           </div>
         </div>

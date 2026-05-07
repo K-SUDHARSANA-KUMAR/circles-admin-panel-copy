@@ -35,7 +35,7 @@ const MasterRecordsContent = () => {
     <section className="w-full space-y-6">
       <PageHeader title="Master Records" />
 
-      <div className="w-full rounded-lg bg-white p-4">
+      <div className="w-full rounded-lg bg-card p-4">
         <FiltersBar
           schemaName={schemaName}
           fields={schemaFields}

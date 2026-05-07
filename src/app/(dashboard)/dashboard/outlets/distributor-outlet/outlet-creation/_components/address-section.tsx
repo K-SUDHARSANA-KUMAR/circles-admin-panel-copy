@@ -100,7 +100,7 @@ export const AddressSection = ({ form, isPincodeLoading, selectedCoordinates, se
   }, [form, isSameAsBilling]);
 
   return (
-    <div className="rounded-lg bg-white p-4">
+    <div className="rounded-lg bg-card p-4">
       <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">Shipping Address</div>
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
@@ -116,7 +116,7 @@ export const AddressSection = ({ form, isPincodeLoading, selectedCoordinates, se
                     </FormLabel>
                     <button
                       type="button"
-                      className="bg-freshleaf/20 text-freshleaf hover:bg-freshleaf/30 flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs cursor-pointer"
+                      className="bg-primary/20 text-primary hover:bg-primary/30 flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs cursor-pointer"
                       onClick={() => setIsLocationModalOpen(true)}
                     >
                       <MapPin className="h-2.5 w-2.5" />

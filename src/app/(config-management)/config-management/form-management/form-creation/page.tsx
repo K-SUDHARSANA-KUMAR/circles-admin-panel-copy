@@ -109,7 +109,7 @@ const FieldCard = ({
   dragListeners?: any;
 }) => (
   <div 
-    className="flex flex-row justify-center items-center p-3 gap-2 bg-white rounded-lg shadow border border-gray-200 my-2 w-[440px] min-h-[104px]"
+    className="flex flex-row justify-center items-center p-3 gap-2 bg-card rounded-lg shadow border border-gray-200 my-2 w-[440px] min-h-[104px]"
     data-field-index={index}
   >
     {/* Drag Handle */}
@@ -134,11 +134,11 @@ const FieldCard = ({
       <div className="flex flex-row justify-between items-center gap-1 w-full h-6">
         {field.formFieldType === 'header' ? (
           // For header fields, show the label or displayName as the header text
-          <h3 className="font-bold text-lg text-gray-900">
+          <h3 className="font-bold text-lg text-foreground">
             {field.displayName || field.label}
           </h3>
         ) : (
-          <label className="font-poppins font-normal text-base text-gray-900">
+          <label className="font-inter font-normal text-base text-foreground">
             {field.displayName || field.label}
             {field.required && (
               <span className="text-red-500 ml-1">*</span>
@@ -154,7 +154,7 @@ const FieldCard = ({
               console.log('Edit clicked for field:', field.id);
               openEditModal(field);
             }}
-            className="h-8 w-8 text-gray-500 hover:text-blue-600 flex items-center justify-center rounded cursor-pointer"
+            className="h-8 w-8 text-gray-500 hover:text-secondary flex items-center justify-center rounded cursor-pointer"
             title="Edit"
             type="button"
           >
@@ -177,7 +177,7 @@ const FieldCard = ({
       </div>
       {/* Input field - render different input for each type */}
       {field.formFieldType === 'header' ? null : (
-        <div className="flex flex-row items-center gap-2 bg-white border border-gray-300 shadow rounded-lg mt-1 w-full min-h-[50px] px-4 py-2">
+        <div className="flex flex-row items-center gap-2 bg-card border border-gray-300 shadow rounded-lg mt-1 w-full min-h-[50px] px-4 py-2">
           {renderFieldPreview(field)}
         </div>
       )}
@@ -265,15 +265,15 @@ const FormBuilder = () => {
       onClick={() => handleSidebarClick(id)}
       className="flex flex-row items-center gap-3 cursor-move hover:bg-gray-200 rounded-lg bg-gray-100 select-none w-full py-3 pl-4 pr-3 min-h-[48px] max-h-[48px] transition-colors"
     >
-      <span className="flex items-center justify-center text-gray-700 w-[18px] h-[18px]">{icon}</span>
-      <span className="text-base font-poppins text-gray-800">{label}</span>
+      <span className="flex items-center justify-center text-muted-foreground w-[18px] h-[18px]">{icon}</span>
+      <span className="text-base font-inter text-foreground">{label}</span>
     </div>
   );
 
   const DropIndicator = ({ index }: { index: number }) => (
     <div
       id={`drop-indicator-${index}`}
-      className="h-1 bg-blue-500 mx-auto w-[440px] rounded transition-opacity duration-200"
+      className="h-1 bg-secondary mx-auto w-[440px] rounded transition-opacity duration-200"
       style={{ 
         opacity: dragOverIndex === index ? 1 : 0,
       }}
@@ -723,7 +723,7 @@ const FormBuilder = () => {
         return (
           <div className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Array Field</span>
+              <span className="text-sm font-medium text-muted-foreground">Array Field</span>
               <span className="text-xs text-gray-500">
                 {Array.isArray(field.groupedFields) ? field.groupedFields.length : 0} fields
               </span>
@@ -731,7 +731,7 @@ const FormBuilder = () => {
             {Array.isArray(field.groupedFields) && field.groupedFields.length > 0 ? (
               <div className="space-y-1">
                 {field.groupedFields.slice(0, 2).map((groupedField: any, idx: number) => (
-                  <div key={idx} className="text-xs text-gray-600 bg-white px-2 py-1 rounded border">
+                  <div key={idx} className="text-xs text-gray-600 bg-card px-2 py-1 rounded border">
                     {groupedField.displayName} ({groupedField.formFieldType})
                   </div>
                 ))}
@@ -817,10 +817,10 @@ const FormBuilder = () => {
       <div className="flex flex-row gap-4 w-full">
         {/* Sidebar */}
         <div className="flex-shrink-0 w-[248px] h-full">
-          <div className="flex flex-col gap-4 bg-white h-full w-[248px] rounded-xl p-4">
+          <div className="flex flex-col gap-4 bg-card h-full w-[248px] rounded-xl p-4">
             <div className="flex flex-col gap-2">
-              <h3 className="font-poppins font-medium text-lg">Field types</h3>
-              <div className="font-poppins font-normal text-base text-gray-700">Click or drag fields to build your form</div>
+              <h3 className="font-inter font-medium text-lg">Field types</h3>
+              <div className="font-inter font-normal text-base text-muted-foreground">Click or drag fields to build your form</div>
             </div>
             <div className="flex flex-col gap-2 w-full mt-2">
               {sidebarFieldTypes.map((field) => (
@@ -832,16 +832,16 @@ const FormBuilder = () => {
         {/* Main Form Area */}
         <div className="flex-1 min-w-0">
           <div
-            className="flex flex-col items-start relative bg-white rounded-xl"
+            className="flex flex-col items-start relative bg-card rounded-xl"
             onDrop={handleDrop}
             onDragOver={handleDragOver}
           >
             {/* Top section with three fields */}
-            <div className="flex flex-col items-start p-4 gap-2 bg-white border-b border-[#E0E0E0] w-full rounded-t-xl">
+            <div className="flex flex-col items-start p-4 gap-2 bg-card border-b border-[#E0E0E0] w-full rounded-t-xl">
               <div className="grid grid-cols-3 gap-3 w-full">
                 {/* Field 1: Form Name (1/3) */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-poppins text-[16px] text-[#333] mb-1">
+                  <label className="font-inter text-[16px] text-[#333] mb-1">
                     Form Name <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -856,7 +856,7 @@ const FormBuilder = () => {
                 </div>
                 {/* Field 2: Display Name (1/3) */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-poppins text-[16px] text-[#333] mb-1">
+                  <label className="font-inter text-[16px] text-[#333] mb-1">
                     Display Name <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -871,7 +871,7 @@ const FormBuilder = () => {
                 </div>
                 {/* Field 3: Form Type (1/3) */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-poppins text-[16px] text-[#333] mb-1">Form Type</label>
+                  <label className="font-inter text-[16px] text-[#333] mb-1">Form Type</label>
                   <Select value={formType} onValueChange={setFormType}>
                     <SelectTrigger className="w-full h-[44px]">
                       <SelectValue placeholder="Select form type" />
@@ -887,7 +887,7 @@ const FormBuilder = () => {
             {/* Main form area */}
             <div 
               ref={scrollRef}
-              className={`flex flex-col items-center gap-2 w-full bg-white rounded-b-xl py-6 ${fields.length > 3 ? 'overflow-y-auto' : ''}`}
+              className={`flex flex-col items-center gap-2 w-full bg-card rounded-b-xl py-6 ${fields.length > 3 ? 'overflow-y-auto' : ''}`}
               style={{ minHeight: fields.length === 0 ? '120px' : undefined }}
             >
               <SortableContext
@@ -917,7 +917,7 @@ const FormBuilder = () => {
       {/* Drag Overlay */}
       <DragOverlay>
         {activeId ? (
-          <div className="flex flex-row justify-center items-center p-3 gap-2 bg-white rounded-lg shadow border border-gray-200 my-2 w-[440px] min-h-[104px] opacity-50">
+          <div className="flex flex-row justify-center items-center p-3 gap-2 bg-card rounded-lg shadow border border-gray-200 my-2 w-[440px] min-h-[104px] opacity-50">
             {/* Simplified preview */}
           </div>
         ) : null}
@@ -925,7 +925,7 @@ const FormBuilder = () => {
 
   {/* Modal - always rendered, controlled via open prop */}
   <Dialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
-        <DialogContent className="w-[1106px] h-[90vh] flex flex-col bg-white rounded-[12px] shadow-xl top-1/2 left-1/2 fixed -translate-x-1/2 -translate-y-1/2 p-0 overflow-hidden">
+        <DialogContent className="w-[1106px] h-[90vh] flex flex-col bg-card rounded-[12px] shadow-xl top-1/2 left-1/2 fixed -translate-x-1/2 -translate-y-1/2 p-0 overflow-hidden">
           {/* Fixed Header */}
           <DialogHeader className="flex flex-col gap-4 w-full p-6 border-b border-gray-200 flex-shrink-0">
             <DialogTitle className="sr-only">Edit Field</DialogTitle>
@@ -939,10 +939,10 @@ const FormBuilder = () => {
               </div>
               {/* Text and supporting text */}
               <div className="flex flex-col gap-2 w-full">
-                <h2 className="font-poppins font-medium text-[20px] leading-[30px] text-[#0E1829]">
+                <h2 className="font-inter font-medium text-[20px] leading-[30px] text-[#0E1829]">
                   Preview of your field
                 </h2>
-                <p className="font-poppins font-normal text-[16px] leading-[24px] text-[#647187]">
+                <p className="font-inter font-normal text-[16px] leading-[24px] text-[#647187]">
                   Configure the field properties and see live preview
                 </p>
               </div>
@@ -956,7 +956,7 @@ const FormBuilder = () => {
               <div ref={leftPaneRef} className="flex flex-col gap-4 w-[513px] h-full overflow-y-auto pr-2">
                 {/* Display Name (API: displayName) */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-poppins text-[16px] text-[#333]">
+                  <label className="font-inter text-[16px] text-[#333]">
                     Label <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -971,7 +971,7 @@ const FormBuilder = () => {
                 </div>
                 {/* Field Name (API: name) */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-poppins text-[16px] text-[#333]">
+                  <label className="font-inter text-[16px] text-[#333]">
                     Field Key <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -987,7 +987,7 @@ const FormBuilder = () => {
                 
                 {/* Field Type (API: formFieldType) */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-poppins text-[16px] text-[#333]">Field Type</label>
+                  <label className="font-inter text-[16px] text-[#333]">Field Type</label>
                   <Select 
                     value={editField?.formFieldType || ''}
                     onValueChange={(value) => handleEditChange('formFieldType', value)}
@@ -1016,7 +1016,7 @@ const FormBuilder = () => {
                     onCheckedChange={(checked) => handleEditChange('required', checked)}
                     id="required-toggle"
                   />
-                  <label htmlFor="required-toggle" className="font-poppins text-[16px] text-[#333]">Required</label>
+                  <label htmlFor="required-toggle" className="font-inter text-[16px] text-[#333]">Required</label>
                 </div>
                 {/* Repeatable toggle for array fields */}
                 {editField?.formFieldType === 'array' && (
@@ -1026,18 +1026,18 @@ const FormBuilder = () => {
                       onCheckedChange={(checked) => handleEditChange('repeatable', checked)}
                       id="repeatable-toggle"
                     />
-                    <label htmlFor="repeatable-toggle" className="font-poppins text-[16px] text-[#333]">Repeatable</label>
+                    <label htmlFor="repeatable-toggle" className="font-inter text-[16px] text-[#333]">Repeatable</label>
                   </div>
                 )}
                 {/* Grouped Fields Management for array fields */}
                 {editField?.formFieldType === 'array' && (
                   <div className="flex flex-col gap-3 mt-4">
-                    <label className="font-poppins text-[16px] text-[#333]">Add Grouped Fields</label>
+                    <label className="font-inter text-[16px] text-[#333]">Add Grouped Fields</label>
                     <div className="flex flex-col gap-3 ">
                       {Array.isArray(editField?.groupedFields) && editField.groupedFields.map((groupedField: any, index: number) => (
                         <div key={index} className="flex flex-col gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
                           <div className="flex flex-row items-center justify-between">
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-muted-foreground">
                               {groupedField.formFieldType} Field
                             </span>
                             <Button
@@ -1181,7 +1181,7 @@ const FormBuilder = () => {
                 {/* Values (for checkbox, radio, dropdown) */}
                 {(editField?.formFieldType === 'checkbox' || editField?.formFieldType === 'radio' || editField?.formFieldType === 'dropdown') && (
                   <div className="flex flex-col gap-3 mt-2">
-                    <label className="font-poppins text-[16px] text-[#333]">Options</label>
+                    <label className="font-inter text-[16px] text-[#333]">Options</label>
                     <div className="flex flex-col gap-2">
                       {Array.isArray(editField?.values) && editField.values.map((value: string, index: number, arr: string[]) => {
                         const isDuplicate = value && arr.indexOf(value) !== index;
@@ -1250,7 +1250,7 @@ const FormBuilder = () => {
                 {/* Date Format (for date) */}
                 {editField?.formFieldType === 'date' && (
                   <div className="flex flex-col gap-1 mt-2">
-                    <label className="font-poppins text-[16px] text-[#333]">Date Format</label>
+                    <label className="font-inter text-[16px] text-[#333]">Date Format</label>
                     <Input
                       className="w-full h-[44px]"
                       placeholder="YYYY-MM-DD"
@@ -1262,7 +1262,7 @@ const FormBuilder = () => {
                 {/* Default Value for header and paragraph */}
                 {(editField?.formFieldType === 'header' || editField?.formFieldType === 'paragraph') && (
                   <div className="flex flex-col gap-1 mt-2">
-                    <label className="font-poppins text-[16px] text-[#333]">
+                    <label className="font-inter text-[16px] text-[#333]">
                       {editField?.formFieldType === 'header' ? 'Header Text' : 'Default Text'}
                     </label>
                     {editField?.formFieldType === 'paragraph' ? (
@@ -1288,7 +1288,7 @@ const FormBuilder = () => {
               <div className="flex flex-col gap-3 w-[513px] h-full">
                 {/* Preview header with green background */}
                 <div className="flex flex-row justify-center items-center py-2 px-0 w-full h-[47px] bg-[#D4FDE5] rounded-[12px] flex-shrink-0">
-                  <span className="font-poppins font-medium text-[18px] leading-[27px] text-[#00A846]">
+                  <span className="font-inter font-medium text-[18px] leading-[27px] text-[#00A846]">
                     Preview of your field
                   </span>
                 </div>
@@ -1304,13 +1304,13 @@ const FormBuilder = () => {
                         </h3>
                       ) : (
                         <>
-                          <label className="font-poppins font-normal text-[16px] leading-[24px] text-gray-900">
+                          <label className="font-inter font-normal text-[16px] leading-[24px] text-foreground">
                             {editField?.displayName || 'Field Label'}
                             {editField?.required && (
                               <span className="text-red-500 ml-1">*</span>
                             )}
                           </label>
-                          <span className="font-poppins font-normal text-[16px] leading-[24px] text-[#7E7E7E]">
+                          <span className="font-inter font-normal text-[16px] leading-[24px] text-[#7E7E7E]">
                             {editField?.displayName ? '' : 'Text'}
                           </span>
                         </>
@@ -1319,9 +1319,9 @@ const FormBuilder = () => {
                     {/* Input field */}
                     {editField && editField.formFieldType === 'header' ? null : editField && editField.formFieldType === 'array' ? (
                       /* Array field preview */
-                      <div className="flex flex-col gap-3 w-full bg-white border border-[#CED5DE] shadow-sm rounded-lg p-4">
+                      <div className="flex flex-col gap-3 w-full bg-card border border-[#CED5DE] shadow-sm rounded-lg p-4">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-700">Grouped Field</span>
+                          <span className="text-sm font-medium text-muted-foreground">Grouped Field</span>
                           <span className="text-xs text-gray-500">
                             {editField.repeatable ? 'Repeatable' : 'Single'}
                           </span>
@@ -1331,7 +1331,7 @@ const FormBuilder = () => {
                             {editField.groupedFields.map((groupedField: any, idx: number) => (
                               <div key={idx} className="bg-gray-50 border border-gray-200 rounded p-3">
                                 <div className="flex flex-col gap-2">
-                                  <label className="text-sm font-medium text-gray-700">
+                                  <label className="text-sm font-medium text-muted-foreground">
                                     {groupedField.displayName || groupedField.name}
                                     {groupedField.required && <span className="text-red-500 ml-1">*</span>}
                                   </label>
@@ -1349,7 +1349,7 @@ const FormBuilder = () => {
                         )}
                       </div>
                     ) : (
-                      <div className="flex flex-row items-center py-2 px-4 gap-2 w-full bg-white border border-[#CED5DE] shadow-sm rounded-lg">
+                      <div className="flex flex-row items-center py-2 px-4 gap-2 w-full bg-card border border-[#CED5DE] shadow-sm rounded-lg">
                         <div className="flex flex-col gap-2 flex-1">
                           {editField && renderFieldPreview(editField)}
                         </div>

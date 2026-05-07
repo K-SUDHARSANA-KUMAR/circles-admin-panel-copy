@@ -19,7 +19,7 @@ const SortableItem = ({ id, children, onEdit }: any) => {
       style={style}
       {...attributes}
       {...listeners}
-      className="p-4 bg-white border rounded-lg shadow relative"
+      className="p-4 bg-card border rounded-lg shadow relative"
     >
       <div className="absolute top-2 right-2 cursor-pointer" onClick={onEdit}>
         <Pencil size={16} />

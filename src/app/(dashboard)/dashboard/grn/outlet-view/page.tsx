@@ -33,7 +33,7 @@ const OutletViewPage = () => {
     <section className="w-full space-y-6">
       <BreadcrumbHeader {...breadcrumb} />
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Order Details
         </div>
@@ -73,7 +73,7 @@ const OutletViewPage = () => {
         </div>
       </div>
 
-      <div className="rounded-lg bg-white p-4 space-y-4">
+      <div className="rounded-lg bg-card p-4 space-y-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Product Information
         </div>

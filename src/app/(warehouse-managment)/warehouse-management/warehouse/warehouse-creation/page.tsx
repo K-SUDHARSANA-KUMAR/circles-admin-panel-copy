@@ -719,7 +719,7 @@ const WarehouseCreateContent = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white">
+      <div className="flex flex-col gap-3 rounded-lg bg-card">
         <BreadcrumbHeader {...breadcrumb} />
       </div>
 
@@ -730,7 +730,7 @@ const WarehouseCreateContent = () => {
           className="space-y-6"
           key={warehouseId || 'new'}
         >
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Warehouse Information
             </div>
@@ -1075,7 +1075,7 @@ const WarehouseCreateContent = () => {
           </div>
 
           {/* PJP Access Mappings */}
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               PJP Access Mappings
             </div>
@@ -1236,7 +1236,7 @@ const WarehouseCreateContent = () => {
         </form>
       </Form>
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Map Warehouse Pincode
         </div>
@@ -1246,7 +1246,7 @@ const WarehouseCreateContent = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">
                   State
                 </label>
                 <MasterRecordSelect
@@ -1258,7 +1258,7 @@ const WarehouseCreateContent = () => {
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-muted-foreground">
                   District
                 </label>
                 <MasterRecordSelect
@@ -1316,7 +1316,7 @@ const WarehouseCreateContent = () => {
           {/* Selected Pincodes Table */}
           {selectedPincodes.length > 0 && (
             <div className="mt-4">
-              <div className="mb-2 text-sm font-medium text-gray-700">
+              <div className="mb-2 text-sm font-medium text-muted-foreground">
                 Selected Pincodes
               </div>
               {selectedPincodesRecords.error ? (

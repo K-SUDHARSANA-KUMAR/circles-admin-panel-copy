@@ -395,7 +395,7 @@ export const WarehouseMultiSelectModal: React.FC<
                   setSelectedWarehouseId(value);
                   onChange([value]); // Pass as array to maintain compatibility
                 }}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                className="h-4 w-4 text-secondary focus:ring-secondary border-gray-300"
               />
             </div>
           );
@@ -546,7 +546,7 @@ export const WarehouseMultiSelectModal: React.FC<
           {/* Optimization Fields - Only shown when showOptimizationFields is true */}
           {showOptimizationFields && (
             <div className="space-y-4 border-t pt-4">
-              <h3 className="text-sm font-semibold text-gray-900">
+              <h3 className="text-sm font-semibold text-foreground">
                 Optimization Parameters
               </h3>
               
@@ -555,7 +555,7 @@ export const WarehouseMultiSelectModal: React.FC<
                 <div className="space-y-4">
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
-                      <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+                      <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-secondary"></div>
                       <p className="mt-4 text-sm text-gray-600">Loading warehouse configuration...</p>
                     </div>
                   </div>

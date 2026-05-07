@@ -103,7 +103,7 @@ const MasterGroupsContent = () => {
       <section className="w-full space-y-6">
         <PageHeader title="Master Groups" />
 
-        <div className="w-full rounded-lg bg-white p-4">
+        <div className="w-full rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <GenericError text="Error loading master groups. Please try again." />
           </div>
@@ -123,7 +123,7 @@ const MasterGroupsContent = () => {
     <section className="w-full space-y-6">
       <PageHeader title="Master Groups" />
 
-      <div className="w-full rounded-lg bg-white p-4">
+      <div className="w-full rounded-lg bg-card p-4">
         <div className="flex justify-end pb-4">
           <Button disabled={groups.isLoading} onClick={handleAddNew}>
             <PlusIcon />

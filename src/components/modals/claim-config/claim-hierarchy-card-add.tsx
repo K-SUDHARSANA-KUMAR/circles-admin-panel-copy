@@ -47,7 +47,7 @@ const ClaimHierarchyCardAdd: React.FC<ClaimHierarchyCardAddProps> = ({ open, onC
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm"
       onClick={handleBackgroundClick}
     >
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+      <div className="bg-card rounded-lg shadow-lg p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-semibold mb-4">
           {editApprover ? `Edit Approver - ${level}` : `Add Approver - ${level}`}
         </h2>

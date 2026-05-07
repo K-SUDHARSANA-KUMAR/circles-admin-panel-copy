@@ -278,12 +278,12 @@ export default function TargetCreatePage() {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <BreadcrumbHeader {...breadcrumb} />
       </div>
 
       {/* Target Information */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Target Information
         </div>
@@ -353,7 +353,7 @@ export default function TargetCreatePage() {
       </div>
 
       {/* Applicable To */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Applicable To <span className="text-red-500">*</span>
         </div>
@@ -498,7 +498,7 @@ export default function TargetCreatePage() {
       </div>
 
       {/* Breakup Type Selection */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Breakup Type
         </div>
@@ -528,7 +528,7 @@ export default function TargetCreatePage() {
 
       {/* Individual Product Breakup (conditional) */}
       {breakupType === 'product' && (
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Individual Product Breakup
           </div>
@@ -536,10 +536,10 @@ export default function TargetCreatePage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/3">Product</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/4">Value (₹)</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/4">Weight (kgs)</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/12">Action</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-1/3">Product</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-1/4">Value (₹)</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-1/4">Weight (kgs)</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-1/12">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -602,7 +602,7 @@ export default function TargetCreatePage() {
               type="button"
               variant="outline"
               onClick={addProductBreakupRow}
-              className="border-freshleaf text-freshleaf hover:bg-freshleaf/5"
+              className="border-primary text-primary hover:bg-primary/5"
             >
               + Add Product
             </Button>
@@ -613,7 +613,7 @@ export default function TargetCreatePage() {
       {/* Individual Scheme Breakup: Primary and Secondary sections */}
       {breakupType === 'scheme' && (
         <div className="space-y-6">
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Primary Schemes
             </div>
@@ -621,9 +621,9 @@ export default function TargetCreatePage() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b bg-gray-50">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-2/3">Scheme</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/4">Weight (kgs)</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/12">Action</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-2/3">Scheme</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-1/4">Weight (kgs)</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-1/12">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -675,14 +675,14 @@ export default function TargetCreatePage() {
                 type="button"
                 variant="outline"
                 onClick={addPrimarySchemeRow}
-                className="border-freshleaf text-freshleaf hover:bg-freshleaf/5"
+                className="border-primary text-primary hover:bg-primary/5"
               >
                 + Add Primary Scheme
               </Button>
             </div>
           </div>
 
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Secondary Schemes
             </div>
@@ -690,9 +690,9 @@ export default function TargetCreatePage() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b bg-gray-50">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-2/3">Scheme</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/4">Weight (kgs)</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 w-1/12">Action</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-2/3">Scheme</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-1/4">Weight (kgs)</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground w-1/12">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -744,7 +744,7 @@ export default function TargetCreatePage() {
                 type="button"
                 variant="outline"
                 onClick={addSecondarySchemeRow}
-                className="border-freshleaf text-freshleaf hover:bg-freshleaf/5"
+                className="border-primary text-primary hover:bg-primary/5"
               >
                 + Add Secondary Scheme
               </Button>
@@ -917,7 +917,7 @@ export default function TargetCreatePage() {
         </Button>
         <Button
           type="button"
-          className="bg-freshleaf text-white hover:bg-freshleaf/90"
+          className="bg-primary text-white hover:bg-primary/90"
           disabled={createTarget.isPending}
           onClick={async () => {
             const amountNum = Number(targetAmount);

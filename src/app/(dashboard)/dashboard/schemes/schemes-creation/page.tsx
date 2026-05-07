@@ -1750,7 +1750,7 @@ const SchemeCreatePage = () => {
     isDisabled: boolean = false
   ) => {
     return (
-      <div key={index} className="rounded-lg border-2 bg-white p-4">
+      <div key={index} className="rounded-lg border-2 bg-card p-4">
         <div className="bg-background mb-4 flex items-center justify-between rounded-lg p-2 text-lg font-medium">
           <span>Condition {index + 1}</span>
           <div className="flex items-center gap-2">
@@ -1794,7 +1794,7 @@ const SchemeCreatePage = () => {
             <div>
               <Label className="mb-2">Priority</Label>
               <Input
-                className="border-[#E5E7EB] bg-white"
+                className="border-[#E5E7EB] bg-card"
                 type="number"
                 value={condition.priority}
                 onChange={(e) =>
@@ -1889,7 +1889,7 @@ const SchemeCreatePage = () => {
                           </span>
                         )}
                         <Input
-                          className={`border-[#E5E7EB] bg-white ${condition.criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
+                          className={`border-[#E5E7EB] bg-card ${condition.criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
                           type="number"
                           placeholder="Min Value"
                           value={condition.criteria.minValue || ''}
@@ -1924,7 +1924,7 @@ const SchemeCreatePage = () => {
                           </span>
                         )}
                         <Input
-                          className={`border-[#E5E7EB] bg-white ${condition.criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
+                          className={`border-[#E5E7EB] bg-card ${condition.criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
                           type="number"
                           placeholder="Max Value"
                           value={condition.criteria.maxValue || ''}
@@ -2095,7 +2095,7 @@ const SchemeCreatePage = () => {
                                   </span>
                                 )}
                                 <Input
-                                  className={`border-[#E5E7EB] bg-white ${criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
+                                  className={`border-[#E5E7EB] bg-card ${criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
                                   type="number"
                                   placeholder="Min Value"
                                   value={criteria.minValue || ''}
@@ -2148,7 +2148,7 @@ const SchemeCreatePage = () => {
                                   </span>
                                 )}
                                 <Input
-                                  className={`border-[#E5E7EB] bg-white ${criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
+                                  className={`border-[#E5E7EB] bg-card ${criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
                                   type="number"
                                   placeholder="Max Value"
                                   value={criteria.maxValue || ''}
@@ -2319,7 +2319,7 @@ const SchemeCreatePage = () => {
                           </span>
                         )}
                         <Input
-                          className={`border-[#E5E7EB] bg-white ${condition.criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
+                          className={`border-[#E5E7EB] bg-card ${condition.criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
                           type="number"
                           placeholder="Min Value"
                           value={condition.criteria.minValue || ''}
@@ -2354,7 +2354,7 @@ const SchemeCreatePage = () => {
                           </span>
                         )}
                         <Input
-                          className={`border-[#E5E7EB] bg-white ${condition.criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
+                          className={`border-[#E5E7EB] bg-card ${condition.criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
                           type="number"
                           placeholder="Max Value"
                           value={condition.criteria.maxValue || ''}
@@ -2501,7 +2501,7 @@ const SchemeCreatePage = () => {
                                     </span>
                                   )}
                                   <Input
-                                    className={`border-[#E5E7EB] bg-white ${criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
+                                    className={`border-[#E5E7EB] bg-card ${criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
                                     type="number"
                                     placeholder="Min Value"
                                     value={criteria.minValue || ''}
@@ -2553,7 +2553,7 @@ const SchemeCreatePage = () => {
                                     </span>
                                   )}
                                   <Input
-                                    className={`border-[#E5E7EB] bg-white ${criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
+                                    className={`border-[#E5E7EB] bg-card ${criteria.aggregationBasis === 'amount' ? 'pl-6' : ''}`}
                                     type="number"
                                     placeholder="Max Value"
                                     value={criteria.maxValue || ''}
@@ -2687,7 +2687,7 @@ const SchemeCreatePage = () => {
                   <div>
                     <Label className="mb-2">Minimum Line Total</Label>
                     <Input
-                      className="border-[#E5E7EB] bg-white"
+                      className="border-[#E5E7EB] bg-card"
                       type="number"
                       value={condition.criteria.minLineTotal || ''}
                       onChange={(e) =>
@@ -3067,7 +3067,7 @@ const SchemeCreatePage = () => {
                 <div>
                   <Label className="mb-2">Value</Label>
                   <Input
-                    className="border-[#E5E7EB] bg-white"
+                    className="border-[#E5E7EB] bg-card"
                     type="number"
                     step="0.01"
                     value={condition.reward.value ?? ''}
@@ -3100,7 +3100,7 @@ const SchemeCreatePage = () => {
                 <div>
                   <Label className="mb-2">Max Reward Amount</Label>
                   <Input
-                    className="border-[#E5E7EB] bg-white"
+                    className="border-[#E5E7EB] bg-card"
                     type="number"
                     value={condition.reward.maxRewardAmount || ''}
                     onChange={(e) =>
@@ -3206,7 +3206,7 @@ const SchemeCreatePage = () => {
                           <div className="w-32">
                             <Label className="mb-1 text-xs">Quantity</Label>
                             <Input
-                              className="border-[#E5E7EB] bg-white"
+                              className="border-[#E5E7EB] bg-card"
                               type="number"
                               placeholder="Qty"
                               value={product.quantity || ''}
@@ -3392,7 +3392,7 @@ const SchemeCreatePage = () => {
                           <div className="w-32">
                             <Label className="mb-1 text-xs">Quantity</Label>
                             <Input
-                              className="border-[#E5E7EB] bg-white"
+                              className="border-[#E5E7EB] bg-card"
                               type="number"
                               placeholder="Qty"
                               value={product.quantity || ''}
@@ -3466,7 +3466,7 @@ const SchemeCreatePage = () => {
                           <div>
                             <Label className="mb-1 text-xs">Discount Value</Label>
                             <Input
-                              className="border-[#E5E7EB] bg-white"
+                              className="border-[#E5E7EB] bg-card"
                               type="number"
                               step="0.01"
                               value={product.value ?? ''}
@@ -3534,7 +3534,7 @@ const SchemeCreatePage = () => {
       {/* Form */}
       <form onSubmit={onSubmit} className="space-y-6">
         {/* Basic Information */}
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
             Basic Information
           </div>
@@ -3546,7 +3546,7 @@ const SchemeCreatePage = () => {
               </Label>
               <div className="relative">
                 <Input
-                  className={`bg-white pr-10 ${formErrors.schemeName ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
+                  className={`bg-card pr-10 ${formErrors.schemeName ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
                   placeholder="Enter scheme name"
                   value={formData.schemeName}
                   disabled={isFieldsDisabled}
@@ -3591,10 +3591,10 @@ const SchemeCreatePage = () => {
               {showSuggestions && generateSchemeNameSuggestions.length > 0 && (
                 <div
                   ref={suggestionsRef}
-                  className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"
+                  className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-card shadow-lg"
                 >
                   <div className="border-b border-gray-100 p-2">
-                    <p className="text-sm font-medium text-gray-700">
+                    <p className="text-sm font-medium text-muted-foreground">
                       Suggested Names
                     </p>
                     <p className="text-xs text-gray-500">
@@ -3621,7 +3621,7 @@ const SchemeCreatePage = () => {
                   <div className="border-t border-gray-100 p-2">
                     <button
                       type="button"
-                      className="w-full text-center text-xs text-gray-500 hover:text-gray-700"
+                      className="w-full text-center text-xs text-gray-500 hover:text-muted-foreground"
                       onClick={() => setShowSuggestions(false)}
                     >
                       Close suggestions
@@ -3667,7 +3667,7 @@ const SchemeCreatePage = () => {
                 Max Reward Per Invoice <span className="text-red-500">*</span>
               </Label>
               <Input
-                className={`bg-white ${formErrors.maxRewardPerInvoice ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
+                className={`bg-card ${formErrors.maxRewardPerInvoice ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
                 type="number"
                 placeholder="Enter max reward"
                 value={formData.maxRewardPerInvoice}
@@ -3729,7 +3729,7 @@ const SchemeCreatePage = () => {
                 Valid From <span className="text-red-500">*</span>
               </Label>
               <Input
-                className={`bg-white ${formErrors.validFrom ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
+                className={`bg-card ${formErrors.validFrom ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
                 type="date"
                 value={formData.validFrom}
                 disabled={isFieldsDisabled}
@@ -3752,7 +3752,7 @@ const SchemeCreatePage = () => {
                 Valid To <span className="text-red-500">*</span>
               </Label>
               <Input
-                className={`bg-white ${formErrors.validTo ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
+                className={`bg-card ${formErrors.validTo ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
                 type="date"
                 value={formData.validTo}
                 disabled={isFieldsDisabled}
@@ -3775,7 +3775,7 @@ const SchemeCreatePage = () => {
                 Description <span className="text-red-500">*</span>
               </Label>
               <Textarea
-                className={`min-h-[100px] flex-1 bg-white ${formErrors.description ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
+                className={`min-h-[100px] flex-1 bg-card ${formErrors.description ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB]'}`}
                 placeholder="Enter scheme description"
                 value={formData.description}
                 disabled={isFieldsDisabled}
@@ -3796,7 +3796,7 @@ const SchemeCreatePage = () => {
         </div>
 
         {/* Applicable To */}
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 flex items-center gap-2 rounded-lg p-2 text-lg font-medium">
             <span>Applicable To</span>
             <Tooltip>
@@ -4292,7 +4292,7 @@ const SchemeCreatePage = () => {
         </div>
 
         {/* Conditions */}
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="bg-background mb-4 flex items-center justify-between rounded-lg p-2 text-lg font-medium">
             <span>
               Conditions & Rewards <span className="text-red-500">*</span>
@@ -4641,7 +4641,7 @@ const SchemeCreatePage = () => {
                   {formData.conditions.map((condition, index) => (
                     <div
                       key={index}
-                      className="rounded-lg border-2 bg-white p-4"
+                      className="rounded-lg border-2 bg-card p-4"
                     >
                       <div className="bg-background mb-4 flex items-center justify-between rounded-lg p-2 text-lg font-medium">
                         <span>Condition {index + 1}</span>
@@ -4649,7 +4649,7 @@ const SchemeCreatePage = () => {
 
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                         <div>
-                          <Label className="text-sm font-medium text-gray-700">
+                          <Label className="text-sm font-medium text-muted-foreground">
                             Condition Type
                           </Label>
                           <div className="mt-1 rounded border bg-gray-50 p-2">
@@ -4658,7 +4658,7 @@ const SchemeCreatePage = () => {
                         </div>
 
                         <div>
-                          <Label className="text-sm font-medium text-gray-700">
+                          <Label className="text-sm font-medium text-muted-foreground">
                             Priority
                           </Label>
                           <div className="mt-1 rounded border bg-gray-50 p-2">
@@ -4667,7 +4667,7 @@ const SchemeCreatePage = () => {
                         </div>
 
                         <div>
-                          <Label className="text-sm font-medium text-gray-700">
+                          <Label className="text-sm font-medium text-muted-foreground">
                             Is ProRated
                           </Label>
                           <div className="mt-1 rounded border bg-gray-50 p-2">
@@ -4676,7 +4676,7 @@ const SchemeCreatePage = () => {
                         </div>
 
                         <div>
-                          <Label className="text-sm font-medium text-gray-700">
+                          <Label className="text-sm font-medium text-muted-foreground">
                             Aggregation Basis
                           </Label>
                           <div className="mt-1 rounded border bg-gray-50 p-2">
@@ -4688,7 +4688,7 @@ const SchemeCreatePage = () => {
                         </div>
                         {condition.criteria?.uom && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-700">
+                            <Label className="text-sm font-medium text-muted-foreground">
                               UOM
                             </Label>
                             <div className="mt-1 rounded border bg-gray-50 p-2">
@@ -4699,7 +4699,7 @@ const SchemeCreatePage = () => {
 
                         {condition.criteria?.hasMinValue && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-700">
+                            <Label className="text-sm font-medium text-muted-foreground">
                               Minimum Value
                             </Label>
                             <div className="mt-1 rounded border bg-gray-50 p-2">
@@ -4710,7 +4710,7 @@ const SchemeCreatePage = () => {
 
                         {condition.criteria?.hasMaxValue && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-700">
+                            <Label className="text-sm font-medium text-muted-foreground">
                               Maximum Value
                             </Label>
                             <div className="mt-1 rounded border bg-gray-50 p-2">
@@ -4720,7 +4720,7 @@ const SchemeCreatePage = () => {
                         )}
 
                         <div>
-                          <Label className="text-sm font-medium text-gray-700">
+                          <Label className="text-sm font-medium text-muted-foreground">
                             Match Type
                           </Label>
                           <div className="mt-1 rounded border bg-gray-50 p-2">
@@ -4732,7 +4732,7 @@ const SchemeCreatePage = () => {
                       {/* Rewards Section */}
                       {condition.rewards && condition.rewards.length > 0 && (
                         <div className="mt-4">
-                          <Label className="text-sm font-medium text-gray-700">
+                          <Label className="text-sm font-medium text-muted-foreground">
                             Rewards
                           </Label>
                           <div className="mt-2 space-y-2">

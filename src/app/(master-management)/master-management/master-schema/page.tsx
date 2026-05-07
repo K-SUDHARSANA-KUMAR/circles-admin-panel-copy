@@ -107,7 +107,7 @@ const MasterSchemaContent = () => {
       <section className="w-full space-y-6">
         <PageHeader title="Master Schema" />
 
-        <div className="w-full rounded-lg bg-white p-4">
+        <div className="w-full rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <EmptyState
               text="Please select a group from the sidebar to view schemas."
@@ -124,7 +124,7 @@ const MasterSchemaContent = () => {
       <section className="w-full space-y-6">
         <PageHeader title="Master Schema" />
 
-        <div className="w-full rounded-lg bg-white p-4">
+        <div className="w-full rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <GenericError text="Error loading master schema. Please try again." />
           </div>
@@ -137,7 +137,7 @@ const MasterSchemaContent = () => {
     <section className="w-full space-y-6">
       <PageHeader title="Master Schema" />
 
-      <div className="w-full rounded-lg bg-white p-4">
+      <div className="w-full rounded-lg bg-card p-4">
         <div className="flex justify-between pb-4">
           <SearchInput
             placeholder="Search schema name"

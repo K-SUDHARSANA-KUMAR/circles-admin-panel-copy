@@ -39,7 +39,7 @@ const ReturnOrderDetailsContent = () => {
   const returnOrderQuery = returnOrder(returnId || '', {});
 
   const HeaderSection = (
-    <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+    <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -69,7 +69,7 @@ const ReturnOrderDetailsContent = () => {
         <div className="flex items-center gap-3">
           <Link
             href={NavKeys.SalesReturn}
-            className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+            className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </Link>
@@ -98,7 +98,7 @@ const ReturnOrderDetailsContent = () => {
         <GenericPageLoading
           inline={true}
           loadingText="Loading return order details..."
-          className="rounded-lg bg-white"
+          className="rounded-lg bg-card"
         />
       )}
 
@@ -106,13 +106,13 @@ const ReturnOrderDetailsContent = () => {
         <GenericPageError
           inline={true}
           errorText="Error loading return order details. Please try again."
-          className="rounded-lg bg-white"
+          className="rounded-lg bg-card"
         />
       )}
 
       {returnOrderData && (
         <>
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Return Order Information
             </div>
@@ -156,7 +156,7 @@ const ReturnOrderDetailsContent = () => {
             </div>
           </div>
 
-          <div className="space-y-4 rounded-lg bg-white p-4">
+          <div className="space-y-4 rounded-lg bg-card p-4">
             <div className="bg-background mb-2 flex items-center rounded-lg p-2">
               <span className="text-lg font-medium">Return Products</span>
             </div>

@@ -226,7 +226,7 @@ export const LogDetailsModal = ({ open, onOpenChange, logData }: LogDetailsModal
       header: 'Title',
       accessorKey: 'fieldName',
       cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-sm text-foreground">
           {formatFieldName(row.original.fieldName)}
         </span>
       ),
@@ -235,7 +235,7 @@ export const LogDetailsModal = ({ open, onOpenChange, logData }: LogDetailsModal
       header: 'Previous Entry',
       accessorKey: 'previousValue',
       cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-sm text-foreground">
           {row.original.previousValue}
         </span>
       ),
@@ -244,7 +244,7 @@ export const LogDetailsModal = ({ open, onOpenChange, logData }: LogDetailsModal
       header: 'Updated Entry',
       accessorKey: 'updatedValue',
       cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-sm text-foreground">
           {row.original.updatedValue}
         </span>
       ),
@@ -260,7 +260,7 @@ export const LogDetailsModal = ({ open, onOpenChange, logData }: LogDetailsModal
       case 'delete':
         return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-foreground border-gray-200';
     }
   };
 
@@ -276,7 +276,7 @@ export const LogDetailsModal = ({ open, onOpenChange, logData }: LogDetailsModal
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-semibold text-gray-900">Log Details</h2>
+                    <h2 className="text-xl font-semibold text-foreground">Log Details</h2>
                     <Badge className={getActionTypeColor(logData.type)}>
                       {logData.type?.toUpperCase()}
                     </Badge>

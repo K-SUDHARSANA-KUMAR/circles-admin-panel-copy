@@ -281,8 +281,8 @@ export default function NewClaimModal({
         <DialogHeader className="pb-4">
           <DialogTitle>
             <div className="flex flex-col">
-              <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-                <IconCoinRupee className="text-freshleaf h-5 w-5" />
+              <div className="bg-primary/10 w-fit rounded-full p-2">
+                <IconCoinRupee className="text-primary h-5 w-5" />
               </div>
               <div className="text-xl font-medium">New Claim</div>
               <div className="text-sm font-normal text-zinc-500">
@@ -294,7 +294,7 @@ export default function NewClaimModal({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="rounded-lg bg-white">
+            <div className="rounded-lg bg-card">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="col-span-2">
                   <FormLabel>Upload Bill</FormLabel>
@@ -326,7 +326,7 @@ export default function NewClaimModal({
                     </Button>
                     {isProcessing && (
                       <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                        <IconLoader3 className="h-4 w-4 animate-spin text-freshleaf" />
+                        <IconLoader3 className="h-4 w-4 animate-spin text-primary" />
                         Processing...
                       </div>
                     )}
@@ -373,7 +373,7 @@ export default function NewClaimModal({
                               className={
                                 billData.IsHandwritten
                                   ? 'text-yellow-600'
-                                  : 'text-green-600'
+                                  : 'text-primary'
                               }
                             >
                               {billData.IsHandwritten ? 'Yes' : 'No'}
@@ -478,8 +478,8 @@ export default function NewClaimModal({
                             <Button
                               variant="white"
                               className={cn(
-                                'w-full bg-white pl-3 text-left font-normal',
-                                !field.value && 'bg-white'
+                                'w-full bg-card pl-3 text-left font-normal',
+                                !field.value && 'bg-card'
                               )}
                             >
                               {field.value ? (

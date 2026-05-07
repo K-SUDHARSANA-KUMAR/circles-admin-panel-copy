@@ -321,8 +321,8 @@ const SpringBoard = () => {
                       className={cn(
                         'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
                         active
-                          ? 'bg-freshleaf text-neutral-100'
-                          : 'hover:bg-freshleaf text-neutral-800 hover:text-neutral-100'
+                          ? 'bg-primary text-neutral-100'
+                          : 'hover:bg-primary text-neutral-800 hover:text-neutral-100'
                       )}
                     >
                       <IconComponent className="h-4 w-4" />

@@ -178,7 +178,7 @@ export const BeatSelectionModal: React.FC<BeatSelectionModalProps> = ({
                 handleBeatSelect(beatId);
               }
             }}
-            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 accent-green-600"
+            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 accent-primary"
           />
         );
       },
@@ -269,7 +269,7 @@ export const BeatSelectionModal: React.FC<BeatSelectionModalProps> = ({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {/* State Filter */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                <label className="text-sm font-medium text-muted-foreground mb-1 block">
                   Filter by State
                 </label>
                 <MasterRecordDropdown
@@ -283,7 +283,7 @@ export const BeatSelectionModal: React.FC<BeatSelectionModalProps> = ({
               
               {/* District Filter */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                <label className="text-sm font-medium text-muted-foreground mb-1 block">
                   Filter by District
                 </label>
                 <MasterRecordDropdown
@@ -298,7 +298,7 @@ export const BeatSelectionModal: React.FC<BeatSelectionModalProps> = ({
               
               {/* Search Bar */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                <label className="text-sm font-medium text-muted-foreground mb-1 block">
                   Search
                 </label>
                 <div className="relative">

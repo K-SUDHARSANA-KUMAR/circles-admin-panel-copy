@@ -71,7 +71,7 @@ export const OutletVisitTable = ({
   );
 
   return (
-    <div className="rounded-lg bg-white p-4">
+    <div className="rounded-lg bg-card p-4">
       <div className="bg-background mb-6 flex items-center justify-between rounded-lg p-3">
         <span className="text-lg font-medium">Outlet Visit</span>
         {onAddDay && canAddMoreDays && !isReadOnly && (

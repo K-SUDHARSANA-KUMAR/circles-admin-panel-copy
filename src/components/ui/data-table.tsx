@@ -359,7 +359,7 @@ export function DataTable<TData, TValue>({
                 }}
                 disabled={isLoading}
               >
-                <SelectTrigger className="h-8 w-[70px] bg-white hover:bg-neutral-100">
+                <SelectTrigger className="h-8 w-[70px] bg-card hover:bg-neutral-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

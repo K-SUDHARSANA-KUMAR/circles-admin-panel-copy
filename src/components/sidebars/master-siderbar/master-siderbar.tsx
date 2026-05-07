@@ -274,7 +274,7 @@ export function MasterSidebar() {
           <SidebarMenuButton
             className={cn(
               'w-full justify-between',
-              hasActiveSchema && 'bg-freshleaf text-white'
+              hasActiveSchema && 'bg-primary text-white'
             )}
           >
             <div className="flex items-center gap-2">
@@ -355,7 +355,7 @@ export function MasterSidebar() {
                         <SidebarMenuButton
                           className={cn(
                             'w-full justify-between',
-                            isMenuItemActive(item) && 'bg-freshleaf text-white'
+                            isMenuItemActive(item) && 'bg-primary text-white'
                           )}
                         >
                           <div className="flex items-center gap-2">
@@ -456,7 +456,7 @@ export function MasterSidebar() {
                     <SidebarMenuButton
                       className={cn(
                         'w-full justify-between',
-                        isMenuItemActive(item) && 'bg-freshleaf text-white'
+                        isMenuItemActive(item) && 'bg-primary text-white'
                       )}
                       asChild
                     >
@@ -486,7 +486,7 @@ export function MasterSidebar() {
           <div className="font-semibold text-zinc-500">Profile</div>
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-              <div className="text-freshleaf text-2xl font-semibold">
+              <div className="text-primary text-2xl font-semibold">
                 {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
             </div>

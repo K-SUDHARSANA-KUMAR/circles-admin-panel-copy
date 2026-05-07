@@ -34,7 +34,7 @@ export const RequirePermission = ({
           />
           <div className="text-lg text-neutral-400">
             Oh no! Looks like you don't have access to this page.{' '}
-            <Link href="/" className="text-freshleaf hover:underline">
+            <Link href="/" className="text-primary hover:underline">
               Go Home
             </Link>
           </div>

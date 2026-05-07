@@ -7,7 +7,7 @@ import { TextAnimate } from '@/components/magicui/text-animate';
 export const AuthHero = () => {
   return (
     <div
-      className="bg-freshleaf relative hidden h-1/2 w-full flex-col items-center justify-center px-20 md:flex md:h-auto md:w-1/2"
+      className="bg-primary relative hidden h-1/2 w-full flex-col items-center justify-center px-20 md:flex md:h-auto md:w-1/2"
       style={{ background: 'linear-gradient(135deg, #000000 0%, #333333 100%)' }}
     >
       <div className="text-centerflex flex h-fit flex-col gap-10 text-center text-neutral-200">

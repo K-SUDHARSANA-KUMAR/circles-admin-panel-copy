@@ -242,7 +242,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
           disabled
             ? 'border-neutral-200 bg-neutral-50'
             : isDragging
-            ? 'border-blue-500 bg-blue-50'
+            ? 'border-secondary bg-secondary/10'
             : 'hover:border-neutral-400 border-neutral-300'
         )}
         onDragOver={!disabled ? handleDragOver : undefined}
@@ -396,7 +396,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute top-4 right-4 text-white hover:bg-white/20"
+            className="absolute top-4 right-4 text-white hover:bg-card/20"
             onClick={closeFullScreen}
           >
             <X className="h-6 w-6" />
@@ -414,7 +414,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-card/20"
                 onClick={prevFullScreenImage}
               >
                 <ChevronLeft className="h-8 w-8" />
@@ -423,7 +423,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-card/20"
                 onClick={nextFullScreenImage}
               >
                 <ChevronRight className="h-8 w-8" />

@@ -3,14 +3,19 @@ import './globals.css';
 import GenericProvider from '@/providers/generic-provider';
 import QueryProvider from '@/providers/query-provider';
 import { ReduxProvider } from '@/providers/redux-provider';
-import { Poppins } from 'next/font/google';
+import { Montserrat, Inter } from 'next/font/google';
 
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-const poppins = Poppins({
-  variable: '--font-poppins',
+
+const montserrat = Montserrat({
+  variable: '--font-montserrat',
   subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+});
+
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
@@ -28,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} antialiased overflow-x-hidden`}>
+      <body className={`${montserrat.variable} ${inter.variable} antialiased overflow-x-hidden`}>
         <Suspense>
           <ReduxProvider>
             <QueryProvider>

@@ -430,10 +430,10 @@ const DeviationsManagePage = () => {
   if (isLoading) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white">
+        <div className="flex flex-col gap-3 rounded-lg bg-card">
           <BreadcrumbHeader {...breadcrumb} />
         </div>
-        <div className="flex h-64 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-64 items-center justify-center rounded-lg bg-card">
           <GenericPageLoading inline={true} loadingText="Please Wait..." />
         </div>
       </section>
@@ -443,10 +443,10 @@ const DeviationsManagePage = () => {
   if (error || !deviationId) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white">
+        <div className="flex flex-col gap-3 rounded-lg bg-card">
           <BreadcrumbHeader {...breadcrumb} />
         </div>
-        <div className="flex h-64 items-center justify-center rounded-lg bg-white">
+        <div className="flex h-64 items-center justify-center rounded-lg bg-card">
           <GenericError
             errorText={
               deviationId
@@ -462,11 +462,11 @@ const DeviationsManagePage = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white">
+      <div className="flex flex-col gap-3 rounded-lg bg-card">
         <BreadcrumbHeader {...breadcrumb} />
       </div>
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-6 rounded-lg p-3 text-lg font-medium">
           Deviation Information
         </div>

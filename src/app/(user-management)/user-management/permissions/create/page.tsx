@@ -219,7 +219,7 @@ const PermissionCreateContent = () => {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -246,7 +246,7 @@ const PermissionCreateContent = () => {
           <div className="flex items-center gap-3">
             <Link
               href={NavKeys.Permissions}
-              className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+              className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </Link>
@@ -278,14 +278,14 @@ const PermissionCreateContent = () => {
                 Edit
               </Button>
             )}
-            <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-              <Shield className="text-freshleaf h-5 w-5" />
+            <div className="bg-primary/10 w-fit rounded-full p-2">
+              <Shield className="text-primary h-5 w-5" />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background rounded-lg p-2 text-lg">
           Permission Information
         </div>
@@ -314,7 +314,7 @@ const PermissionCreateContent = () => {
         </div>
       </div>
       
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background rounded-lg p-2 text-lg">
           Permission Access Configuration
         </div>

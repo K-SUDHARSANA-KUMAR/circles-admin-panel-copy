@@ -208,7 +208,7 @@ function OrderContent() {
   return (
     <section className="w-full space-y-6">
       <PageHeader title="Orders" />
-      <div className="w-full space-y-3 rounded-lg bg-white p-4">
+      <div className="w-full space-y-3 rounded-lg bg-card p-4">
         <OrdersTab />
 
         <div className="w-full space-y-4">
@@ -261,7 +261,7 @@ function OrderContent() {
             <button
               type="button"
               onClick={handleSalesPersonModalOpen}
-              className="h-9 w-full rounded-md border border-input bg-white px-3 py-2 text-sm hover:bg-input/50 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 text-left"
+              className="h-9 w-full rounded-md border border-input bg-card px-3 py-2 text-sm hover:bg-input/50 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 text-left"
             >
               {selectedSalesPersonName}
             </button>

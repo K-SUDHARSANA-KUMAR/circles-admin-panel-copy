@@ -208,11 +208,11 @@ const OutletMapModal = ({
               <div>
                 <h3 className="mb-2 font-semibold">Warehouse Information</h3>
                 <div className="space-y-2">
-                  <div className="rounded-md bg-white p-3">
+                  <div className="rounded-md bg-card p-3">
                     <div className="text-sm text-gray-600">Warehouse</div>
                     <div className="font-semibold">{warehouseName || 'Unknown'}</div>
                   </div>
-                  <div className="rounded-md bg-white p-3">
+                  <div className="rounded-md bg-card p-3">
                     <div className="text-sm text-gray-600">Total Outlets</div>
                     <div className="font-semibold">{outletsData.length}</div>
                   </div>
@@ -224,7 +224,7 @@ const OutletMapModal = ({
                   <h3 className="mb-2 font-semibold">Outlets by Status</h3>
                   <div className="space-y-2">
                     {Object.entries(outletsByStatus).map(([status, count]) => (
-                      <div key={status} className="rounded-md bg-white p-2">
+                      <div key={status} className="rounded-md bg-card p-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div 
@@ -253,7 +253,7 @@ const OutletMapModal = ({
                   <h3 className="mb-2 font-semibold">Outlets List</h3>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {outletsData.map((outlet, index) => (
-                      <div key={outlet.outletId || index} className="rounded-md bg-white p-2 text-xs">
+                      <div key={outlet.outletId || index} className="rounded-md bg-card p-2 text-xs">
                         <div className="font-medium">{outlet.outletName}</div>
                         <div className="text-gray-500">{outlet.ownerName}</div>
                         <div className="text-gray-500">{outlet.phoneNumber}</div>
@@ -335,7 +335,7 @@ const OutletMapModal = ({
                         icon={createOutletIcon(outlet.outletStatus)}
                       >
                         <Popup>
-                          <div className="font-poppins flex flex-col justify-center gap-1">
+                          <div className="font-inter flex flex-col justify-center gap-1">
                             <div className="text-base font-semibold">
                               {outlet.outletName || 'Unknown Outlet'}
                             </div>

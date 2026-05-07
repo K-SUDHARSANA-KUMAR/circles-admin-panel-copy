@@ -67,7 +67,7 @@ export const createPricingGroupColumns = (
       return (
         <div className="text-sm text-left">
           {count && count > 0 ? (
-            <span className="text-gray-900">
+            <span className="text-foreground">
               {count}
             </span>
           ) : (
@@ -86,7 +86,7 @@ export const createPricingGroupColumns = (
       return (
         <div className="text-sm text-left">
           {count && count > 0 ? (
-            <span className="text-gray-900">
+            <span className="text-foreground">
               {count}
             </span>
           ) : (

@@ -9,7 +9,7 @@ export function getLogColumns({ onViewLog }: { onViewLog: (log: any) => void }):
         header: 'S No',
         accessorFn: (_, index) => index+1,
         cell: ({row}) => (
-          <span className="text-sm text-gray-900">{row.index + 1}</span>
+          <span className="text-sm text-foreground">{row.index + 1}</span>
         ),
         size: 80,
     },
@@ -18,7 +18,7 @@ export function getLogColumns({ onViewLog }: { onViewLog: (log: any) => void }):
         header: 'Title',
         accessorKey: 'title',
         cell: ({ row }) => (
-          <span className="text-sm text-gray-900">
+          <span className="text-sm text-foreground">
             {row.original.title || '-'}
           </span>
         ),
@@ -28,7 +28,7 @@ export function getLogColumns({ onViewLog }: { onViewLog: (log: any) => void }):
         header: 'Description',
         accessorKey: 'description',
         cell: ({ row }) => (
-          <span className="text-sm text-gray-900">
+          <span className="text-sm text-foreground">
             {row.original.description || '-'}
           </span>
         ),
@@ -38,7 +38,7 @@ export function getLogColumns({ onViewLog }: { onViewLog: (log: any) => void }):
         header: 'Date & Time',
         accessorKey: 'dateTime',
         cell: ({ row }) => (
-          <span className="text-sm text-gray-900">
+          <span className="text-sm text-foreground">
             {row.original.createdAt
               ? format(new Date(row.original.createdAt), 'dd MMM yyyy, hh:mm a')
               : row.original.dateTime || '-'}
@@ -50,7 +50,7 @@ export function getLogColumns({ onViewLog }: { onViewLog: (log: any) => void }):
         header: 'By Admin',
         accessorKey: 'performedBy',
         cell: ({ row }) => (
-          <span className="text-sm text-gray-900">
+          <span className="text-sm text-foreground">
             {row.original.performedBy || '-'}
           </span>
         ),

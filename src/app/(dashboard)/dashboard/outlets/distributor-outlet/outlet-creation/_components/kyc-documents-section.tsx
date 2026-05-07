@@ -26,7 +26,7 @@ type Props = {
 
 export const KycDocumentsSection = ({ form, isEditMode, handleStatusUpdate, uploadMultipleFiles }: Props) => {
   return (
-    <div className="rounded-lg bg-white p-4">
+    <div className="rounded-lg bg-card p-4">
       <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">KYC Verification Documents</div>
       <FormField
         control={form.control}

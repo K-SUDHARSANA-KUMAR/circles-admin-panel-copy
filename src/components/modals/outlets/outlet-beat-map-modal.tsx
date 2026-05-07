@@ -221,7 +221,7 @@ const createUserIcon = () => {
 const createWarehouseIcon = () => {
   return L.divIcon({
     html: `<div style="
-      background-color: #00a551;
+      background-color: #7C3AED;
       border: 3px solid #fff;
       color: #fff;
       width: 40px;
@@ -729,7 +729,7 @@ const OutletBeatMapModal = ({
           <div className="w-72 flex-shrink-0 overflow-y-auto border-r bg-gray-50 p-4">
             <div className="space-y-4">
               {/* Visibility Controls */}
-              <div className="rounded-md bg-white p-3">
+              <div className="rounded-md bg-card p-3">
                 <h3 className="mb-2 font-semibold">Visibility</h3>
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -754,7 +754,7 @@ const OutletBeatMapModal = ({
               </div>
 
               {/* Selection Controls */}
-              <div className="rounded-md bg-white p-3">
+              <div className="rounded-md bg-card p-3">
                 <h3 className="mb-2 font-semibold">Selection</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -781,7 +781,7 @@ const OutletBeatMapModal = ({
               </div>
 
               {/* Day Filter */}
-              <div className="rounded-md bg-white p-3">
+              <div className="rounded-md bg-card p-3">
                 <h3 className="mb-2 font-semibold">Filter by Day</h3>
                 <MasterRecordCheckboxMultiSelect
                   masterName="pjpDay"
@@ -812,7 +812,7 @@ const OutletBeatMapModal = ({
                     {/* Unassigned Outlets */}
                     {unassignedOutlets.length > 0 && 
                      (!beatSearchTerm || 'unassigned'.toLowerCase().includes(beatSearchTerm.toLowerCase())) && (
-                      <div className="rounded-md bg-white p-3">
+                      <div className="rounded-md bg-card p-3">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <Checkbox
@@ -857,7 +857,7 @@ const OutletBeatMapModal = ({
                         const beatPriority = firstOutlet?.beatDetails?.beatPriority || '-';
                         
                         return (
-                          <div key={beatId} className="rounded-md bg-white p-3">
+                          <div key={beatId} className="rounded-md bg-card p-3">
                             <div className="flex flex-col  justify-between mb-2">
                               <div className="flex items-center gap-2">
                                 <Checkbox
@@ -973,7 +973,7 @@ const OutletBeatMapModal = ({
                         }}
                       >
                         <Popup>
-                          <div className="font-poppins flex flex-col justify-center gap-1">
+                          <div className="font-inter flex flex-col justify-center gap-1">
                             <div className="flex items-center justify-between gap-2">
                               <div className="text-base font-semibold">
                                 {outlet.outletName || 'Unknown Outlet'}
@@ -1052,8 +1052,8 @@ const OutletBeatMapModal = ({
                         })}
                       >
                         <Popup>
-                          <div className="font-poppins flex flex-col justify-center gap-1">
-                            <div className="text-base font-semibold text-blue-600">
+                          <div className="font-inter flex flex-col justify-center gap-1">
+                            <div className="text-base font-semibold text-secondary">
                               👤 {user.name || 'Unknown User'}
                             </div>
                             <div className="text-sm text-gray-600">
@@ -1088,7 +1088,7 @@ const OutletBeatMapModal = ({
           <div className="w-72 flex-shrink-0 overflow-y-auto border-l bg-gray-50 p-4 relative">
               <div className="space-y-4">
                 {/* Filters */}
-                <div className="rounded-md bg-white p-4 shadow-sm border">
+                <div className="rounded-md bg-card p-4 shadow-sm border">
                   <h3 className="mb-4 font-semibold text-sm">Filters</h3>
                   
                   {/* User Type Filter */}
@@ -1121,7 +1121,7 @@ const OutletBeatMapModal = ({
 
                 </div>
 
-                <div className="rounded-md bg-white p-4 shadow-sm border">
+                <div className="rounded-md bg-card p-4 shadow-sm border">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold">Sales Representatives ({filteredUsers.length})</h3>
                     {filteredUsers.length > 0 && (
@@ -1167,7 +1167,7 @@ const OutletBeatMapModal = ({
                           </div>
                         ) : (
                           filteredUsers.map((user: any) => (
-                        <div key={user.userId} className="rounded-md bg-white p-3 border">
+                        <div key={user.userId} className="rounded-md bg-card p-3 border">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <Checkbox

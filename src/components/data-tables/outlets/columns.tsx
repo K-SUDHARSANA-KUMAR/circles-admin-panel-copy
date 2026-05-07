@@ -127,7 +127,7 @@ export const beatColumns = (
             variant="secondary"
             className={
               isGST
-                ? 'bg-freshleaf/10 text-freshleaf border-freshleaf/20'
+                ? 'bg-primary/10 text-primary border-primary/20'
                 : 'bg-orange-100 text-orange-700 border-orange-200'
             }
           >
@@ -263,7 +263,7 @@ export const outletColumns = (
             variant="secondary"
             className={
               isGST
-                ? 'bg-freshleaf/10 text-freshleaf border-freshleaf/20'
+                ? 'bg-primary/10 text-primary border-primary/20'
                 : 'bg-orange-100 text-orange-700 border-orange-200'
             }
           >
