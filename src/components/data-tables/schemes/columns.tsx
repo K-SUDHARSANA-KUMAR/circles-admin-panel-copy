@@ -133,7 +133,7 @@ export const createColumns = (
       return (
         <span>
           {firstWarehouseName}{' '}
-          <span className="text-xs text-blue-600 font-medium">
+          <span className="text-xs text-secondary font-medium">
             +{remainingCount} more
           </span>
         </span>

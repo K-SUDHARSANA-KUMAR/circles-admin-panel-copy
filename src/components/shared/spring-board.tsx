@@ -68,7 +68,7 @@ const SpringBoard = () => {
   const warehouseKeys = ['warehouse'];
   const reportKeys = ['warehouse'];
 
-  const hasAnyPermission = (keys = []) => {
+  const hasAnyPermission = (keys: string[] = []) => {
     if (!groupedPermissions || typeof groupedPermissions !== 'object')
       return false;
 
@@ -192,7 +192,7 @@ const SpringBoard = () => {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(`New Notification${count > 1 ? 's' : ''}`, {
         body: `You have ${count} new notification${count > 1 ? 's' : ''}`,
-        icon: '/favicon.ico',
+        icon: '/circles_logo.ico',
         tag: 'notification',
       });
     }
@@ -321,8 +321,8 @@ const SpringBoard = () => {
                       className={cn(
                         'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
                         active
-                          ? 'bg-freshleaf text-neutral-100'
-                          : 'hover:bg-freshleaf text-neutral-800 hover:text-neutral-100'
+                          ? 'bg-primary text-neutral-100'
+                          : 'hover:bg-primary text-neutral-800 hover:text-neutral-100'
                       )}
                     >
                       <IconComponent className="h-4 w-4" />

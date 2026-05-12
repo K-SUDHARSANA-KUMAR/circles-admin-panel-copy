@@ -297,13 +297,13 @@ export default function AdvertisementViewPage() {
       <div className="flex items-center justify-start">
         <Link
           href={NavKeys.Advertisement}
-          className="hover:bg-freshleaf/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
+          className="hover:bg-primary/30 rounded-lg bg-neutral-200 p-2 text-neutral-500"
         >
           <ArrowLeftIcon className="h-5 w-5" />
         </Link>
       </div>
 
-      <div className="w-full rounded-lg bg-white p-6">
+      <div className="w-full rounded-lg bg-card p-6">
         {error && (
           <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
             {error}

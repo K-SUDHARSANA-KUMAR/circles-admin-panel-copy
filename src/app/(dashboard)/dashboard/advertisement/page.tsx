@@ -80,7 +80,7 @@ export default function AdvertisementPage() {
     <section className="w-full space-y-6">
       <PageHeader title="Advertisement" />
 
-      <div className="w-full rounded-lg bg-white p-6">
+      <div className="w-full rounded-lg bg-card p-6">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-medium">Advertisement Calendar</h2>
           <div className="flex items-center gap-2">
@@ -130,8 +130,8 @@ export default function AdvertisementPage() {
                 key={index}
                 className={cn(
                   'h-30 rounded-md border-2 border-neutral-200 p-2 transition-colors hover:bg-gray-50',
-                  isDayInCurrentMonth(day) ? 'bg-white' : 'bg-neutral-100',
-                  isToday(day) && 'border-freshleaf',
+                  isDayInCurrentMonth(day) ? 'bg-card' : 'bg-neutral-100',
+                  isToday(day) && 'border-primary',
                   isSunday(day) && 'border-red-100 bg-red-200/10'
                 )}
               >
@@ -142,10 +142,10 @@ export default function AdvertisementPage() {
                     <span
                       className={cn(
                         'text-base font-semibold',
-                        isToday(day) && 'text-freshleaf',
+                        isToday(day) && 'text-primary',
                         isDayInCurrentMonth(day) &&
                           !isToday(day) &&
-                          'text-gray-900',
+                          'text-foreground',
                         !isDayInCurrentMonth(day) && 'text-gray-400'
                       )}
                     >

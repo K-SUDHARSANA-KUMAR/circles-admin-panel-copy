@@ -198,8 +198,8 @@ export const OutletStockAuditModal = ({
           <div className="flex items-center justify-between">
             <DialogTitle>
               <div className="flex flex-col gap-1">
-                <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-                  <ShoppingCart className="text-freshleaf h-5 w-5" />
+                <div className="bg-primary/10 w-fit rounded-full p-2">
+                  <ShoppingCart className="text-primary h-5 w-5" />
                 </div>
                 <div className="text-lg font-medium">Outlet Stock Audit</div>
                 <div className="text-sm font-normal text-zinc-500">
@@ -284,7 +284,7 @@ export const OutletStockAuditModal = ({
                               </Badge>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-lg font-semibold text-green-600">
+                              <span className="text-lg font-semibold text-primary">
                                 ₹{product.mrp}
                               </span>
                               <span className="text-xs text-gray-500">
@@ -382,7 +382,7 @@ export const OutletStockAuditModal = ({
                             </Badge>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-base font-semibold text-green-600">
+                            <span className="text-base font-semibold text-primary">
                               ₹{product.mrp}
                             </span>
                             <span className="text-xs text-gray-500">

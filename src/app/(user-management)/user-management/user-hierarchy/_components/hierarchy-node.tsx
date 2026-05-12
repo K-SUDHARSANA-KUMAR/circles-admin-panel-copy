@@ -38,7 +38,7 @@ export const HierarchyNode: React.FC<HierarchyNodeProps> = ({
       <button
         type="button"
         onClick={handleToggleExpand}
-        className="flex w-full items-center gap-3 rounded-lg bg-white p-3 text-left transition-colors hover:bg-gray-50 cursor-pointer"
+        className="flex w-full items-center gap-3 rounded-lg bg-card p-3 text-left transition-colors hover:bg-gray-50 cursor-pointer"
         aria-expanded={isExpanded}
         aria-label={`Toggle reports for ${name}`}
       >
@@ -63,7 +63,7 @@ export const HierarchyNode: React.FC<HierarchyNodeProps> = ({
             <div className="flex flex-col">
               {/* Name + empCode/userId badge */}
               <div className="flex items-center gap-2">
-                <span className="text-base font-medium text-gray-900">{name}</span>
+                <span className="text-base font-medium text-foreground">{name}</span>
 
                 {(empCode || userId) && (
                   <Badge

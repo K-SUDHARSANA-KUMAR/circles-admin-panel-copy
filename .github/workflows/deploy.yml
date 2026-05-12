@@ -1,0 +1,44 @@
+name: Build and Deploy to S3
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build Application
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            npm run build:prod
+            echo "S3_BUCKET=mycircles-web-prod" >> $GITHUB_ENV
+          else
+            npm run build:dev
+            echo "S3_BUCKET=mycircles-web-dev" >> $GITHUB_ENV
+          fi
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Upload to S3
+        run: |
+          aws s3 sync ./build s3://$S3_BUCKET --delete

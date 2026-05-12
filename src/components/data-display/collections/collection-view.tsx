@@ -92,7 +92,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
         return (
           <Badge 
             variant={status === 'completed' ? 'default' : 'secondary'}
-            className={status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+            className={status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-foreground'}
           >
             {status || 'N/A'}
           </Badge>
@@ -110,26 +110,26 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
   return (
     <div className={`space-y-6 ${className || ''}`}>
       {/* Payment Details */}
-      <div className="rounded-lg bg-white p-6">
+      <div className="rounded-lg bg-card p-6">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Payment Details</h2>
+          <h2 className="text-xl font-semibold text-foreground">Payment Details</h2>
           <p className="text-sm text-gray-500 mt-1">Payment information and status</p>
         </div>
         
         {collection ? (
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="bg-card border border-gray-200 rounded-lg p-6">
               <div className="space-y-4">
                 {/* Payment ID */}
                 <div className="flex items-center justify-between py-3 border-b border-gray-100">
                   <span className="text-sm font-medium text-gray-600">Payment ID</span>
-                  <span className="text-sm font-mono text-gray-900">{collection.paymentId || 'N/A'}</span>
+                  <span className="text-sm font-mono text-foreground">{collection.paymentId || 'N/A'}</span>
                 </div>
 
                 {/* Payment Date */}
                 <div className="flex items-center justify-between py-3 border-b border-gray-100">
                   <span className="text-sm font-medium text-gray-600">Payment Date</span>
-                  <span className="text-sm text-gray-900">
+                  <span className="text-sm text-foreground">
                     {collection.paymentDate ? format(new Date(collection.paymentDate), 'dd MMM yyyy, HH:mm') : 'N/A'}
                   </span>
                 </div>
@@ -137,7 +137,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                 {/* Amount */}
                 <div className="flex items-center justify-between py-3 border-b border-gray-100">
                   <span className="text-sm font-medium text-gray-600">Amount</span>
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm font-semibold text-foreground">
                     {collection.currency} {collection.amount?.toLocaleString() || 'N/A'}
                   </span>
                 </div>
@@ -148,9 +148,9 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                   <Badge 
                     variant="outline" 
                     className={`text-xs px-2 py-1 ${
-                      collection.paymentMode === 'cash' ? 'bg-green-50 text-green-700 border-green-200' :
-                      collection.paymentMode === 'handover' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                      'bg-gray-50 text-gray-700 border-gray-200'
+                      collection.paymentMode === 'cash' ? 'bg-green-50 text-primary border-green-200' :
+                      collection.paymentMode === 'handover' ? 'bg-secondary/10 text-secondary border-blue-200' :
+                      'bg-gray-50 text-muted-foreground border-gray-200'
                     }`}
                   >
                     {collection.paymentMode === 'handover' ? 'HANDOVER' : collection.paymentMode || 'N/A'}
@@ -166,7 +166,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                         ? 'bg-green-100 text-green-800 border-green-200' 
                         : collection.status === 'failed'
                         ? 'bg-red-100 text-red-800 border-red-200'
-                        : 'bg-gray-100 text-gray-800 border-gray-200'
+                        : 'bg-gray-100 text-foreground border-gray-200'
                     }`}
                   >
                     {collection.status || 'N/A'}
@@ -176,7 +176,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                 {/* Total Refund Amount */}
                 <div className="flex items-center justify-between py-3 border-b border-gray-100">
                   <span className="text-sm font-medium text-gray-600">Total Refund Amount</span>
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm font-semibold text-foreground">
                     {collection.currency} {collection.totalRefundAmount?.toLocaleString() || '0'}
                   </span>
                 </div>
@@ -185,7 +185,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                 {collection.remarks && (
                   <div className="flex items-center justify-between py-3 border-b border-gray-100">
                     <span className="text-sm font-medium text-gray-600">Remarks</span>
-                    <span className="text-sm text-gray-900 text-right max-w-md">{collection.remarks}</span>
+                    <span className="text-sm text-foreground text-right max-w-md">{collection.remarks}</span>
                   </div>
                 )}
               </div>
@@ -198,16 +198,16 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Payment Details</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">No Payment Details</h3>
             <p className="text-gray-500">No payment details available for this collection.</p>
           </div>
         )}
       </div>
 
       {/* Collection Flow */}
-      <div className="rounded-lg bg-white p-6">
+      <div className="rounded-lg bg-card p-6">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Collection Flow</h2>
+          <h2 className="text-xl font-semibold text-foreground">Collection Flow</h2>
           <p className="text-sm text-gray-500 mt-1">Track the payment collection journey</p>
         </div>
         
@@ -224,7 +224,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                   {/* Step Number */}
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">{item.seq}</span>
+                      <span className="text-secondary font-semibold text-sm">{item.seq}</span>
                     </div>
                   </div>
                   
@@ -236,9 +236,9 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                         <Badge 
                           variant="outline" 
                           className={`text-xs px-2 py-1 ${
-                            item.mode === 'cash' ? 'bg-green-50 text-green-700 border-green-200' :
-                            item.mode === 'handover' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                            'bg-gray-50 text-gray-700 border-gray-200'
+                            item.mode === 'cash' ? 'bg-green-50 text-primary border-green-200' :
+                            item.mode === 'handover' ? 'bg-secondary/10 text-secondary border-blue-200' :
+                            'bg-gray-50 text-muted-foreground border-gray-200'
                           }`}
                         >
                           {item.mode === 'handover' ? 'HANDOVER' : item.mode}
@@ -247,7 +247,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                           className={`text-xs px-2 py-1 ${
                             item.status === 'completed' 
                               ? 'bg-green-100 text-green-800 border-green-200' 
-                              : 'bg-gray-100 text-gray-800 border-gray-200'
+                              : 'bg-gray-100 text-foreground border-gray-200'
                           }`}
                         >
                           {item.status}
@@ -267,7 +267,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                           <span className="text-sm font-medium text-gray-600">From</span>
                         </div>
                         <div className="ml-4">
-                          <div className="font-medium text-gray-900">{item.from.name || item.from.id}</div>
+                          <div className="font-medium text-foreground">{item.from.name || item.from.id}</div>
                           {item.from.phoneNumber && (
                             <div className="text-sm text-gray-500">{item.from.phoneNumber}</div>
                           )}
@@ -278,11 +278,11 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                       {/* To */}
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <div className="w-2 h-2 bg-primary rounded-full"></div>
                           <span className="text-sm font-medium text-gray-600">To</span>
                         </div>
                         <div className="ml-4">
-                          <div className="font-medium text-gray-900">{item.to.name || item.to.id}</div>
+                          <div className="font-medium text-foreground">{item.to.name || item.to.id}</div>
                           {item.to.phoneNumber && (
                             <div className="text-sm text-gray-500">{item.to.phoneNumber}</div>
                           )}
@@ -298,7 +298,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                       <div className="flex items-center space-x-4">
                         <div className="text-sm">
                           <span className="text-gray-500">Amount: </span>
-                          <span className="font-semibold text-gray-900">
+                          <span className="font-semibold text-foreground">
                             {collection.currency} {item.amount}
                           </span>
                         </div>
@@ -322,14 +322,14 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Collection Flow</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">No Collection Flow</h3>
             <p className="text-gray-500">No collection flow data available for this payment.</p>
           </div>
         )}
       </div>
 
       {/* Invoice Details */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Invoice Details
         </div>
@@ -346,7 +346,7 @@ export const CollectionView = ({ className }: CollectionViewProps) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Invoice Details</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">No Invoice Details</h3>
             <p className="text-gray-500">
               {collection?.invoiceIds && collection.invoiceIds.length > 0 
                 ? `Found ${collection.invoiceIds.length} invoice(s) but unable to load details.`

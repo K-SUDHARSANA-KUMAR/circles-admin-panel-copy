@@ -49,7 +49,7 @@ export function WarehouseSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="flex items-center justify-center p-2">
-        <img src="/naga-logo.png" alt="logo" className="h-auto w-20" />
+        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-20" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -80,7 +80,7 @@ export function WarehouseSidebar() {
           <div className="font-semibold text-zinc-500">Profile</div>
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-              <div className="text-freshleaf text-2xl font-semibold">
+              <div className="text-primary text-2xl font-semibold">
                 {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
             </div>

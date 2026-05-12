@@ -9,20 +9,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-freshleaf text-primary-foreground hover:bg-freshleaf/90',
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:glow-primary rounded-xl smooth-transition',
         destructive:
-          'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+          'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 rounded-xl smooth-transition',
         outline:
-          'border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
+          'border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 rounded-xl smooth-transition',
         secondary:
-          'bg-white text-freshleaf hover:bg-freshleaf/10 border-2 border-freshleaf',
-        tertiary: 'bg-freshleaf/10 text-freshleaf hover:bg-freshleaf/20',
+          'glass-card text-primary hover:bg-primary/10 border-2 border-primary/50 hover:border-primary rounded-xl smooth-transition hover:glow-primary/20',
+        tertiary: 'bg-primary/10 text-primary hover:bg-primary/20 rounded-xl smooth-transition',
         ghost:
-          'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
-        link: 'text-primary underline-offset-4 hover:underline',
-        white: 'bg-white border hover:bg-accent',
+          'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 rounded-xl smooth-transition',
+        link: 'text-primary underline-offset-4 hover:underline smooth-transition',
+        white: 'glass-card border hover:bg-accent rounded-xl smooth-transition',
         dotted:
-          'bg-background border-dashed border-2 border-neutral-300 hover:bg-accent text-neutral-400',
+          'bg-background border-dashed border-2 border-neutral-300 hover:bg-accent text-neutral-400 rounded-xl smooth-transition',
       },
       size: {
         default: 'h-9 px-5 py-2 has-[>svg]:px-3',

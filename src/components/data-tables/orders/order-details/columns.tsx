@@ -156,7 +156,7 @@ export const createColumns = (): ColumnDef<OrderDetail>[] => [
   //               e.preventDefault();
   //             }
   //           }}
-  //           className="h-8 w-20 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  //           className="h-8 w-20 text-xs focus:ring-2 focus:ring-secondary focus:border-secondary"
   //           min="0"
   //           max={productDiscount?.type === 'percentage' ? 100 : undefined}
   //           step={productDiscount?.type === 'percentage' ? 0.1 : 1}

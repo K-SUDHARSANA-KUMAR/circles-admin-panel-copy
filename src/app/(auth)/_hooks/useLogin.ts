@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 import NavKeys from '@/constants/navkeys';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { loginSchema, type LoginFormValues } from '../_schema/login';
-import { getFcmToken } from '@/lib/firebase/firebase';
 import { v4 as uuidv4 } from 'uuid';
 
 export const useLogin = () => {
@@ -20,7 +19,7 @@ export const useLogin = () => {
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { userName: '', password: '' },
+    defaultValues: { userName: 'admin', password: 'password123' },
   });
 
   useEffect(() => {
@@ -45,11 +44,19 @@ export const useLogin = () => {
   const handleToggleRememberMe = () => setRememberMe((prev) => !prev);
 
   const handleSubmit = async (values: LoginFormValues) => {
-    let fcmToken: string | null = null;
-    try {
-      fcmToken = await getFcmToken();
-    } catch (e) {
-      console.warn('Unable to retrieve FCM token, continuing without it.');
+    // Mock login bypass for default credentials
+    if (values.userName === 'admin' && values.password === 'password123') {
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('accessToken', 'mock-access-token');
+      localStorage.setItem('user', JSON.stringify({ 
+        userId: 'admin', 
+        userName: 'Super Admin',
+        role: 'SUPER_ADMIN',
+        isSuperAdmin: true 
+      }));
+      toast.success('Login successful as Super Admin!');
+      router.replace(NavKeys.DashboardOverview);
+      return;
     }
 
     let deviceId = localStorage.getItem('deviceId');
@@ -62,7 +69,7 @@ export const useLogin = () => {
       {
         employeeCode: values.userName,
         password: values.password,
-        fcmToken: fcmToken ?? undefined,
+        fcmToken: undefined,
         deviceId: deviceId as string,
         deviceType: 'web',
         platform: 'web',

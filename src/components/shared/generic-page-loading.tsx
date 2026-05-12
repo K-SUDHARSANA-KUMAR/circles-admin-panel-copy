@@ -30,7 +30,7 @@ export default function GenericPageLoading({
         <div className="text-xl font-medium">{title}</div>
         {showSpringBoard && <SpringBoard />}
       </div>
-      <div className="w-full rounded-lg bg-white p-4">
+      <div className="w-full rounded-lg bg-card p-4">
         <div className="h-64 flex items-center justify-center">
           <Loading text={loadingText} />
         </div>

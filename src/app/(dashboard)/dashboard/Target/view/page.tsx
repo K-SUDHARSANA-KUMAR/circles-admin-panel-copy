@@ -107,13 +107,13 @@ export default function TargetViewPage() {
   if (!targetData) {
     return (
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+        <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
           <BreadcrumbHeader {...breadcrumb} />
         </div>
-        <div className="rounded-lg bg-white p-4">
+        <div className="rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <div className="text-center">
-              <h3 className="text-lg font-medium text-gray-900">Target not found</h3>
+              <h3 className="text-lg font-medium text-foreground">Target not found</h3>
               <p className="text-gray-500">The target you're looking for doesn't exist.</p>
               <Button asChild className="mt-4">
                 <Link href={NavKeys.Target}>Back to Targets</Link>
@@ -127,13 +127,13 @@ export default function TargetViewPage() {
 
   return (
     <section className="w-full space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg bg-white p-4">
+      <div className="flex flex-col gap-3 rounded-lg bg-card p-4">
         <BreadcrumbHeader {...breadcrumb} />
       </div>
 
 
       {/* Target Information */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Target Information
         </div>
@@ -227,7 +227,7 @@ export default function TargetViewPage() {
       </div>
 
       {/* Applicable To Section */}
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Applicable To <span className="text-red-500">*</span>
         </div>
@@ -357,8 +357,8 @@ export default function TargetViewPage() {
       </div>
 
       {/* Target Progress Section */}
-      <div className="rounded-lg bg-white p-6 shadow-sm border">
-        <div className="bg-gray-50 mb-6 rounded-lg p-3 text-lg font-semibold text-gray-800">
+      <div className="rounded-lg bg-card p-6 shadow-sm border">
+        <div className="bg-gray-50 mb-6 rounded-lg p-3 text-lg font-semibold text-foreground">
           Target Progress
         </div>
         
@@ -391,12 +391,12 @@ export default function TargetViewPage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-800">
+                  <span className="text-2xl font-bold text-foreground">
                     {Math.round(tonsProgress)}%
                   </span>
                 </div>
               </div>
-              <p className="text-sm font-medium text-gray-700">KG Progress</p>
+              <p className="text-sm font-medium text-muted-foreground">KG Progress</p>
                   </div>
 
             {/* Amount Progress Circle */}
@@ -425,12 +425,12 @@ export default function TargetViewPage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-800">
+                  <span className="text-2xl font-bold text-foreground">
                     {Math.round(amountProgress)}%
                   </span>
                 </div>
               </div>
-              <p className="text-sm font-medium text-gray-700">Amount Progress</p>
+              <p className="text-sm font-medium text-muted-foreground">Amount Progress</p>
             </div>
           </div>
 
@@ -438,8 +438,8 @@ export default function TargetViewPage() {
           <div className="flex justify-center items-center space-x-6">
             {/* Target KG Card */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-5 min-w-[160px] text-center shadow-sm">
-              <div className="text-green-600 font-semibold text-sm mb-2">Target KG</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">
+              <div className="text-primary font-semibold text-sm mb-2">Target KG</div>
+              <div className="text-3xl font-bold text-foreground mb-2">
                 {targetTonsValue}
               </div>
               <div className="text-sm text-gray-500">
@@ -449,8 +449,8 @@ export default function TargetViewPage() {
 
             {/* Target Value Card */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-5 min-w-[160px] text-center shadow-sm">
-              <div className="text-green-600 font-semibold text-sm mb-2">Target Value</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">
+              <div className="text-primary font-semibold text-sm mb-2">Target Value</div>
+              <div className="text-3xl font-bold text-foreground mb-2">
                 ₹{targetAmountValue.toLocaleString()}
               </div>
               <div className="text-sm text-gray-500">
@@ -462,15 +462,15 @@ export default function TargetViewPage() {
       </div>
 
       {/* Target Overview Section */}
-      <div className="rounded-lg bg-white p-6 shadow-sm border">
-        <div className="bg-gray-50 mb-6 rounded-lg p-3 text-lg font-semibold text-gray-800">
+      <div className="rounded-lg bg-card p-6 shadow-sm border">
+        <div className="bg-gray-50 mb-6 rounded-lg p-3 text-lg font-semibold text-foreground">
           Target Overview
         </div>
         
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Target Weight Overview */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800 text-center">Target Weight Overview</h3>
+            <h3 className="text-lg font-semibold text-foreground text-center">Target Weight Overview</h3>
             <div className="bg-gray-50 rounded-lg p-6">
               <div className="flex">
                 {/* Y-axis labels - vertical on left */}
@@ -488,21 +488,21 @@ export default function TargetViewPage() {
                   {/* Target Bar */}
                   <div className="flex flex-col items-center">
                     <div className="w-12 bg-red-500 rounded-t" style={{ height: `${(targetTonsValue / 50000) * 180}px` }}></div>
-                    <span className="text-xs font-medium text-gray-700 mt-2">Target</span>
+                    <span className="text-xs font-medium text-muted-foreground mt-2">Target</span>
                     <span className="text-xs text-gray-600">{(targetTonsValue / 1000).toFixed(0)}k kg</span>
                   </div>
 
                   {/* Achieved Bar */}
                   <div className="flex flex-col items-center">
-                    <div className="w-12 bg-green-500 rounded-t" style={{ height: `${(actualTonsValue / 50000) * 180}px` }}></div>
-                    <span className="text-xs font-medium text-gray-700 mt-2">Achieved</span>
+                    <div className="w-12 bg-primary rounded-t" style={{ height: `${(actualTonsValue / 50000) * 180}px` }}></div>
+                    <span className="text-xs font-medium text-muted-foreground mt-2">Achieved</span>
                     <span className="text-xs text-gray-600">{(actualTonsValue / 1000).toFixed(0)}k kg</span>
                   </div>
 
                   {/* Remaining Bar */}
                   <div className="flex flex-col items-center">
-                    <div className="w-12 bg-blue-500 rounded-t" style={{ height: `${(remainingTons / 50000) * 180}px` }}></div>
-                    <span className="text-xs font-medium text-gray-700 mt-2">Remaining</span>
+                    <div className="w-12 bg-secondary rounded-t" style={{ height: `${(remainingTons / 50000) * 180}px` }}></div>
+                    <span className="text-xs font-medium text-muted-foreground mt-2">Remaining</span>
                     <span className="text-xs text-gray-600">{(remainingTons / 1000).toFixed(0)}k kg</span>
                   </div>
                 </div>
@@ -512,7 +512,7 @@ export default function TargetViewPage() {
 
           {/* Target Amount Overview */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800 text-center">Target Amount Overview</h3>
+            <h3 className="text-lg font-semibold text-foreground text-center">Target Amount Overview</h3>
             <div className="bg-gray-50 rounded-lg p-6">
               <div className="flex">
                 {/* Y-axis labels - vertical on left */}
@@ -530,21 +530,21 @@ export default function TargetViewPage() {
                   {/* Target Bar */}
                   <div className="flex flex-col items-center">
                     <div className="w-12 bg-red-500 rounded-t" style={{ height: `${(targetAmountValue / 50000) * 180}px` }}></div>
-                    <span className="text-xs font-medium text-gray-700 mt-2">Target</span>
+                    <span className="text-xs font-medium text-muted-foreground mt-2">Target</span>
                     <span className="text-xs text-gray-600">₹{(targetAmountValue / 1000).toFixed(0)}k</span>
                   </div>
 
                   {/* Achieved Bar */}
                   <div className="flex flex-col items-center">
-                    <div className="w-12 bg-green-500 rounded-t" style={{ height: `${(actualAmountValue / 50000) * 180}px` }}></div>
-                    <span className="text-xs font-medium text-gray-700 mt-2">Achieved</span>
+                    <div className="w-12 bg-primary rounded-t" style={{ height: `${(actualAmountValue / 50000) * 180}px` }}></div>
+                    <span className="text-xs font-medium text-muted-foreground mt-2">Achieved</span>
                     <span className="text-xs text-gray-600">₹{(actualAmountValue / 1000).toFixed(0)}k</span>
                   </div>
 
                   {/* Remaining Bar */}
                   <div className="flex flex-col items-center">
-                    <div className="w-12 bg-blue-500 rounded-t" style={{ height: `${(remainingAmount / 50000) * 180}px` }}></div>
-                    <span className="text-xs font-medium text-gray-700 mt-2">Remaining</span>
+                    <div className="w-12 bg-secondary rounded-t" style={{ height: `${(remainingAmount / 50000) * 180}px` }}></div>
+                    <span className="text-xs font-medium text-muted-foreground mt-2">Remaining</span>
                     <span className="text-xs text-gray-600">₹{(remainingAmount / 1000).toFixed(0)}k</span>
                   </div>
                 </div>

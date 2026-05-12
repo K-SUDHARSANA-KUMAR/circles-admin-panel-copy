@@ -174,15 +174,15 @@ const BeatMapModal = ({
               <div>
                 <h3 className="mb-2 font-semibold">Beat Information</h3>
                 <div className="space-y-2">
-                  <div className="rounded-md bg-white p-3">
+                  <div className="rounded-md bg-card p-3">
                     <div className="text-sm text-gray-600">Beat Name</div>
                     <div className="font-semibold">{beatData?.beatName || 'Unknown'}</div>
                   </div>
-                  <div className="rounded-md bg-white p-3">
+                  <div className="rounded-md bg-card p-3">
                     <div className="text-sm text-gray-600">Beat Priority</div>
                     <div className="font-semibold">{beatPriority}</div>
                   </div>
-                  <div className="rounded-md bg-white p-3">
+                  <div className="rounded-md bg-card p-3">
                     <div className="text-sm text-gray-600">Total Outlets</div>
                     <div className="font-semibold">{outletsData.length}</div>
                   </div>
@@ -194,7 +194,7 @@ const BeatMapModal = ({
                   <h3 className="mb-2 font-semibold">Outlets in Beat</h3>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {outletsData.map((outlet, index) => (
-                      <div key={outlet.outletId || index} className="rounded-md bg-white p-2 text-xs">
+                      <div key={outlet.outletId || index} className="rounded-md bg-card p-2 text-xs">
                         <div className="font-medium">{outlet.outletName}</div>
                         <div className="text-gray-500">{outlet.ownerName}</div>
                         <div className="text-gray-500">{outlet.phoneNumber}</div>
@@ -252,7 +252,7 @@ const BeatMapModal = ({
                         icon={createBeatIcon(beatPriority)}
                       >
                         <Popup>
-                          <div className="font-poppins flex flex-col justify-center gap-1">
+                          <div className="font-inter flex flex-col justify-center gap-1">
                             <div className="text-base font-semibold">
                               {beatData?.beatName || 'Beat'}
                             </div>
@@ -293,7 +293,7 @@ const BeatMapModal = ({
                         icon={createBeatIcon(outletBeatPriority)}
                       >
                         <Popup>
-                          <div className="font-poppins flex flex-col justify-center gap-1">
+                          <div className="font-inter flex flex-col justify-center gap-1">
                             <div className="text-base font-semibold">
                               {outlet.outletName || 'Unknown Outlet'}
                             </div>

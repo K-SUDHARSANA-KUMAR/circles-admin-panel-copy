@@ -43,7 +43,7 @@ export const VerificationDocumentsSection = ({ form, isEditMode, handleStatusUpd
   };
 
   return (
-    <div className="rounded-lg bg-white p-4">
+    <div className="rounded-lg bg-card p-4">
       <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">Tax Verification Documents</div>
       <FormField
         control={form.control}
@@ -474,7 +474,7 @@ export const VerificationDocumentsSection = ({ form, isEditMode, handleStatusUpd
                                     onBillingAddressUpdate?.(addressData);
                                     setShowAttestrModal(false); // Close modal after updating
                                   }}
-                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  className="bg-primary hover:bg-primary text-white"
                                 >
                                   Make it as billing address
                                 </Button>
@@ -496,7 +496,7 @@ export const VerificationDocumentsSection = ({ form, isEditMode, handleStatusUpd
                                     onShippingAddressUpdate?.(addressData);
                                     setShowAttestrModal(false); // Close modal after updating
                                   }}
-                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  className="bg-primary hover:bg-primary text-white"
                                 >
                                   Make it as shipping address
                                 </Button>

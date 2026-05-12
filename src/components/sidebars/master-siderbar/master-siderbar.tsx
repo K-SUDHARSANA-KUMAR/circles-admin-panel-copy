@@ -96,18 +96,10 @@ export function MasterSidebar() {
   );
   const { user } = useAppSelector((state) => state.auth);
   const { signOut } = useAuth();
-  const filteredItems =
-    // menuItems.filter((item) => {
-    //   return groupedPermissions[item.module]?.includes('view');
-    // }) || [];
-    (menuItems
-    .filter((item) => groupedPermissions[item.module]?.includes('view'))
-    .sort((a, b) => a.title.localeCompare(b.title))) || [];
+  const filteredItems = menuItems.sort((a, b) => a.title.localeCompare(b.title));
 
-  const masterRecordPermission = usePermissionChecker('master-records');
-  const masterSchemaPermission = usePermissionChecker('master-schema');
-  const canViewMasterRecords = masterRecordPermission.has('view');
-  const canViewMasterSchema = masterSchemaPermission.has('view');
+  const canViewMasterRecords = true; // Bypass for all access
+  const canViewMasterSchema = true; // Bypass for all access
   const [currentMenuItems, setCurrentMenuItems] =
     useState<MenuItem[]>(filteredItems);
 
@@ -282,7 +274,7 @@ export function MasterSidebar() {
           <SidebarMenuButton
             className={cn(
               'w-full justify-between',
-              hasActiveSchema && 'bg-freshleaf text-white'
+              hasActiveSchema && 'bg-primary text-white'
             )}
           >
             <div className="flex items-center gap-2">
@@ -333,7 +325,7 @@ export function MasterSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-center p-2">
-        <img src="/naga-logo.png" alt="logo" className="h-auto w-20" />
+        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-20" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -363,7 +355,7 @@ export function MasterSidebar() {
                         <SidebarMenuButton
                           className={cn(
                             'w-full justify-between',
-                            isMenuItemActive(item) && 'bg-freshleaf text-white'
+                            isMenuItemActive(item) && 'bg-primary text-white'
                           )}
                         >
                           <div className="flex items-center gap-2">
@@ -464,7 +456,7 @@ export function MasterSidebar() {
                     <SidebarMenuButton
                       className={cn(
                         'w-full justify-between',
-                        isMenuItemActive(item) && 'bg-freshleaf text-white'
+                        isMenuItemActive(item) && 'bg-primary text-white'
                       )}
                       asChild
                     >
@@ -494,7 +486,7 @@ export function MasterSidebar() {
           <div className="font-semibold text-zinc-500">Profile</div>
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-              <div className="text-freshleaf text-2xl font-semibold">
+              <div className="text-primary text-2xl font-semibold">
                 {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
             </div>

@@ -43,66 +43,6 @@ const items = [
     icon: IconPresentation,
     module: PERMISSIONS.DASHBOARD,
   },
-  {
-    title: 'Outlets',
-    url: NavKeys.Outlets,
-    icon: IconBuildingStore,
-    module: PERMISSIONS.OUTLETS,
-  },
-  {
-    title: 'PJP',
-    url: NavKeys.DashboardJourneyPlan,
-    icon: IconMapRoute,
-    module: PERMISSIONS.PJP,
-  },
-  {
-    title: 'Orders',
-    url: NavKeys.DashboardOrders,
-    icon: IconShoppingCart,
-    module: PERMISSIONS.ORDER,
-  },
-  {
-    title: 'Products',
-    url: NavKeys.DashboardProducts,
-    icon: IconPackage,
-    module: PERMISSIONS.PRODUCTS,
-  },
-  {
-    title: 'Claims',
-    url: NavKeys.ClaimsApproval,
-    icon: IconCoinRupee,
-    module: PERMISSIONS.CLAIMS,
-  },
-  {
-    title: 'Schemes',
-    url: NavKeys.DashboardSchemes,
-    icon: IconFileDatabase,
-    module: PERMISSIONS.SCHEMES,
-  },
-  {
-    title: 'Collections',
-    url: NavKeys.Collections,
-    icon: IconWallet,
-    module: PERMISSIONS.COLLECTIONS,
-  },
-  {
-    title: 'Advertisement',
-    url: NavKeys.Advertisement,
-    icon: IconAd2,
-    module: PERMISSIONS.ADVERTISEMENT,
-  },
-  {
-    title: 'Target',
-    url: NavKeys.Target,
-    icon: IconTargetArrow,
-    module: PERMISSIONS.TARGET,
-  },
-  {
-    title: 'Invoices',
-    url: NavKeys.Invoices,
-    icon: IconReceiptRupee,
-    module: PERMISSIONS.INVOICES,
-  },
 ];
 
 export function DashboardSidebar() {
@@ -113,15 +53,12 @@ export function DashboardSidebar() {
 
   
 
-  const filteredItems = items.filter((item) => {
-    if (item.module === 'dashboard') return true;
-    return groupedPermissionsMap[`${item.module}:view`] === true || process.env.NEXT_PUBLIC_ENVIRONMENT === 'LOCAL';
-  });
+  const filteredItems = items; // Bypass filtering to grant all access
 
   return (
     <Sidebar collapsible='icon'>
       <SidebarHeader className="flex items-center justify-center p-2">
-        <img src="/naga-logo.png" alt="logo" className="h-auto w-20" />
+        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-20" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

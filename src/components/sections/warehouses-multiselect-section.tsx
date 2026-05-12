@@ -391,7 +391,7 @@ export const WarehouseMultiSelectSection: React.FC<
   };
 
   return (
-    <div className="rounded-lg bg-white p-4">
+    <div className="rounded-lg bg-card p-4">
       <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
         Map User Warehouses
       </div>
@@ -434,7 +434,7 @@ export const WarehouseMultiSelectSection: React.FC<
 
       {/* Show message when required selections are not made */}
       {requireUserMapping && !hasRequiredSelections && (
-        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3">
+        <div className="mb-4 rounded-md border border-blue-200 bg-secondary/10 p-3">
           <p className="text-sm text-blue-800">
             Please select Division, Channel, Zone, and Sub Zone first to enable warehouse selection.
           </p>

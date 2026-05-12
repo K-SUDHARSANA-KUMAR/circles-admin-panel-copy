@@ -82,7 +82,7 @@ function ConfigurationsContent() {
   return (
     <section className="w-full space-y-6">
       <PageHeader title="Configurations" />
-      <div className="w-full space-y-3 rounded-lg bg-white p-4">
+      <div className="w-full space-y-3 rounded-lg bg-card p-4">
         <div className="w-full space-y-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="relative w-full md:w-1/3">

@@ -165,8 +165,8 @@ export const OutletSelectorModal = ({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             <div className="flex flex-col gap-1">
-              <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-                <Store className="text-freshleaf h-5 w-5" />
+              <div className="bg-primary/10 w-fit rounded-full p-2">
+                <Store className="text-primary h-5 w-5" />
               </div>
               <div className="text-lg font-medium">Select Outlet</div>
               <div className="text-sm font-normal text-zinc-500">
@@ -207,7 +207,7 @@ export const OutletSelectorModal = ({
                     key={outlet.outletId}
                     className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
                       selectedOutlet?.outletId === outlet.outletId
-                        ? 'border-freshleaf/50 bg-freshleaf/10'
+                        ? 'border-primary/50 bg-primary/10'
                         : 'border-neutral-200 hover:border-neutral-300'
                     }`}
                     onClick={() => handleOutletSelect(outlet)}

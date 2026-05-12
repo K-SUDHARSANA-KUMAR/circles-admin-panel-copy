@@ -45,7 +45,7 @@ export type ApproveClaimModalProps = {
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'approved':
-      return <CheckCircle className="h-4 w-4 text-green-600" />;
+      return <CheckCircle className="h-4 w-4 text-primary" />;
     case 'rejected':
       return <XCircle className="h-4 w-4 text-red-600" />;
     case 'suspended':
@@ -59,7 +59,7 @@ const getStatusIcon = (status: string) => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'approved':
-      return 'text-green-600';
+      return 'text-primary';
     case 'rejected':
       return 'text-red-600';
     case 'suspended':
@@ -104,8 +104,8 @@ export default function ApproveClaimModal({
         <DialogHeader className="flex-shrink-0 space-y-4">
           <DialogTitle>
             <div className="flex flex-col gap-1">
-              <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-                <CheckCircle2Icon className="text-freshleaf h-5 w-5" />
+              <div className="bg-primary/10 w-fit rounded-full p-2">
+                <CheckCircle2Icon className="text-primary h-5 w-5" />
               </div>
               <div className="text-lg font-medium">{title}</div>
               <div className="text-sm font-normal text-zinc-500">

@@ -20,13 +20,13 @@ export const invoicesApi = {
   },
 
   getById: async (invoiceId: string): Promise<Invoice> => {
-    const response = await customAxios.get(`${API_BASE_URL}/api/naga-payment-service/invoices/${invoiceId}`);
+    const response = await customAxios.get(`${API_BASE_URL}/invoices/${invoiceId}`);
     
     return response.data;
   },
 
   updateStatus: async (invoiceId: string, status: string): Promise<Invoice> => {
-    const response = await customAxios.put(`${API_BASE_URL}/api/naga-payment-service/invoices/${invoiceId}/status`, {
+    const response = await customAxios.put(`${API_BASE_URL}/invoices/${invoiceId}/status`, {
       status,
     });
     
@@ -42,7 +42,7 @@ export const invoicesApi = {
   },
 
   send: async (invoiceId: string): Promise<Invoice> => {
-    const response = await customAxios.post(`${API_BASE_URL}/api/naga-payment-service/invoices/${invoiceId}/send`);
+    const response = await customAxios.post(`${API_BASE_URL}/invoices/${invoiceId}/send`);
     
     return response.data;
   },

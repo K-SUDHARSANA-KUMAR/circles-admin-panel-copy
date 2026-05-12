@@ -242,7 +242,7 @@ export default function AttendanceDetailsModal({
                     );
                     return (
                       <div className="flex flex-1 flex-col">
-                        <h4 className="mb-2 text-sm font-medium text-gray-700">
+                        <h4 className="mb-2 text-sm font-medium text-muted-foreground">
                           Punch In
                         </h4>
                         <div
@@ -279,7 +279,7 @@ export default function AttendanceDetailsModal({
                     );
                     return (
                       <div className="flex flex-1 flex-col">
-                        <h4 className="mb-2 text-sm font-medium text-gray-700">
+                        <h4 className="mb-2 text-sm font-medium text-muted-foreground">
                           Punch Out
                         </h4>
                         <div

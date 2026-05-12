@@ -298,7 +298,7 @@ export const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({
             <div className="flex gap-4">
               {/* Reporting Division Filter */}
               <div className="flex-1">
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                <label className="text-sm font-medium text-muted-foreground mb-1 block">
                   Filter by Reporting Division
                 </label>
                 <MasterRecordSelect
@@ -312,7 +312,7 @@ export const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({
               
               {/* Search Bar */}
               <div className="flex-1">
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                <label className="text-sm font-medium text-muted-foreground mb-1 block">
                   Search
                 </label>
                 <div className="relative">

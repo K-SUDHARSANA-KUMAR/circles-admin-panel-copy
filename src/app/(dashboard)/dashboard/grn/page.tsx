@@ -39,7 +39,7 @@ const GrnPage = () => {
     <section className="w-full space-y-6">
       <PageHeader title="GRN Receipt Note Approval" />
 
-      <div className="space-y-4 rounded-lg bg-white p-4">
+      <div className="space-y-4 rounded-lg bg-card p-4">
         <div className="mb-2 flex items-center justify-between">
           <Select value={selected} onValueChange={setSelected}>
             <SelectTrigger className="w-64">
@@ -93,7 +93,7 @@ const GrnPage = () => {
         </div>
       </div>
 
-      <div className="rounded-lg bg-white p-4">
+      <div className="rounded-lg bg-card p-4">
         <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
           Outlet Information
         </div>

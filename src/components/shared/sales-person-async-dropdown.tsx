@@ -116,7 +116,7 @@ export const SalesPersonAsyncDropdown = ({
   if (selectedValue && displayName && !open) {
     return (
       <div 
-        className={`flex items-center justify-between border rounded-md px-3 py-2 bg-white cursor-pointer hover:bg-gray-50 transition-colors ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${className}`}
+        className={`flex items-center justify-between border rounded-md px-3 py-2 bg-card cursor-pointer hover:bg-gray-50 transition-colors ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${className}`}
         onClick={() => {
           if (!disabled) {
             setOpen(true);

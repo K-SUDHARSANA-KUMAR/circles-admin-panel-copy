@@ -51,7 +51,7 @@ export default function ApproveClaimPage({
           Reject
         </Button>
         <Button
-          className="bg-green-600 text-white hover:bg-green-700"
+          className="bg-primary text-white hover:bg-primary"
           onClick={onApprove}
           disabled={isActionDisabled}
         >

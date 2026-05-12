@@ -44,12 +44,12 @@ export default function ReusableApprovalModal({
     switch (status) {
       case 'active':
         return {
-          box: 'bg-green-600 text-white ',
+          box: 'bg-primary text-white ',
           text: 'text-black-700',
         };
       case 'pending':
         return {
-          box: 'bg-white text-green-600 border border-green-600',
+          box: 'bg-card text-primary border border-primary',
           text: 'text-black-600',
         };
       case 'suspended':
@@ -101,14 +101,14 @@ export default function ReusableApprovalModal({
           {/* Right Column: Info */}
           {infoFields.length > 0 && (
             <div className="col-span-12 md:col-span-8">
-              <div className="rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm">
+              <div className="rounded-xl border border-gray-200 bg-card px-6 py-5 shadow-sm">
                 <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                   {infoFields.map((field, index) => (
                     <div key={index}>
                       <dt className="text-sm font-medium text-gray-500">
                         {field.label}
                       </dt>
-                      <dd className="mt-1 text-base font-semibold text-gray-900">
+                      <dd className="mt-1 text-base font-semibold text-foreground">
                         {field.value || '—'}
                       </dd>
                     </div>
@@ -120,7 +120,7 @@ export default function ReusableApprovalModal({
         </div>
 
         {/* Footer with Approve / Reject */}
-        <DialogFooter className="sticky  right-0 bottom-0 left-0 z-100 border-t border-gray-200 bg-white px-4 pt-2">
+        <DialogFooter className="sticky  right-0 bottom-0 left-0 z-100 border-t border-gray-200 bg-card px-4 pt-2">
           {children}
         </DialogFooter>
       </DialogContent>

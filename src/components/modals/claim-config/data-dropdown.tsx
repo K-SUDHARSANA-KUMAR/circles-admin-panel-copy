@@ -95,14 +95,14 @@ const DataDropdown: React.FC<DataDropdownProps> = ({
     <div className="relative md:w-full" ref={dropdownRef}>
       <div
         className={`
-          flex items-center justify-between w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-pointer min-h-[40px]
+          flex items-center justify-between w-full px-3 py-2 text-left bg-card border border-gray-300 rounded-md shadow-sm cursor-pointer min-h-[40px]
           ${disabled || loading ? 'bg-gray-50 cursor-not-allowed' : 'hover:border-gray-400'}
-          ${isOpen ? 'border-blue-500 ring-1 ring-blue-500' : ''}
+          ${isOpen ? 'border-secondary ring-1 ring-secondary' : ''}
           ${error ? 'border-red-300' : ''}
         `}
         onClick={handleToggle}
       >
-        <span className={`block truncate ${!selectedItem ? 'text-gray-500' : 'text-gray-900'}`}>
+        <span className={`block truncate ${!selectedItem ? 'text-gray-500' : 'text-foreground'}`}>
           {selectedItem ? getDisplayName(selectedItem) : placeholder}
         </span>
         <ChevronDown
@@ -113,7 +113,7 @@ const DataDropdown: React.FC<DataDropdownProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 rounded-lg border border-gray-200 bg-white shadow-xl min-w-[180px] max-w-[240px]">
+        <div className="absolute z-50 w-full mt-1 rounded-lg border border-gray-200 bg-card shadow-xl min-w-[180px] max-w-[240px]">
           {/* Search Input */}
           {data.length > 2 && (
             <div className="p-2 border-b border-gray-100">
@@ -122,7 +122,7 @@ const DataDropdown: React.FC<DataDropdownProps> = ({
                 <input
                   ref={searchInputRef}
                   type="text"
-                  className="pl-9 w-full py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-9 w-full py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary"
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,7 +164,7 @@ const DataDropdown: React.FC<DataDropdownProps> = ({
                       <div
                         key={itemId}
                         className={`px-3 py-2 cursor-pointer text-sm rounded-lg transition-colors duration-100
-                          ${value === itemId ? 'bg-blue-50 text-blue-600' : 'text-gray-900'}
+                          ${value === itemId ? 'bg-secondary/10 text-secondary' : 'text-foreground'}
                           hover:bg-gray-50`}
                         onClick={() => handleSelect(itemId)}
                       >

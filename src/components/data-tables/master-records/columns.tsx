@@ -78,17 +78,17 @@ const TruncatedText = ({
           <Button
             variant="link"
             size="sm"
-            className="h-auto p-0 ml-1 text-blue-600 hover:text-blue-800"
+            className="h-auto p-0 ml-1 text-secondary hover:text-blue-800"
           >
             +{hiddenCount} more
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[80vh] sm:max-w-[425px] p-0">
-          <DialogHeader className="sticky top-0 bg-white border-b p-6 pb-4 z-10 relative">
+          <DialogHeader className="sticky top-0 bg-card border-b p-6 pb-4 z-10 relative">
             <DialogTitle>All Items ({filteredItems.length} of {items.length} total)</DialogTitle>
             <DialogClose asChild>
               <button
-                className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-green-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground p-1 rounded"
+                className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground p-1 rounded"
                 aria-label="Close"
               >
                 <span className="sr-only">Close</span>

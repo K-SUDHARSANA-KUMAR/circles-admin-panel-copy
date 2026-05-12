@@ -58,7 +58,7 @@ export const PermissionsMultiSelectModal = ({
           <DialogTitle>
             <div className="flex flex-col gap-1">
               <div className="bg-blue-100 w-fit rounded-full p-2">
-                <IconShieldLock className="text-freshleaf h-5 w-5" />
+                <IconShieldLock className="text-primary h-5 w-5" />
               </div>
               <div className="text-lg font-medium">Manage Permissions</div>
               <div className="text-sm font-normal text-zinc-500">

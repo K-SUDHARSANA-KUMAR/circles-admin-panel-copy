@@ -471,7 +471,7 @@ const ProductCreatePage = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Basic Information
             </div>
@@ -609,7 +609,7 @@ const ProductCreatePage = () => {
           </div>
 
           {/* Product Classification */}
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Product Classification
             </div>
@@ -697,7 +697,7 @@ const ProductCreatePage = () => {
           </div>
 
           {/* Physical Properties */}
-          <div className="rounded-lg bg-white p-4">
+          <div className="rounded-lg bg-card p-4">
             <div className="bg-background mb-4 rounded-lg p-2 text-lg font-medium">
               Physical Properties
             </div>
@@ -759,7 +759,7 @@ const ProductCreatePage = () => {
                   {form.watch('unitPerCase')?.map((item: any, index: number) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between rounded-lg border bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                      className="flex items-center justify-between rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">

@@ -38,31 +38,31 @@ import FlexiPayIconSvg from '@/assets/svgs/flexipayratingicom.svg';
 
 // Create React components for SVG icons
 const OutletIcon = ({ className }: { className?: string }) => (
-  <img src={OutletIconSvg.src} alt="Outlet" className={className} style={{ color: '#00A551' }} />
+  <img src={OutletIconSvg.src} alt="Outlet" className={className} style={{ color: '#7C3AED' }} />
 );
 
 const ClaimIcon = ({ className }: { className?: string }) => (
-  <img src={ClaimIconSvg.src} alt="Claim" className={className} style={{ color: '#00A551' }} />
+  <img src={ClaimIconSvg.src} alt="Claim" className={className} style={{ color: '#7C3AED' }} />
 );
 
 const SalesIcon = ({ className }: { className?: string }) => (
-  <img src={SalesIconSvg.src} alt="Sales" className={className} style={{ color: '#00A551' }} />
+  <img src={SalesIconSvg.src} alt="Sales" className={className} style={{ color: '#7C3AED' }} />
 );
 
 const CollectionIcon = ({ className }: { className?: string }) => (
-  <img src={CollectionIconSvg.src} alt="Collection" className={className} style={{ color: '#00A551' }} />
+  <img src={CollectionIconSvg.src} alt="Collection" className={className} style={{ color: '#7C3AED' }} />
 );
 
 const FormIcon = ({ className }: { className?: string }) => (
-  <img src={FormIconSvg.src} alt="Form" className={className} style={{ color: '#00A551' }} />
+  <img src={FormIconSvg.src} alt="Form" className={className} style={{ color: '#7C3AED' }} />
 );
 
 const OrderIcon = ({ className }: { className?: string }) => (
-  <img src={OrderIconSvg.src} alt="Order" className={className} style={{ color: '#00A551' }} />
+  <img src={OrderIconSvg.src} alt="Order" className={className} style={{ color: '#7C3AED' }} />
 );
 
 const AttendanceIcon = ({ className }: { className?: string }) => (
-  <img src={AttendanceIconSvg.src} alt="Attendance" className={className} style={{ color: '#00A551' }} />
+  <img src={AttendanceIconSvg.src} alt="Attendance" className={className} style={{ color: '#7C3AED' }} />
 );
 
 const SRRatingIcon = ({ className }: { className?: string }) => (
@@ -70,7 +70,7 @@ const SRRatingIcon = ({ className }: { className?: string }) => (
     src={SRRatingIconSvg.src}
     alt="SR Rating"
     className={className}
-    style={{ color: '#00A551' }}
+    style={{ color: '#7C3AED' }}
   />
 );
 
@@ -78,7 +78,7 @@ const FlexiPayIcon = ({ className }: { className?: string }) => (
   <div
     className={className}
     style={{
-      backgroundColor: '#00A551',
+      backgroundColor: '#7C3AED',
       mask: `url(${FlexiPayIconSvg.src}) no-repeat center`,
       maskSize: 'contain',
       WebkitMask: `url(${FlexiPayIconSvg.src}) no-repeat center`,
@@ -393,13 +393,13 @@ const ReportsPage = () => {
       <PageHeader title="Reports" />
 
       {/* White Container Box */}
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         {/* Report Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {reportCards.map((report, index) => (
             <div
               key={index}
-              className="bg-white border border-gray-200 rounded-xl p-3"
+              className="bg-card border border-gray-200 rounded-xl p-3"
               style={{
                 width: '303px',
                 height: '226px',
@@ -413,7 +413,7 @@ const ReportsPage = () => {
                 className="h-32 rounded-lg flex items-center justify-center mb-1"
                 style={{
                   opacity: 1,
-                  backgroundColor: '#D8FAE9'
+                  backgroundColor: '#111827'
                 }}
               >
                 <report.icon className="w-8 h-8" />
@@ -421,7 +421,7 @@ const ReportsPage = () => {
               <div className="space-y-1">
                 <h3
                   style={{
-                    fontFamily: 'Poppins',
+                    fontFamily: 'var(--font-inter)',
                     fontWeight: 500,
                     fontSize: '18px'
                   }}
@@ -433,16 +433,16 @@ const ReportsPage = () => {
                   size="sm"
                   className="w-full font-medium rounded-lg transition-colors duration-200"
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#00A551';
+                    e.currentTarget.style.backgroundColor = '#7C3AED';
                     e.currentTarget.style.color = 'white';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#00A551';
+                    e.currentTarget.style.color = '#7C3AED';
                   }}
                   style={{
-                    borderColor: '#00A551',
-                    color: '#00A551',
+                    borderColor: '#7C3AED',
+                    color: '#7C3AED',
                     backgroundColor: 'transparent'
                   }}
                   onClick={() => handleDownloadClick(report.title)}
@@ -460,7 +460,7 @@ const ReportsPage = () => {
           <DialogHeader className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: '#D8FAE9' }}
+              style={{ backgroundColor: '#111827' }}
             >
               {selectedReport === 'SR Rating Report' ? (
                 <SRRatingIcon className="w-6 h-6" />
@@ -486,7 +486,7 @@ const ReportsPage = () => {
             <div className="space-y-4">
               {/* Warehouse Selection - Show for all reports */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   Warehouse {getCurrentWarehouses().length > 0 && `(${getCurrentWarehouses().length} selected)`}
                 </label>
                 <Button
@@ -507,7 +507,7 @@ const ReportsPage = () => {
               {/* User Selection - Show for SR Rating and Flexi Pay reports */}
               {(selectedReport === 'SR Rating Report' || selectedReport === 'Flexi Pay Report') && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     User {getCurrentUsers().length > 0 && `(${getCurrentUsers().length} selected)`}
                   </label>
                   <Button
@@ -529,7 +529,7 @@ const ReportsPage = () => {
               {/* Outlet Selection - Show only for Outlet Report */}
               {selectedReport === 'Outlet Report' && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Outlet
                   </label>
                   <Select>
@@ -548,7 +548,7 @@ const ReportsPage = () => {
               {/* Date Range - Show for all reports */}
               {selectedReport === 'Outlet Report' ? (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Date Range
                   </label>
                   <div className="relative">
@@ -570,7 +570,7 @@ const ReportsPage = () => {
                 // From Date and To Date for SR Rating and Flexi Pay reports
                 <>
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">
                       From Date
                     </label>
                     <DatePicker
@@ -580,7 +580,7 @@ const ReportsPage = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">
                       To Date
                     </label>
                     <DatePicker
@@ -616,7 +616,7 @@ const ReportsPage = () => {
                 onClick={handleDownload}
                 disabled={!isDownloadEnabled() || isDownloading}
                 className={isDownloadEnabled() && !isDownloading
-                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  ? "bg-primary hover:bg-primary text-white"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }
               >

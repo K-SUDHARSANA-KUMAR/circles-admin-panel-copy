@@ -5,8 +5,11 @@ import { DashboardSidebar } from '@/components/sidebars/dashboard-sidebar/dashbo
 import { ProtectedRoute } from '@/components/auth/protected-route';
 
 export const metadata: Metadata = {
-  title: 'SFA Admin - Dashboard',
-  description: 'Main dashboard for SFA Admin Panel',
+  title: 'Circles Admin - Dashboard',
+  description: 'Main dashboard for Circles Admin Panel',
+  icons: {
+    icon: '/circles_logo.ico',
+  },
 };
 
 export default function DashboardLayout({

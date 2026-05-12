@@ -1215,7 +1215,7 @@ const WarehouseMapViewModal = ({
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
               <MapPin className="mx-auto mb-4 h-16 w-16 text-gray-400" />
-              <h3 className="mb-2 text-lg font-semibold text-gray-700">
+              <h3 className="mb-2 text-lg font-semibold text-muted-foreground">
                 No Warehouses Selected
               </h3>
               <p className="text-gray-500">
@@ -1241,7 +1241,7 @@ const WarehouseMapViewModal = ({
         <div className="flex h-full overflow-hidden">
           {/* Enhanced Left Sidebar */}
           <div className="flex h-full w-96 flex-col border-r bg-gradient-to-b from-gray-50 to-white shadow-sm">
-            <div className="flex-shrink-0 border-b bg-white p-4">
+            <div className="flex-shrink-0 border-b bg-card p-4">
               <div className="space-y-3">
                 <div className="relative">
                   <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
@@ -1249,7 +1249,7 @@ const WarehouseMapViewModal = ({
                     placeholder="Search users and outlets..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border-gray-200 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                    className="border-gray-200 pl-10 focus:border-secondary focus:ring-secondary"
                   />
                 </div>
 
@@ -1392,10 +1392,10 @@ const WarehouseMapViewModal = ({
                     <CollapsibleTrigger className="w-full">
                       <div className="mb-3 flex items-center gap-2 rounded-t-lg transition-colors hover:bg-gray-50">
                         <div className="rounded-lg bg-blue-100 p-1.5">
-                          <Users className="h-4 w-4 text-blue-600" />
+                          <Users className="h-4 w-4 text-secondary" />
                         </div>
                         <div className="flex-1 text-left">
-                          <h3 className="text-sm font-semibold text-gray-800">
+                          <h3 className="text-sm font-semibold text-foreground">
                             Sales Persons
                           </h3>
                           <p className="text-xs text-gray-500">
@@ -1470,7 +1470,7 @@ const WarehouseMapViewModal = ({
                                   key={user.userId}
                                   className={`cursor-pointer rounded-l-none rounded-r-md border-l-4 p-0 shadow-none transition-all hover:shadow-md ${
                                     selectedSalesPerson === user.userId
-                                      ? 'bg-freshleaf/10'
+                                      ? 'bg-primary/10'
                                       : ''
                                   }`}
                                   style={{
@@ -1499,12 +1499,12 @@ const WarehouseMapViewModal = ({
                                         }}
                                       />
                                       <div className="flex w-full items-center justify-between">
-                                        <div className="truncate text-xs font-semibold text-gray-800">
+                                        <div className="truncate text-xs font-semibold text-foreground">
                                           {user.userName}
                                         </div>
                                         <Badge
                                           variant="outline"
-                                          className="border-blue-200 bg-blue-50 px-1.5 py-0.5 text-xs text-blue-700"
+                                          className="border-blue-200 bg-secondary/10 px-1.5 py-0.5 text-xs text-secondary"
                                         >
                                           {userOutlets.length}
                                         </Badge>
@@ -1527,10 +1527,10 @@ const WarehouseMapViewModal = ({
                     <CollapsibleTrigger className="w-full">
                       <div className="mb-3 flex items-center gap-2 rounded-t-lg transition-colors hover:bg-gray-50">
                         <div className="rounded-lg bg-green-100 p-1.5">
-                          <Store className="h-4 w-4 text-green-600" />
+                          <Store className="h-4 w-4 text-primary" />
                         </div>
                         <div className="flex-1 text-left">
-                          <h3 className="text-sm font-semibold text-gray-800">
+                          <h3 className="text-sm font-semibold text-foreground">
                             Outlets
                           </h3>
                           <p className="text-xs text-gray-500">
@@ -1585,7 +1585,7 @@ const WarehouseMapViewModal = ({
                                         }}
                                       />
                                       <div className="flex w-full items-center justify-between">
-                                        <div className="truncate text-xs font-semibold text-gray-800">
+                                        <div className="truncate text-xs font-semibold text-foreground">
                                           {outlet.outletName}
                                         </div>
                                         <div className="text-xs text-gray-500">
@@ -1630,7 +1630,7 @@ const WarehouseMapViewModal = ({
                             <Store className="h-4 w-4 text-gray-600" />
                           </div>
                           <div className="flex-1 text-left">
-                            <h3 className="text-sm font-semibold text-gray-800">
+                            <h3 className="text-sm font-semibold text-foreground">
                               Unassigned Outlets
                             </h3>
                             <p className="text-xs text-gray-500">
@@ -1688,7 +1688,7 @@ const WarehouseMapViewModal = ({
                                           }`}
                                         />
                                         <div className="min-w-0 flex-1">
-                                          <div className="truncate text-xs font-semibold text-gray-800">
+                                          <div className="truncate text-xs font-semibold text-foreground">
                                             {outlet.outletName}
                                           </div>
                                         </div>
@@ -1801,7 +1801,7 @@ const WarehouseMapViewModal = ({
 
                           <div className="border-t pt-2">
                             <div className="mb-2 flex items-center gap-2">
-                              <Users className="h-4 w-4 text-blue-500" />
+                              <Users className="h-4 w-4 text-secondary" />
                               <span className="text-sm font-medium">
                                 Users ({users.length})
                               </span>
@@ -1897,7 +1897,7 @@ const WarehouseMapViewModal = ({
 
                           <div className="border-t pt-2">
                             <div className="mb-2 flex items-center gap-2">
-                              <Users className="h-4 w-4 text-green-500" />
+                              <Users className="h-4 w-4 text-primary" />
                               <span className="text-sm font-medium">
                                 Assigned User
                               </span>

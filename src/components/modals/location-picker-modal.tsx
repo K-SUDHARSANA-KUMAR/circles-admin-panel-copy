@@ -184,8 +184,8 @@ export function LocationPickerModal({
         <DialogHeader>
           <DialogTitle>
             <div className="flex flex-col gap-1">
-              <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-                <MapPin className="text-freshleaf h-5 w-5" />
+              <div className="bg-primary/10 w-fit rounded-full p-2">
+                <MapPin className="text-primary h-5 w-5" />
               </div>
               <div className="text-lg font-medium">Pin Location</div>
               <div className="text-sm font-normal text-zinc-500">
@@ -200,7 +200,7 @@ export function LocationPickerModal({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Location Link Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-muted-foreground">
                 Location Link
               </label>
               <Input
@@ -223,7 +223,7 @@ export function LocationPickerModal({
 
             {/* Coordinates Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-muted-foreground">
                 Enter Coordinates
               </label>
               <div className="flex items-center gap-2">
@@ -268,11 +268,11 @@ export function LocationPickerModal({
           {selectedCoordinates && (
             <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
               <div className="space-y-2">
-                <div className="text-sm text-green-700">
+                <div className="text-sm text-primary">
                   <span className="font-medium">Coordinates:</span> {selectedCoordinates.lat.toFixed(6)}, {selectedCoordinates.lng.toFixed(6)}
                 </div>
                 {isAddressLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-green-700">
+                  <div className="flex items-center gap-2 text-sm text-primary">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     <span>Loading address...</span>
                   </div>
@@ -281,7 +281,7 @@ export function LocationPickerModal({
                     <span className="font-medium">Address:</span> Unable to fetch address
                   </div>
                 ) : address ? (
-                  <div className="text-sm text-green-700">
+                  <div className="text-sm text-primary">
                     <div>
                       <span className="font-medium">Address:</span> {address}
                     </div>
@@ -299,7 +299,7 @@ export function LocationPickerModal({
               variant="outline" 
               onClick={handleConfirmPin}
               disabled={!selectedCoordinates}
-              className="flex items-center gap-2 border-freshleaf text-freshleaf hover:bg-freshleaf/10"
+              className="flex items-center gap-2 border-primary text-primary hover:bg-primary/10"
             >
               <MapPin className="h-4 w-4" />
               Confirm Pin
@@ -308,7 +308,7 @@ export function LocationPickerModal({
               variant="default" 
               onClick={handleConfirmAll}
               disabled={!selectedCoordinates || isAddressLoading}
-              className="flex items-center gap-2 bg-freshleaf hover:bg-freshleaf/90"
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90"
             >
               {isAddressLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
               Confirm Pin with Address

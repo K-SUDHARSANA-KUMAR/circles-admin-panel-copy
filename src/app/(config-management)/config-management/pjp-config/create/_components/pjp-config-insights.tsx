@@ -48,7 +48,7 @@ const PjpConfigInsights = ({
   const isDeficit = data.salesForceInfo.excessOrDeficit < 0;
   const coverageColor =
     data.capacityAnalysis.coveragePercentage >= 90
-      ? 'text-green-600'
+      ? 'text-primary'
       : data.capacityAnalysis.coveragePercentage >= 70
         ? 'text-amber-600'
         : 'text-red-600';
@@ -89,9 +89,9 @@ const PjpConfigInsights = ({
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <div className="rounded-lg border bg-white p-4 transition-shadow">
+      <div className="rounded-lg border bg-card p-4 transition-shadow">
         <div className="mb-3 flex items-center gap-2">
-          <Warehouse className="text-freshleaf h-4 w-4" />
+          <Warehouse className="text-primary h-4 w-4" />
           <h3 className="text-sm font-semibold text-neutral-700">Warehouse</h3>
         </div>
         <div className="space-y-2">
@@ -116,10 +116,10 @@ const PjpConfigInsights = ({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white p-4 transition-shadow">
+      <div className="rounded-lg border bg-card p-4 transition-shadow">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Users className="text-freshleaf h-4 w-4" />
+            <Users className="text-primary h-4 w-4" />
             <h3 className="text-sm font-semibold text-neutral-700">
               Sales Force
             </h3>
@@ -147,7 +147,7 @@ const PjpConfigInsights = ({
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-500">Excess/Deficit</span>
             <span
-              className={`text-lg font-bold ${isDeficit ? 'text-red-600' : 'text-green-600'}`}
+              className={`text-lg font-bold ${isDeficit ? 'text-red-600' : 'text-primary'}`}
             >
               {data.salesForceInfo.excessOrDeficit > 0 ? '+' : ''}
               {data.salesForceInfo.excessOrDeficit}
@@ -158,7 +158,7 @@ const PjpConfigInsights = ({
 
       <div className="rounded-lg border bg-gradient-to-br from-green-50 to-white p-4 transition-shadow">
         <div className="mb-3 flex items-center gap-2">
-          <AlertCircle className="text-freshleaf h-4 w-4" />
+          <AlertCircle className="text-primary h-4 w-4" />
           <h3 className="text-sm font-semibold text-neutral-700">Summary</h3>
         </div>
         <Badge variant="outline" className="mb-2">
@@ -171,9 +171,9 @@ const PjpConfigInsights = ({
 
       {data.salesForceInfo.salesPersonDetails &&
         data.salesForceInfo.salesPersonDetails.length > 0 && (
-          <div className="rounded-lg border bg-white p-4 transition-shadow md:col-span-3">
+          <div className="rounded-lg border bg-card p-4 transition-shadow md:col-span-3">
             <div className="mb-4 flex items-center gap-2">
-              <Users className="text-freshleaf h-4 w-4" />
+              <Users className="text-primary h-4 w-4" />
               <h3 className="text-sm font-semibold text-neutral-700">
                 Sales Person Info
               </h3>
@@ -192,9 +192,9 @@ const PjpConfigInsights = ({
         )}
 
       {data.dayWiseBeats && Object.keys(data.dayWiseBeats).length > 0 && (
-        <div className="rounded-lg border bg-white p-4 transition-shadow md:col-span-3">
+        <div className="rounded-lg border bg-card p-4 transition-shadow md:col-span-3">
           <div className="mb-4 flex items-center gap-2">
-            <Calendar className="text-freshleaf h-4 w-4" />
+            <Calendar className="text-primary h-4 w-4" />
             <h3 className="text-sm font-semibold text-neutral-700">
               Day-Wise Beats
             </h3>
@@ -210,7 +210,7 @@ const PjpConfigInsights = ({
               return (
                 <div
                   key={day}
-                  className="rounded-lg border border-neutral-200 bg-gradient-to-br from-blue-50 to-white p-3"
+                  className="rounded-lg border border-neutral-200 bg-gradient-to-br from-secondary/10 to-white p-3"
                 >
                   <div className="mb-2 flex items-start justify-between border-b border-neutral-200 pb-2">
                     <div>
@@ -223,7 +223,7 @@ const PjpConfigInsights = ({
                     </div>
                     <div className="text-right">
                       <div className="text-xs text-neutral-500">Total Outlets</div>
-                      <div className="text-lg font-bold text-freshleaf">
+                      <div className="text-lg font-bold text-primary">
                         {totalOutlets}
                       </div>
                     </div>
@@ -232,14 +232,14 @@ const PjpConfigInsights = ({
                     {dayData.beats.map((beat, idx) => (
                       <div
                         key={beat.beatId}
-                        className="rounded-md bg-white p-2 shadow-sm"
+                        className="rounded-md bg-card p-2 shadow-sm"
                       >
                         <div className="mb-1 text-xs font-medium text-neutral-800">
                           {beat.beatName}
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-neutral-500">Outlets:</span>
-                          <span className="text-sm font-bold text-freshleaf">
+                          <span className="text-sm font-bold text-primary">
                             {beat.totalOutlets}
                           </span>
                         </div>
@@ -255,7 +255,7 @@ const PjpConfigInsights = ({
 
       <div className="rounded-lg border bg-neutral-50 p-4 transition-shadow md:col-span-3">
         <div className="mb-3 flex items-center gap-2">
-          <Settings className="text-freshleaf h-4 w-4" />
+          <Settings className="text-primary h-4 w-4" />
           <h3 className="text-sm font-semibold text-neutral-700">
             Configuration
           </h3>
@@ -314,9 +314,9 @@ const PjpConfigInsights = ({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white p-4 transition-shadow">
+      <div className="rounded-lg border bg-card p-4 transition-shadow">
         <div className="mb-3 flex items-center gap-2">
-          <TrendingUp className="text-freshleaf h-4 w-4" />
+          <TrendingUp className="text-primary h-4 w-4" />
           <h3 className="text-sm font-semibold text-neutral-700">Capacity</h3>
         </div>
         <div className="space-y-2">
@@ -358,9 +358,9 @@ const PjpConfigInsights = ({
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white p-4 transition-shadow">
+      <div className="rounded-lg border bg-card p-4 transition-shadow">
         <div className="mb-3 flex items-center gap-2">
-          <Clock className="text-freshleaf h-4 w-4" />
+          <Clock className="text-primary h-4 w-4" />
           <h3 className="text-sm font-semibold text-neutral-700">
             Time Feasibility
           </h3>
@@ -381,7 +381,7 @@ const PjpConfigInsights = ({
           <div className="my-2 h-px bg-neutral-200" />
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-500">Utilization</span>
-            <span className="text-freshleaf text-lg font-bold">
+            <span className="text-primary text-lg font-bold">
               {data.timeFeasibility.timeUtilizationPercentage}%
             </span>
           </div>

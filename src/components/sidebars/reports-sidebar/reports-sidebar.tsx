@@ -63,7 +63,7 @@ export function ReportsSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-center p-2">
-        <img src="/naga-logo.png" alt="logo" className="h-auto w-20" />
+        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-20" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -77,7 +77,7 @@ export function ReportsSidebar() {
                   <SidebarMenuButton
                     className={cn(
                       'w-full justify-between',
-                      isMenuItemActive(item) && 'bg-freshleaf text-white'
+                      isMenuItemActive(item) && 'bg-primary text-white'
                     )}
                     asChild
                   >

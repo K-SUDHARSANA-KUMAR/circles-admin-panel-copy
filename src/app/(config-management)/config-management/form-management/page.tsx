@@ -243,7 +243,7 @@ const FormManagementContent = () => {
       <section className="w-full space-y-6">
         <PageHeader title="Form Management" />
 
-        <div className="w-full rounded-lg bg-white p-4">
+        <div className="w-full rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <Loading text="Loading forms..." />
           </div>
@@ -257,7 +257,7 @@ const FormManagementContent = () => {
       <section className="w-full space-y-6">
         <PageHeader title="Form Management" />
 
-        <div className="w-full rounded-lg bg-white p-4">
+        <div className="w-full rounded-lg bg-card p-4">
           <div className="flex h-64 items-center justify-center">
             <GenericError text="Error loading forms. Please try again." />
           </div>
@@ -270,7 +270,7 @@ const FormManagementContent = () => {
     <section className="w-full space-y-6">
       <PageHeader title="Form Management" />
 
-      <div className="w-full space-y-4 rounded-lg bg-white p-4">
+      <div className="w-full space-y-4 rounded-lg bg-card p-4">
         <div className="flex flex-col justify-between gap-10 pb-4 md:flex-row">
           <div className="flex w-full flex-col gap-2 md:flex-row">
             <SearchInput

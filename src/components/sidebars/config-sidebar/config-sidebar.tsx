@@ -156,7 +156,7 @@ export function ConfigSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-center p-2">
-        <img src="/naga-logo.png" alt="logo" className="h-auto w-20" />
+        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-20" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -176,7 +176,7 @@ export function ConfigSidebar() {
                         <SidebarMenuButton
                           className={cn(
                             'w-full justify-between',
-                            isMenuItemActive(item) && 'bg-freshleaf text-white'
+                            isMenuItemActive(item) && 'bg-primary text-white'
                           )}
                         >
                           <div className="flex items-center gap-2">
@@ -204,7 +204,7 @@ export function ConfigSidebar() {
                                     pathname === submenuItem.path ||
                                     (pathname.includes('/approval-hierarchy/create') && searchParams.get('type') === submenuItem.path?.split('type=')[1]) ||
                                     (pathname === NavKeys.ApprovalHierarchy && searchParams.get('type') === submenuItem.path?.split('type=')[1])
-                                  ) && 'bg-freshleaf text-white'
+                                  ) && 'bg-primary text-white'
                                 )}
                                 asChild
                               >
@@ -221,7 +221,7 @@ export function ConfigSidebar() {
                     <SidebarMenuButton
                       className={cn(
                         'w-full justify-between',
-                        isMenuItemActive(item) && 'bg-freshleaf text-white'
+                        isMenuItemActive(item) && 'bg-primary text-white'
                       )}
                       asChild
                     >

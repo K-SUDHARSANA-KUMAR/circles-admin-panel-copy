@@ -53,7 +53,7 @@ const AttendanceCalendar = ({
   };
 
   return (
-    <div className="w-full rounded-lg bg-white p-6">
+    <div className="w-full rounded-lg bg-card p-6">
       <CalendarHeader
         onNavigateMonth={onNavigateMonth}
         isNextMonthDisabled={isNextMonthDisabled}

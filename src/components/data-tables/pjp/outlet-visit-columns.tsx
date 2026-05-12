@@ -136,7 +136,7 @@ export const createOutletVisitColumns = (
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 border-green-600 border-2 hover:bg-green-50"
+                className="h-8 border-primary border-2 hover:bg-green-50"
                 onClick={() => handleViewParentPlanOutlets(record.date)}
               >
                 <Eye className="h-4 w-4" />
@@ -216,7 +216,7 @@ export const createOutletVisitColumns = (
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 border-green-600 border-2 hover:bg-green-50"
+                    className="h-8 border-primary border-2 hover:bg-green-50"
                     onClick={() => handleViewCurrentPlan(record)}
                   >
                     <Eye className="h-4 w-4" />
@@ -228,7 +228,7 @@ export const createOutletVisitColumns = (
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 border-green-600 border-2 hover:bg-green-50"
+                    className="h-8 border-primary border-2 hover:bg-green-50"
                     onClick={() => handleViewPlan(record)}
                   >
                     <Eye className="h-4 w-4" />

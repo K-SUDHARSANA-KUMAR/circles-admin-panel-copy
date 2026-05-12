@@ -77,8 +77,8 @@ export function AddOutletModal({
         <DialogHeader>
           <DialogTitle>
             <div className="flex flex-col gap-1">
-              <div className="bg-freshleaf/10 w-fit rounded-full p-2">
-                <Store className="text-freshleaf h-5 w-5" />
+              <div className="bg-primary/10 w-fit rounded-full p-2">
+                <Store className="text-primary h-5 w-5" />
               </div>
               <div className="text-lg font-medium">{'Add Outlet'}</div>
               <div className="text-sm font-normal text-zinc-500">

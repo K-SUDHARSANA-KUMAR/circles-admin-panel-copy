@@ -10,6 +10,7 @@ export interface ILoginCredentials {
   deviceId?: string;
   deviceType?: string;
   platform?: string;
+  employeeCode?: string;
 }
 
 export interface ILoginResponse {
