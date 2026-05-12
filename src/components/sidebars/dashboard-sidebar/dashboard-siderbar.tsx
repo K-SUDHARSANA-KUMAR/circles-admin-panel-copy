@@ -42,7 +42,7 @@ const items = [
     url: NavKeys.DashboardOverview,
     icon: IconPresentation,
     module: PERMISSIONS.DASHBOARD,
-  },
+  }
   // {
   //   title: 'Outlets',
   //   url: NavKeys.Outlets,
