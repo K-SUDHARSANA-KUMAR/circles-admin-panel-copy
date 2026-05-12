@@ -42,67 +42,7 @@ const items = [
     url: NavKeys.DashboardOverview,
     icon: IconPresentation,
     module: PERMISSIONS.DASHBOARD,
-  }
-  // {
-  //   title: 'Outlets',
-  //   url: NavKeys.Outlets,
-  //   icon: IconBuildingStore,
-  //   module: PERMISSIONS.OUTLETS,
-  // },
-  // {
-  //   title: 'PJP',
-  //   url: NavKeys.DashboardJourneyPlan,
-  //   icon: IconMapRoute,
-  //   module: PERMISSIONS.PJP,
-  // },
-  // {
-  //   title: 'Orders',
-  //   url: NavKeys.DashboardOrders,
-  //   icon: IconShoppingCart,
-  //   module: PERMISSIONS.ORDER,
-  // },
-  // {
-  //   title: 'Products',
-  //   url: NavKeys.DashboardProducts,
-  //   icon: IconPackage,
-  //   module: PERMISSIONS.PRODUCTS,
-  // },
-  // {
-  //   title: 'Claims',
-  //   url: NavKeys.ClaimsApproval,
-  //   icon: IconCoinRupee,
-  //   module: PERMISSIONS.CLAIMS,
-  // },
-  // {
-  //   title: 'Schemes',
-  //   url: NavKeys.DashboardSchemes,
-  //   icon: IconFileDatabase,
-  //   module: PERMISSIONS.SCHEMES,
-  // },
-  // {
-  //   title: 'Collections',
-  //   url: NavKeys.Collections,
-  //   icon: IconWallet,
-  //   module: PERMISSIONS.COLLECTIONS,
-  // },
-  // {
-  //   title: 'Advertisement',
-  //   url: NavKeys.Advertisement,
-  //   icon: IconAd2,
-  //   module: PERMISSIONS.ADVERTISEMENT,
-  // },
-  // {
-  //   title: 'Target',
-  //   url: NavKeys.Target,
-  //   icon: IconTargetArrow,
-  //   module: PERMISSIONS.TARGET,
-  // },
-  // {
-  //   title: 'Invoices',
-  //   url: NavKeys.Invoices,
-  //   icon: IconReceiptRupee,
-  //   module: PERMISSIONS.INVOICES,
-  // },
+  },
 ];
 
 export function DashboardSidebar() {
