@@ -43,6 +43,13 @@ const items = [
     icon: IconPresentation,
     module: PERMISSIONS.DASHBOARD,
   },
+  {
+    title: 'Orders',
+    url: NavKeys.DashboardOrders,
+    icon: IconShoppingCart,
+    module: PERMISSIONS.DASHBOARD,
+  },
+  
 ];
 
 export function DashboardSidebar() {
