@@ -42,3 +42,9 @@ jobs:
       - name: Upload to S3
         run: |
           aws s3 sync ./build s3://$S3_BUCKET --delete
+
+      # Create CloudFront Invalidation
+      - name: Create CloudFront Invalidation
+        env:
+          CLOUDFRONT_ID: ${{ secrets.CLOUDFRONT_ID }}
+        run: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
