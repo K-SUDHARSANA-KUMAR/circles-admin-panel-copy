@@ -111,7 +111,7 @@ const VenuesPage = () => {
                       className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(venue.id);
+                        if (venue.id) handleDelete(venue.id);
                       }}
                     >
                       <IconTrash size={16} />
