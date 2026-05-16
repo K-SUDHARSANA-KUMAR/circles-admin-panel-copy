@@ -1,6 +1,7 @@
 'use client';
 
 import { LogOut } from 'lucide-react';
+import Link from 'next/link';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAppSelector } from '@/store/hooks';
 
@@ -19,17 +20,20 @@ export function ProfileSection({ className }: ProfileSectionProps) {
   return (
     <div className={`flex flex-col gap-4 text-sm ${className || ''}`}>
       <div className="font-semibold text-zinc-500 group-data-[collapsible=icon]:hidden">Profile</div>
-      <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200 group-data-[collapsible=icon]:mx-auto">
+      <Link 
+        href="/dashboard/profile" 
+        className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-lg transition-colors cursor-pointer group/profile"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200 group-data-[collapsible=icon]:mx-auto transition-transform group-hover/profile:scale-105">
           <div className="text-primary text-2xl font-semibold">
             {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
         </div>
         <div className="group-data-[collapsible=icon]:hidden">
-          <div>{user?.name || 'User'}</div>
+          <div className="font-medium">{user?.name || 'User'}</div>
           <div className="text-xs text-zinc-500">{user?.roleName || 'Temporary'}</div>
         </div>
-      </div>
+      </Link>
       {/* Expanded: full logout button */}
       <button
         onClick={handleLogout}

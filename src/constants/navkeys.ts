@@ -19,6 +19,7 @@ enum NavKeys {
 
   // Dashboard routes
   DashboardOverview = '/dashboard/overview',
+  VenuesPage = '/dashboard/venues',
   DashboardJourneyPlan = '/dashboard/journey-plan',
   Expenses = '/dashboard/expenses',
   ExpensesList = '/dashboard/expenses/list',

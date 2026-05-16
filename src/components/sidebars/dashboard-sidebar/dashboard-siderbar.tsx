@@ -43,6 +43,12 @@ const items = [
     icon: IconPresentation,
     module: PERMISSIONS.DASHBOARD,
   },
+  {
+    title: 'Venues',
+    url: NavKeys.VenuesPage,
+    icon: IconPresentation,
+    module: PERMISSIONS.VENUES,
+  },
 ];
 
 export function DashboardSidebar() {
