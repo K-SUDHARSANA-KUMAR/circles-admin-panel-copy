@@ -30,7 +30,8 @@ const chartConfig = {
 
 const dashboardMetrics = [
   {
-    icon: IconPackage,
+    
+    icon: IconUsers,
     title: 'Total Users',
     value: '2,455',
     description: 'Total number of users',
@@ -42,7 +43,7 @@ const dashboardMetrics = [
     description: 'All spaces listed and active',
   },
   {
-    icon: IconUsers,
+    icon: IconPackage,
     title: '$Revenue',
     value: '$3,210k',
     description: 'Earned from bookings and partnerships',
