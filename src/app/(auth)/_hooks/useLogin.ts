@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const useLogin = () => {
   const router = useRouter();
   const { signInWithJWT } = useAuth();
-  const [verifyingAuth, setVerifyingAuth] = useState(true);
+  const [verifyingAuth, setVerifyingAuth] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -23,37 +23,9 @@ export const useLogin = () => {
   });
 
   useEffect(() => {
-    const isLocalAuthenticated =
-      localStorage?.getItem('isAuthenticated') === 'true';
-    
-    const bypassAuth =
-      process.env.NEXT_PUBLIC_AUTH_KEY &&
-      process.env.NEXT_PUBLIC_AUTH_KEY.length === 16;
-
-    if (isLocalAuthenticated || bypassAuth) {
-      if (bypassAuth && !isLocalAuthenticated) {
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('accessToken', 'mock-access-token');
-        localStorage.setItem('user', JSON.stringify({ 
-          userId: 'admin', 
-          userName: 'Super Admin',
-          role: 'SUPER_ADMIN',
-          isSuperAdmin: true 
-        }));
-      }
-      router.replace(NavKeys.DashboardOverview);
-      return;
-    }
-    setVerifyingAuth(false);
-
-    const savedUserName = localStorage.getItem('rememberedUserName');
-    const savedPassword = localStorage.getItem('rememberedPassword');
-    if (savedUserName && savedPassword) {
-      form.setValue('userName', savedUserName);
-      form.setValue('password', savedPassword);
-      setRememberMe(true);
-    }
-  }, [router, form]);
+    // Bypass: redirect straight to dashboard
+    router.replace(NavKeys.DashboardOverview);
+  }, [router]);
 
   const handleToggleShowPassword = () => setShowPassword((prev) => !prev);
   const handleToggleRememberMe = () => setRememberMe((prev) => !prev);
