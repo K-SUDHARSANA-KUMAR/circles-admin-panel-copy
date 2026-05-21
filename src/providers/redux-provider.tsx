@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { useAppDispatch } from '@/store/hooks';
@@ -9,6 +9,7 @@ import { getAuthFromLocalStorage } from '@/utils/auth-utils';
 
 function StoreRehydrator({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -19,7 +20,9 @@ function StoreRehydrator({ children }: { children: React.ReactNode }) {
         localStorage.setItem('accessToken', 'mock-access-token');
         localStorage.setItem('user', JSON.stringify({ 
           userId: 'admin', 
+          name: 'Super Admin',
           userName: 'Super Admin',
+          roleName: 'SUPER_ADMIN',
           role: 'SUPER_ADMIN',
           isSuperAdmin: true 
         }));
@@ -29,8 +32,13 @@ function StoreRehydrator({ children }: { children: React.ReactNode }) {
       if (authData.accessToken) {
         dispatch(setAuthData(authData));
       }
+      setMounted(true);
     }
   }, [dispatch]);
+
+  if (!mounted) {
+    return null; // Return null on server and initial client render to guarantee zero hydration mismatches
+  }
 
   return <>{children}</>;
 }
