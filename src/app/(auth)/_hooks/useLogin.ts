@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const useLogin = () => {
   const router = useRouter();
   const { signInWithJWT } = useAuth();
-  const [verifyingAuth, setVerifyingAuth] = useState(true);
+  const [verifyingAuth, setVerifyingAuth] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
