@@ -68,7 +68,7 @@ export function DashboardSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="pb-3">Dashboard</SidebarGroupLabel>
+          <SidebarGroupLabel className="pb-3 text-xs uppercase tracking-widest font-black text-primary/70">Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
               {filteredItems.map((item) => {
@@ -77,8 +77,8 @@ export function DashboardSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton isActive={isActive} asChild tooltip={item.title}>
                       <Link href={item.url}>
-                        <item.icon className="!h-5 !w-5" />
-                        <span className="">{item.title}</span>
+                        <item.icon className="!h-6 !w-6" />
+                        <span className="font-medium">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
