@@ -1,6 +1,7 @@
 export const PERMISSIONS = {
   DASHBOARD: 'dashboard',
   VENUES: 'venues',
+  INTEREST: 'interest',
   OUTLETS: 'outlets',
   OUTLET_APPROVAL: 'outlet-approval',
   DISTRIBUTOR_OUTLET: 'distributor-outlet',
