@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const useLogin = () => {
   const router = useRouter();
   const { signInWithJWT } = useAuth();
-  const [verifyingAuth, setVerifyingAuth] = useState(false);
+  const [verifyingAuth, setVerifyingAuth] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -23,18 +23,6 @@ export const useLogin = () => {
   });
 
   useEffect(() => {
-    // BYPASS AUTHENTICATION: Auto-login with mock credentials and redirect to dashboard
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('accessToken', 'mock-access-token');
-    localStorage.setItem('user', JSON.stringify({ 
-      userId: 'admin', 
-      userName: 'Super Admin',
-      role: 'SUPER_ADMIN',
-      isSuperAdmin: true 
-    }));
-    router.replace(NavKeys.DashboardOverview);
-
-    /*
     const isLocalAuthenticated =
       localStorage?.getItem('isAuthenticated') === 'true';
     if (isLocalAuthenticated) {
@@ -50,7 +38,6 @@ export const useLogin = () => {
       form.setValue('password', savedPassword);
       setRememberMe(true);
     }
-    */
   }, [router, form]);
 
   const handleToggleShowPassword = () => setShowPassword((prev) => !prev);
