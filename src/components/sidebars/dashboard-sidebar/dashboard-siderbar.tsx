@@ -28,6 +28,7 @@ import {
   IconWallet,
   IconTargetArrow,
   IconReceiptRupee,
+  IconHeart,
 } from '@tabler/icons-react';
 
 import { useAppSelector } from '@/store/hooks';
@@ -49,6 +50,12 @@ const items = [
     icon: IconPresentation,
     module: PERMISSIONS.VENUES,
   },
+  {
+    title: 'Interest',
+    url: NavKeys.InterestPage,
+    icon: IconHeart,
+    module: PERMISSIONS.INTEREST,
+  },
 ];
 
 export function DashboardSidebar() {
@@ -63,21 +70,21 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar collapsible='icon'>
-      <SidebarHeader className="flex items-center justify-center p-2">
-        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-20" />
+      <SidebarHeader className="flex items-center justify-center p-1.5">
+        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-16" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="pb-3 text-xs uppercase tracking-widest font-black text-primary/70">Dashboard</SidebarGroupLabel>
+          <SidebarGroupLabel className="pb-1.5 text-[10px] uppercase tracking-widest font-black text-primary/70">Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
+            <SidebarMenu className="space-y-1">
               {filteredItems.map((item) => {
                 const isActive = pathname.startsWith(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton isActive={isActive} asChild tooltip={item.title}>
                       <Link href={item.url}>
-                        <item.icon className="!h-6 !w-6" />
+                        <item.icon className="!h-5 !w-5" />
                         <span className="font-medium">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -88,7 +95,7 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="group-data-[collapsible=icon]:p-1 p-4">
+      <SidebarFooter className="group-data-[collapsible=icon]:p-1 p-3">
         <ProfileSection />
       </SidebarFooter>
       <SidebarRail />
