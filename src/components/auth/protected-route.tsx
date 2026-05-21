@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAppSelector } from '@/store/hooks';
 import Loading from '../ui/loading';
@@ -33,7 +33,7 @@ export const ProtectedRoute = ({
   } = useAppSelector((state) => state.auth);
 
   // Fetch user permissions from API
-  const fetchUserPermissions = async (userId: string) => {
+  const fetchUserPermissions = useCallback(async (userId: string) => {
     try {
       dispatch(setGroupedPermissionsLoading(true));
       const permissionData = await permissionGroupsApi.getByUserId(userId);
@@ -62,7 +62,7 @@ export const ProtectedRoute = ({
     } finally {
       dispatch(setGroupedPermissionsLoading(false));
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     const isLocalAuthenticated =
@@ -82,13 +82,14 @@ export const ProtectedRoute = ({
   useEffect(() => {
     if (
       isAuthenticated &&
+      isReduxAuthenticated &&
       user?.userId &&
       user?.userId !== 'admin' &&
       process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL'
     ) {
       fetchUserPermissions(user.userId);
     }
-  }, [isAuthenticated, user?.userId]);
+  }, [isAuthenticated, isReduxAuthenticated, user?.userId, fetchUserPermissions]);
 
   // Listen to Redux store changes for logout
   useEffect(() => {
@@ -108,13 +109,13 @@ export const ProtectedRoute = ({
     user?.userId !== 'admin';
 
   // Show loading while authenticating or while permissions are loading
-  if (!isAuthenticated || isWaitingForPermissions) {
+  if (!hasHydrated || !isAuthenticated || !isReduxAuthenticated || isWaitingForPermissions) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Loading
             text={
-              !isAuthenticated
+              (!isAuthenticated || !isReduxAuthenticated)
                 ? 'Verifying Authentication'
                 : 'Loading Permissions'
             }
