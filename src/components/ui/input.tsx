@@ -43,15 +43,17 @@ const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
           .join('');
       }
 
-      // 🔧 Use native value update for compatibility
-      const nativeEvent = Object.create(e);
-      nativeEvent.target = {
-        ...e.target,
-        value,
-      };
+      // Create a proper synthetic-like event to pass to the parent's onChange
+      const customEvent = {
+        ...e,
+        target: {
+          ...e.target,
+          value,
+          name: e.target.name,
+        },
+      } as React.ChangeEvent<HTMLInputElement>;
 
-      // ✅ This ensures the new value is reflected in parent state
-      onChange?.(nativeEvent as React.ChangeEvent<HTMLInputElement>);
+      onChange?.(customEvent);
     };
 
     return (

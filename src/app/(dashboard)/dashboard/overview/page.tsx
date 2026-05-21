@@ -30,22 +30,23 @@ const chartConfig = {
 
 const dashboardMetrics = [
   {
-    icon: IconPackage,
-    title: 'Total Products',
+    
+    icon: IconUsers,
+    title: 'Total Users',
     value: '2,455',
-    description: 'Active items currently in stock',
+    description: 'Total number of users',
   },
   {
     icon: IconShoppingCart,
-    title: 'Total Orders',
+    title: 'Active Venues',
     value: '10,252',
-    description: 'Placed in the last 30 days',
+    description: 'All spaces listed and active',
   },
   {
-    icon: IconUsers,
-    title: 'Total Customers',
-    value: '3,210',
-    description: 'Registered users to date',
+    icon: IconPackage,
+    title: '$Revenue',
+    value: '$3,210k',
+    description: 'Earned from bookings and partnerships',
   },
 ];
 
@@ -80,9 +81,9 @@ const DashboardPage = () => {
 
       <Card className="border-white/5 overflow-hidden">
         <CardHeader className="p-8 pb-0">
-          <CardTitle className="text-3xl font-bold">Sales Overview</CardTitle>
+          <CardTitle className="text-3xl font-bold">Users Overview</CardTitle>
           <CardDescription className="text-muted-foreground text-base mt-2">
-            Detailed performance analytics for the current period
+            User Analytics
           </CardDescription>
         </CardHeader>
         <CardContent className="p-8 pt-10">

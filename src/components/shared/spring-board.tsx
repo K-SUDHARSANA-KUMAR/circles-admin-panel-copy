@@ -299,7 +299,7 @@ const SpringBoard = () => {
   return (
     <div>
       <div className="flex items-center gap-2 text-neutral-500">
-        <Popover>
+        {/* <Popover>
           <PopoverTrigger asChild>
             <button className="cursor-pointer rounded p-1 transition-colors hover:bg-neutral-300">
               <Grip className="h-6 w-6" />
@@ -332,7 +332,7 @@ const SpringBoard = () => {
                 })}
             </div>
           </PopoverContent>
-        </Popover>
+        </Popover> */}
         <button
           type="button"
           aria-label="Open notifications"
