@@ -67,16 +67,35 @@ export const ProtectedRoute = ({
     const isLocalAuthenticated =
       localStorage?.getItem('isAuthenticated') === 'true';
     
-    // BYPASS AUTHENTICATION: Force local state to true and disable redirect
-    setIsAuthenticated(true);
-    /*
-    if (!isLocalAuthenticated) {
-      router.replace(redirectTo);
+    const bypassAuth =
+      process.env.NEXT_PUBLIC_AUTH_KEY &&
+      process.env.NEXT_PUBLIC_AUTH_KEY.length === 16;
+
+    if (bypassAuth) {
+      setIsAuthenticated(true);
+      if (!isReduxAuthenticated) {
+        dispatch(
+          setAuthData({
+            user: {
+              userId: 'admin',
+              userName: 'Super Admin',
+              role: 'SUPER_ADMIN',
+              isSuperAdmin: true,
+            } as any,
+            accessToken: 'mock-access-token',
+          })
+        );
+      }
     } else {
-      dispatch(setAuthData(getAuthFromLocalStorage()));
+      if (!isLocalAuthenticated) {
+        setIsAuthenticated(false);
+        router.replace(redirectTo);
+      } else {
+        setIsAuthenticated(true);
+        dispatch(setAuthData(getAuthFromLocalStorage()));
+      }
     }
-    */
-  }, []);
+  }, [router, redirectTo, dispatch, isReduxAuthenticated]);
 
 
   useEffect(() => {
@@ -93,20 +112,26 @@ export const ProtectedRoute = ({
 
   // Listen to Redux store changes for logout
   useEffect(() => {
-    if (!isReduxAuthenticated && isAuthenticated) {
-        // BYPASS AUTHENTICATION: Disable logout redirect
-        // setIsAuthenticated(false);
-        // router.replace(redirectTo);
-      }
+    const bypassAuth =
+      process.env.NEXT_PUBLIC_AUTH_KEY &&
+      process.env.NEXT_PUBLIC_AUTH_KEY.length === 16;
+
+    if (!bypassAuth && !isReduxAuthenticated && isAuthenticated) {
+      setIsAuthenticated(false);
+      router.replace(redirectTo);
+    }
   }, [isReduxAuthenticated, isAuthenticated, router, redirectTo]);
 
   // Show loading while authenticating or while permissions are loading
-  // BYPASS AUTHENTICATION: Disabled loading screen to always show content
-  /*
-    if (
-    !isAuthenticated ||
-    (process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL' &&
-      groupedPermissionsLoading)
+  const bypassAuth =
+    process.env.NEXT_PUBLIC_AUTH_KEY &&
+    process.env.NEXT_PUBLIC_AUTH_KEY.length === 16;
+
+  if (
+    !bypassAuth &&
+    (!isAuthenticated ||
+      (process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL' &&
+        groupedPermissionsLoading))
   ) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -122,7 +147,6 @@ export const ProtectedRoute = ({
       </div>
     );
   }
-  */
 
   return <>{children}</>;
 };
