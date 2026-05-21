@@ -29,6 +29,11 @@ import {
   IconTargetArrow,
   IconReceiptRupee,
   IconHeart,
+  IconUsers,
+  IconStar,
+  IconReport,
+  IconListCheck,
+  IconShieldLock,
 } from '@tabler/icons-react';
 
 import { useAppSelector } from '@/store/hooks';
@@ -37,24 +42,69 @@ import { ProfileSection } from '@/components/shared/profile-section';
 import NavKeys from '@/constants/navkeys';
 import { PERMISSIONS } from '@/constants/permissions.constant';
 
-const items = [
+const sidebarGroups = [
   {
-    title: 'Overview',
-    url: NavKeys.DashboardOverview,
-    icon: IconPresentation,
-    module: PERMISSIONS.DASHBOARD,
+    label: 'Dashboard',
+    items: [
+      {
+        title: 'Overview',
+        url: NavKeys.DashboardOverview,
+        icon: IconPresentation,
+        module: PERMISSIONS.DASHBOARD,
+      },
+      {
+        title: 'Venues',
+        url: NavKeys.VenuesPage,
+        icon: IconPresentation,
+        module: PERMISSIONS.VENUES,
+      },
+      {
+        title: 'Interest',
+        url: NavKeys.InterestPage,
+        icon: IconHeart,
+        module: PERMISSIONS.INTEREST,
+      },
+    ],
   },
   {
-    title: 'Venues',
-    url: NavKeys.VenuesPage,
-    icon: IconPresentation,
-    module: PERMISSIONS.VENUES,
+    label: 'User Management',
+    items: [
+      {
+        title: 'Users',
+        url: NavKeys.Users,
+        icon: IconUsers,
+        module: 'users',
+      },
+      {
+        title: 'Reviews',
+        url: '/user-management/reviews',
+        icon: IconStar,
+        module: 'reviews',
+      },
+      {
+        title: 'Reports',
+        url: NavKeys.Reports,
+        icon: IconReport,
+        module: 'reports',
+      },
+      {
+        title: 'Verification Page',
+        url: '/user-management/verification',
+        icon: IconListCheck,
+        module: 'verification',
+      },
+    ],
   },
   {
-    title: 'Interest',
-    url: NavKeys.InterestPage,
-    icon: IconHeart,
-    module: PERMISSIONS.INTEREST,
+    label: 'Admin Users',
+    items: [
+      {
+        title: 'Admin Users',
+        url: '/admin-users',
+        icon: IconShieldLock,
+        module: 'admin-users',
+      },
+    ],
   },
 ];
 
@@ -66,7 +116,7 @@ export function DashboardSidebar() {
 
   
 
-  const filteredItems = items; // Bypass filtering to grant all access
+  const filteredGroups = sidebarGroups; // Bypass filtering to grant all access
 
   return (
     <Sidebar collapsible='icon'>
@@ -74,26 +124,30 @@ export function DashboardSidebar() {
         <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-16" />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="pb-1.5 text-[10px] uppercase tracking-widest font-black text-primary/70">Dashboard</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {filteredItems.map((item) => {
-                const isActive = pathname.startsWith(item.url);
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton isActive={isActive} asChild tooltip={item.title}>
-                      <Link href={item.url}>
-                        <item.icon className="!h-5 !w-5" />
-                        <span className="font-medium">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel className="pb-1.5 text-[10px] uppercase tracking-widest font-black text-primary/70">
+              {group.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-1">
+                {group.items.map((item) => {
+                  const isActive = pathname.startsWith(item.url);
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton isActive={isActive} asChild tooltip={item.title}>
+                        <Link href={item.url}>
+                          <item.icon className="!h-5 !w-5" />
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter className="group-data-[collapsible=icon]:p-1 p-3">
         <ProfileSection />
