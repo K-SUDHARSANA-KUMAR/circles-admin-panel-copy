@@ -24,7 +24,7 @@ export const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const {
     isAuthenticated: isReduxAuthenticated,
     user,
