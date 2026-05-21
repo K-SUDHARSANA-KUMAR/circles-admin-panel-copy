@@ -25,7 +25,6 @@ export const ProtectedRoute = ({
   const router = useRouter();
   const dispatch = useDispatch();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [hasHydrated, setHasHydrated] = useState(false);
   const {
     isAuthenticated: isReduxAuthenticated,
     user,
@@ -67,17 +66,18 @@ export const ProtectedRoute = ({
   useEffect(() => {
     const isLocalAuthenticated =
       localStorage?.getItem('isAuthenticated') === 'true';
-    setIsAuthenticated(isLocalAuthenticated);
     
+    // BYPASS AUTHENTICATION: Force local state to true and disable redirect
+    setIsAuthenticated(true);
+    /*
     if (!isLocalAuthenticated) {
       router.replace(redirectTo);
     } else {
       dispatch(setAuthData(getAuthFromLocalStorage()));
     }
-    
-    // Mark as hydrated to allow logout listener to function
-    setHasHydrated(true);
-  }, [dispatch, router, redirectTo]);
+    */
+  }, []);
+
 
   useEffect(() => {
     if (
@@ -93,23 +93,21 @@ export const ProtectedRoute = ({
 
   // Listen to Redux store changes for logout
   useEffect(() => {
-    if (hasHydrated && !isReduxAuthenticated && isAuthenticated) {
-      // Check if local storage is also cleared to avoid race condition during hydration
-      const isLocalAuthenticated = localStorage?.getItem('isAuthenticated') === 'true';
-      if (!isLocalAuthenticated) {
-        setIsAuthenticated(false);
-        router.replace(redirectTo);
+    if (!isReduxAuthenticated && isAuthenticated) {
+        // BYPASS AUTHENTICATION: Disable logout redirect
+        // setIsAuthenticated(false);
+        // router.replace(redirectTo);
       }
-    }
-  }, [hasHydrated, isReduxAuthenticated, isAuthenticated, router, redirectTo]);
-
-  const isWaitingForPermissions = 
-    process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL' &&
-    groupedPermissionsLoading &&
-    user?.userId !== 'admin';
+  }, [isReduxAuthenticated, isAuthenticated, router, redirectTo]);
 
   // Show loading while authenticating or while permissions are loading
-  if (!hasHydrated || !isAuthenticated || !isReduxAuthenticated || isWaitingForPermissions) {
+  // BYPASS AUTHENTICATION: Disabled loading screen to always show content
+  /*
+    if (
+    !isAuthenticated ||
+    (process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL' &&
+      groupedPermissionsLoading)
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -124,6 +122,7 @@ export const ProtectedRoute = ({
       </div>
     );
   }
+  */
 
   return <>{children}</>;
 };
