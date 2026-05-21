@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const useLogin = () => {
   const router = useRouter();
   const { signInWithJWT } = useAuth();
-  const [verifyingAuth, setVerifyingAuth] = useState(false);
+  const [verifyingAuth, setVerifyingAuth] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -23,9 +23,22 @@ export const useLogin = () => {
   });
 
   useEffect(() => {
-    // Bypass: redirect straight to dashboard
-    router.replace(NavKeys.DashboardOverview);
-  }, [router]);
+    const isLocalAuthenticated =
+      localStorage?.getItem('isAuthenticated') === 'true';
+    if (isLocalAuthenticated) {
+      router.replace(NavKeys.DashboardOverview);
+      return;
+    }
+    setVerifyingAuth(false);
+
+    const savedUserName = localStorage.getItem('rememberedUserName');
+    const savedPassword = localStorage.getItem('rememberedPassword');
+    if (savedUserName && savedPassword) {
+      form.setValue('userName', savedUserName);
+      form.setValue('password', savedPassword);
+      setRememberMe(true);
+    }
+  }, [router, form]);
 
   const handleToggleShowPassword = () => setShowPassword((prev) => !prev);
   const handleToggleRememberMe = () => setRememberMe((prev) => !prev);

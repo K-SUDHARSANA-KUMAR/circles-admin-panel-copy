@@ -49,9 +49,14 @@ customAxios.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // Bypass: 401 Unauthorized intercepted, but auth bypass is active.
-          // Do not redirect to login or clear mock tokens.
-          console.warn('401 Unauthorized response intercepted. Redirection bypassed.');
+          // Invalid token - show toast and logout
+          toast.error('Invalid token. Please login again.');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('idToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('isAuthenticated');
+          window.location.href = '/';
           break;
 
         case 403:
