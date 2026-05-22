@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAppSelector } from '@/store/hooks';
 import Loading from '../ui/loading';
@@ -24,7 +24,7 @@ export const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const {
     isAuthenticated: isReduxAuthenticated,
     user,
@@ -32,7 +32,7 @@ export const ProtectedRoute = ({
   } = useAppSelector((state) => state.auth);
 
   // Fetch user permissions from API
-  const fetchUserPermissions = useCallback(async (userId: string) => {
+  const fetchUserPermissions = async (userId: string) => {
     try {
       dispatch(setGroupedPermissionsLoading(true));
       const permissionData = await permissionGroupsApi.getByUserId(userId);
@@ -61,49 +61,40 @@ export const ProtectedRoute = ({
     } finally {
       dispatch(setGroupedPermissionsLoading(false));
     }
-  }, [dispatch]);
+  };
 
   useEffect(() => {
     const isLocalAuthenticated =
       localStorage?.getItem('isAuthenticated') === 'true';
-    
-    // BYPASS AUTHENTICATION: Force local state to true and disable redirect
-    setIsAuthenticated(true);
-    /*
+    setIsAuthenticated(isLocalAuthenticated);
     if (!isLocalAuthenticated) {
       router.replace(redirectTo);
     } else {
       dispatch(setAuthData(getAuthFromLocalStorage()));
     }
-    */
-  }, []);
-
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (
       isAuthenticated &&
-      isReduxAuthenticated &&
       user?.userId &&
       user?.userId !== 'admin' &&
       process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL'
     ) {
       fetchUserPermissions(user.userId);
     }
-  }, [isAuthenticated, isReduxAuthenticated, user?.userId, fetchUserPermissions]);
+  }, [isAuthenticated, user?.userId]);
 
   // Listen to Redux store changes for logout
   useEffect(() => {
     if (!isReduxAuthenticated && isAuthenticated) {
-        // BYPASS AUTHENTICATION: Disable logout redirect
-        // setIsAuthenticated(false);
-        // router.replace(redirectTo);
-      }
+      setIsAuthenticated(false);
+      router.replace(redirectTo);
+    }
   }, [isReduxAuthenticated, isAuthenticated, router, redirectTo]);
 
   // Show loading while authenticating or while permissions are loading
-  // BYPASS AUTHENTICATION: Disabled loading screen to always show content
-  /*
-    if (
+  if (
     !isAuthenticated ||
     (process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL' &&
       groupedPermissionsLoading)
@@ -113,7 +104,7 @@ export const ProtectedRoute = ({
         <div className="text-center">
           <Loading
             text={
-              (!isAuthenticated || !isReduxAuthenticated)
+              !isAuthenticated
                 ? 'Verifying Authentication'
                 : 'Loading Permissions'
             }
@@ -122,7 +113,6 @@ export const ProtectedRoute = ({
       </div>
     );
   }
-  */
 
   return <>{children}</>;
 };
