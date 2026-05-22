@@ -1,11 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDispatch } from 'react-redux';
-import { setAuthData } from '@/store/slices/authSlice';
-import { getAuthFromLocalStorage } from '@/utils/auth-utils';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAppSelector } from '@/store/hooks';
 import Loading from '../ui/loading';
+import { useDispatch } from 'react-redux';
+import {
+  setAuthData,
+  setGroupedPermissions,
+  setGroupedPermissionsLoading,
+} from '@/store/slices/authSlice';
+import { getAuthFromLocalStorage } from '@/utils/auth-utils';
+import { permissionGroupsApi } from '@/features/user-managment/permission-groups/api/permission-groups';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,41 +24,91 @@ export const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  // isInitialized prevents the loading screen from flashing "Redirecting..."
-  // before the auth check even runs on mount.
-  const [isInitialized, setIsInitialized] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const {
+    isAuthenticated: isReduxAuthenticated,
+    user,
+    groupedPermissionsLoading,
+  } = useAppSelector((state) => state.auth);
+
+  // Fetch user permissions from API
+  const fetchUserPermissions = async (userId: string) => {
+    try {
+      dispatch(setGroupedPermissionsLoading(true));
+      const permissionData = await permissionGroupsApi.getByUserId(userId);
+
+      if (permissionData?.data) {
+        const permissionGroupDetails = permissionData.data.permissionGroupDetails || [];
+        
+        dispatch(
+          setGroupedPermissions({
+            permissionGroupDetails,
+          })
+        );
+      } else {
+        console.warn('No permission data found in API response');
+        dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
+      }
+    } catch (error: any) {
+      // Handle 404 errors gracefully - user might not have permission groups assigned
+      if (error?.response?.status === 404) {
+        console.warn(`No permission groups found for user ${userId}`);
+        dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
+      } else {
+        console.error('Failed to fetch user permissions:', error);
+        dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
+      }
+    } finally {
+      dispatch(setGroupedPermissionsLoading(false));
+    }
+  };
 
   useEffect(() => {
-    // TODO: Replace with real API-based auth verification when the backend
-    // login endpoint is ready. For now we rely on the localStorage flag set
-    // by the mock login bypass in useLogin.ts.
     const isLocalAuthenticated =
       localStorage?.getItem('isAuthenticated') === 'true';
-
-    if (isLocalAuthenticated) {
-      // Restore auth + permission state into Redux from localStorage so that
-      // permission checks throughout the app continue to work correctly.
-      dispatch(setAuthData(getAuthFromLocalStorage()));
-      setIsAuthenticated(true);
+    setIsAuthenticated(isLocalAuthenticated);
+    if (!isLocalAuthenticated) {
+      router.replace(redirectTo);
     } else {
+      dispatch(setAuthData(getAuthFromLocalStorage()));
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      user?.userId &&
+      user?.userId !== 'admin' &&
+      process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL'
+    ) {
+      fetchUserPermissions(user.userId);
+    }
+  }, [isAuthenticated, user?.userId]);
+
+  // Listen to Redux store changes for logout
+  useEffect(() => {
+    if (!isReduxAuthenticated && isAuthenticated) {
+      setIsAuthenticated(false);
       router.replace(redirectTo);
     }
+  }, [isReduxAuthenticated, isAuthenticated, router, redirectTo]);
 
-    // Mark initialisation complete *after* the auth decision so the loading
-    // screen never resolves to a blank/unauthenticated state for one frame.
-    setIsInitialized(true);
-  }, []); // Empty dep array — runs exactly once on mount, zero circular risk.
-
-  // Keep showing the loader until the localStorage check completes.
-  // We intentionally do NOT gate on groupedPermissionsLoading here because
-  // the permissions API is still under development and would cause an infinite
-  // loading screen when unavailable.
-  if (!isInitialized || !isAuthenticated) {
+  // Show loading while authenticating or while permissions are loading
+  if (
+    !isAuthenticated ||
+    (process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL' &&
+      groupedPermissionsLoading)
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <Loading text="Verifying Authentication" />
+          <Loading
+            text={
+              !isAuthenticated
+                ? 'Verifying Authentication'
+                : 'Loading Permissions'
+            }
+          />
         </div>
       </div>
     );
