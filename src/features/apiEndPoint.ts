@@ -51,6 +51,10 @@ export const apiEndPoint = Object.freeze({
 
   //Users Manegement
   USERS_ENDPOINT: process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/users',
+  INTERESTS_ENDPOINT:
+    process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/interests',
+  INTEREST_GROUPS_ENDPOINT:
+    process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/interest-groups',
   ZING_ENDPOINT:
     process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/zing/sync-employees',
   PERMISSIONS_ENDPOINT:
