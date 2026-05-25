@@ -132,7 +132,7 @@ export function DashboardSidebar() {
           Circles
         </span>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {filteredGroups.map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="pb-1.5 text-[10px] uppercase tracking-widest font-black text-primary/70">
