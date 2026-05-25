@@ -55,6 +55,8 @@ export const apiEndPoint = Object.freeze({
     process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/interests',
   INTEREST_GROUPS_ENDPOINT:
     process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/interest-groups',
+  CITIES_ENDPOINT:
+    (process.env.NEXT_PUBLIC_USER_SERVICE_URL || 'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api/user-service') + '/cities',
   ZING_ENDPOINT:
     process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/zing/sync-employees',
   PERMISSIONS_ENDPOINT:

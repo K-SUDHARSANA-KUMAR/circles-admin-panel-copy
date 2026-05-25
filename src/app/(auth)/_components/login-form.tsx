@@ -134,12 +134,6 @@ export const LoginForm = ({
             {signInPending ? 'Signing In...' : 'Log In'}
           </div>
         </Button>
-        <div className="text-center text-sm text-gray-500 mt-4">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-primary hover:underline font-medium">
-            Sign Up
-          </Link>
-        </div>
       </form>
     </Form>
   );
