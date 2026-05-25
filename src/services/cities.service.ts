@@ -10,7 +10,7 @@ export interface City {
   updatedAt?: string;
 }
 
-export const CITIES_URL = (apiEndPoint.CITIES_ENDPOINT as string) || 'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api/user-service/cities';
+export const CITIES_URL = apiEndPoint.CITIES_ENDPOINT as string;
 
 export async function fetchCities(): Promise<City[]> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;

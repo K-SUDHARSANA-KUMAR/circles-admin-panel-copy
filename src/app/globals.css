@@ -46,6 +46,7 @@
   --font-sans: var(--font-inter);
   --font-montserrat: var(--font-montserrat);
   --font-inter: var(--font-inter);
+  --font-instrument: var(--font-instrument-serif);
 }
 
 @keyframes glow {
