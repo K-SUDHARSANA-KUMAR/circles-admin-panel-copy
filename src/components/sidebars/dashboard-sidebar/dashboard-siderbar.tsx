@@ -126,8 +126,11 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar collapsible='icon'>
-      <SidebarHeader className="flex items-center justify-center p-1.5">
-        <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-16" />
+      <SidebarHeader className="flex flex-row items-center justify-center gap-2.5 px-4 py-2 transition-all duration-300">
+        <img src="/Circles_logo1.png" alt="logo" className="h-auto w-12 transition-all group-data-[collapsible=icon]:w-8" />
+        <span className="font-instrument text-[15px] font-normal tracking-wide text-foreground group-data-[collapsible=icon]:hidden">
+          Circles
+        </span>
       </SidebarHeader>
       <SidebarContent>
         {filteredGroups.map((group) => (

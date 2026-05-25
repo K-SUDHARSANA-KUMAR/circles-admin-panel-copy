@@ -3,7 +3,7 @@ import './globals.css';
 import GenericProvider from '@/providers/generic-provider';
 import QueryProvider from '@/providers/query-provider';
 import { ReduxProvider } from '@/providers/redux-provider';
-import { Montserrat, Inter } from 'next/font/google';
+import { Montserrat, Inter, Instrument_Serif } from 'next/font/google';
 
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
@@ -16,6 +16,12 @@ const montserrat = Montserrat({
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
+});
+
+const instrumentSerif = Instrument_Serif({
+  variable: '--font-instrument-serif',
+  subsets: ['latin'],
+  weight: ['400'],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${montserrat.variable} ${inter.variable} antialiased overflow-x-hidden`}>
+      <body className={`${montserrat.variable} ${inter.variable} ${instrumentSerif.variable} antialiased overflow-x-hidden`}>
         <Suspense>
           <ReduxProvider>
             <QueryProvider>

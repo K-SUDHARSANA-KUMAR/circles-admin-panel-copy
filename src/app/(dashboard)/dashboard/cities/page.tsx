@@ -336,7 +336,6 @@ export default function CitiesPage() {
                         }}
                       >
                         <IconPencil size={12} />
-                        <span>Edit</span>
                       </Button>
                       <Button 
                         variant="ghost" 
