@@ -64,6 +64,12 @@ const sidebarGroups = [
         icon: IconHeart,
         module: PERMISSIONS.INTEREST,
       },
+      {
+        title: 'Cities',
+        url: NavKeys.CitiesPage,
+        icon: IconBuildingStore,
+        module: PERMISSIONS.CITIES,
+      },
     ],
   },
   {
