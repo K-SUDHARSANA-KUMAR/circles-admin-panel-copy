@@ -20,6 +20,7 @@ export interface AdminUsersResponse {
 
 const USER_SERVICE_URL = process.env.NEXT_PUBLIC_USER_SERVICE_URL || (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
 export const ADMIN_USERS_URL = `${USER_SERVICE_URL}/admin/users`;
+export const ADMIN_BOOTSTRAP_URL = `${USER_SERVICE_URL}/admin/bootstrap`;
 
 /**
  * Generates custom authorization headers for admin endpoints,
@@ -27,16 +28,11 @@ export const ADMIN_USERS_URL = `${USER_SERVICE_URL}/admin/users`;
  */
 function getAdminHeaders(): HeadersInit {
   if (typeof window === 'undefined') return {};
-  const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
-  const idToken = localStorage.getItem('idToken') || '';
   const origin = window.location.origin ? window.location.origin.replace(/\/$/, '') : '';
 
   const headers: Record<string, string> = {
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...(accessToken ? { accessToken } : {}),
-    ...(idToken ? { idToken } : {}),
+    'X-Admin-Api-Key': 'local-admin-key-123',
     'Content-Type': 'application/json',
-    ...(origin ? { 'x-circles-origin': origin } : {}),
   };
 
   if (origin) {
@@ -153,4 +149,37 @@ export async function deleteAdminUser(userId: string): Promise<void> {
     throw new Error(msg);
   }
 }
+
+/**
+ * Creates/bootstraps a new admin user.
+ */
+export async function createAdminUser(payload: {
+  email: string;
+  name: string;
+  lastName: string;
+  password: string;
+  cognitoUsername: string;
+}): Promise<any> {
+  const headers = {
+    ...getAdminHeaders(),
+    'X-Admin-Api-Key': 'local-admin-key-123',
+    'Content-Type': 'application/json',
+  };
+
+  const res = await fetch(ADMIN_BOOTSTRAP_URL, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+    throw new Error(msg);
+  }
+
+  const json = await res.json();
+  return json?.result?.data ?? json?.data ?? json;
+}
+
 
