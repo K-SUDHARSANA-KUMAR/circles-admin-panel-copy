@@ -108,11 +108,24 @@ function authHeaders(): Record<string, string> {
   if (typeof window === 'undefined') return {};
   const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
   const idToken = localStorage.getItem('idToken') || '';
-  return {
+  const origin = window.location.origin ? window.location.origin.replace(/\/$/, '') : '';
+
+  const headers: Record<string, string> = {
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     ...(accessToken ? { accessToken } : {}),
     ...(idToken ? { idToken } : {}),
+    ...(origin ? { 'x-circles-origin': origin } : {}),
   };
+
+  if (origin) {
+    try {
+      headers['Origin'] = origin;
+    } catch (e) {
+      // ignore browser restriction
+    }
+  }
+
+  return headers;
 }
 
 // ─── API call ────────────────────────────────────────────────────────────────

@@ -29,13 +29,25 @@ function getAdminHeaders(): HeadersInit {
   if (typeof window === 'undefined') return {};
   const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
   const idToken = localStorage.getItem('idToken') || '';
+  const origin = window.location.origin ? window.location.origin.replace(/\/$/, '') : '';
 
-  return {
+  const headers: Record<string, string> = {
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     ...(accessToken ? { accessToken } : {}),
     ...(idToken ? { idToken } : {}),
     'Content-Type': 'application/json',
+    ...(origin ? { 'x-circles-origin': origin } : {}),
   };
+
+  if (origin) {
+    try {
+      headers['Origin'] = origin;
+    } catch (e) {
+      // ignore browser restriction
+    }
+  }
+
+  return headers;
 }
 
 /**
@@ -102,3 +114,43 @@ export async function fetchAdminUsers(params?: {
     total: totalCount,
   };
 }
+
+/**
+ * Updates an admin user's details.
+ */
+export async function updateAdminUser(
+  userId: string,
+  payload: Partial<Omit<AdminUser, 'id'>>
+): Promise<AdminUser> {
+  const res = await fetch(`${ADMIN_USERS_URL}/${userId}`, {
+    method: 'PATCH',
+    headers: getAdminHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+    throw new Error(msg);
+  }
+
+  const json = await res.json();
+  return json?.result?.data ?? json?.data ?? json;
+}
+
+/**
+ * Deletes an admin user.
+ */
+export async function deleteAdminUser(userId: string): Promise<void> {
+  const res = await fetch(`${ADMIN_USERS_URL}/${userId}`, {
+    method: 'DELETE',
+    headers: getAdminHeaders(),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+    throw new Error(msg);
+  }
+}
+
