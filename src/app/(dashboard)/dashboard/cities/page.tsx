@@ -185,7 +185,7 @@ export default function CitiesPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-black tracking-tight text-glow">Cities</h1>
             {!loading && (
-              <div className="hidden sm:inline-flex text-[10px] font-bold text-primary/70 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 tracking-widest uppercase">
+              <div className="hidden sm:inline-flex text-[10px] font-bold text-white/70 bg-white/5 px-2.5 py-1 rounded-full border border-white/10 tracking-widest uppercase">
                 {cities.length} Total Cities
               </div>
             )}
@@ -231,19 +231,19 @@ export default function CitiesPage() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent border-border/50 bg-muted/30">
-              <TableHead className="w-[100px] text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="w-[100px] text-white font-bold text-[14px]">
                 S.No
               </TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="text-white font-bold text-[14px]">
                 City Name
               </TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="text-white font-bold text-[14px]">
                 City Code
               </TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="text-white font-bold text-[14px]">
                 Status
               </TableHead>
-              <TableHead className="text-right text-primary font-bold uppercase tracking-widest text-[10px] px-4">
+              <TableHead className="text-right text-white font-bold text-[14px] px-4">
                 Actions
               </TableHead>
             </TableRow>

@@ -106,15 +106,10 @@ export function buildInterestGroups(groups: ApiInterestGroup[]): InterestGroup[]
 
 function authHeaders(): Record<string, string> {
   if (typeof window === 'undefined') return {};
-  const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
-  const idToken = localStorage.getItem('idToken') || '';
   const origin = window.location.origin ? window.location.origin.replace(/\/$/, '') : '';
 
   const headers: Record<string, string> = {
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...(accessToken ? { accessToken } : {}),
-    ...(idToken ? { idToken } : {}),
-    ...(origin ? { 'x-circles-origin': origin } : {}),
+    'X-Admin-Api-Key': 'local-admin-key-123',
   };
 
   if (origin) {

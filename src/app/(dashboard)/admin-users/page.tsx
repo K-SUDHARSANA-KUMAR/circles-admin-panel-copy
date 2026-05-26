@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchAdminUsers, updateAdminUser, deleteAdminUser, type AdminUser } from '@/services/adminuser.service';
+import { fetchAdminUsers, updateAdminUser, deleteAdminUser, createAdminUser, type AdminUser } from '@/services/adminuser.service';
 import { 
   IconSearch, 
   IconRefresh, 
@@ -14,7 +14,8 @@ import {
   IconGenderFemale,
   IconPencil,
   IconTrash,
-  IconX
+  IconX,
+  IconPlus
 } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,6 +82,7 @@ export default function AdminUsersPage() {
 
   // Modal & Action states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
 
@@ -89,6 +91,12 @@ export default function AdminUsersPage() {
     name: '',
     lastName: '',
     status: 'active'
+  });
+  const [addFormData, setAddFormData] = useState({
+    email: '',
+    name: '',
+    lastName: '',
+    password: ''
   });
   const [saving, setSaving] = useState(false);
 
@@ -125,6 +133,46 @@ export default function AdminUsersPage() {
 
   const handleRefresh = () => {
     loadAdminUsers(searchQuery);
+  };
+
+  // ─── Create Admin User (Bootstrap) ──────────────────────────────────────────
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addFormData.email.trim() || !addFormData.name.trim() || !addFormData.password.trim()) {
+      toast.warning('Please fill in all required fields');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = {
+        email: addFormData.email.trim(),
+        name: addFormData.name.trim(),
+        lastName: addFormData.lastName.trim(),
+        password: addFormData.password.trim(),
+        cognitoUsername: addFormData.email.trim()
+      };
+
+      await createAdminUser(payload);
+      toast.success(`Successfully added administrator: ${payload.name}`);
+      handleCloseAddModal();
+      await loadAdminUsers(debouncedSearch);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to create admin user.';
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCloseAddModal = () => {
+    setAddFormData({
+      email: '',
+      name: '',
+      lastName: '',
+      password: ''
+    });
+    setIsAddModalOpen(false);
   };
 
   // ─── Save User Details (Update) ─────────────────────────────────────────────
@@ -233,7 +281,7 @@ export default function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-montserrat font-black tracking-tight text-glow">Admin Users</h1>
+            <h1 className="text-2xl font-figtree font-black tracking-tight text-glow">Admin Users</h1>
             {!loading && !error && (
               <span className="text-[10px] font-bold text-primary/70 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 tracking-widest uppercase">
                 {total} Users
@@ -266,6 +314,13 @@ export default function AdminUsersPage() {
           >
             <IconRefresh size={16} className={loading ? 'animate-spin' : ''} />
           </Button>
+          <Button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 h-9 px-4 shadow-xl shadow-primary/20 text-xs font-bold uppercase tracking-wider shrink-0"
+          >
+            <IconPlus size={16} />
+            <span>Add Admin</span>
+          </Button>
         </div>
       </div>
 
@@ -273,26 +328,26 @@ export default function AdminUsersPage() {
       <div className="glass-card overflow-hidden shadow-2xl border-primary/10">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent border-border/50 bg-muted/30">
-              <TableHead className="w-[80px] text-primary font-bold uppercase tracking-widest text-[10px]">
+            <TableRow className="hover:bg-transparent border-border/50 bg-muted/30 font-figtree">
+              <TableHead className="w-[80px] text-white font-bold text-[14px]">
                 S.No
               </TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="text-white font-bold text-[14px]">
                 Admin User
               </TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="text-white font-bold text-[14px]">
                 Contact Info
               </TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="text-white font-bold text-[14px]">
                 Role
               </TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="text-white font-bold text-[14px]">
                 Gender
               </TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-[10px]">
+              <TableHead className="text-white font-bold  text-[14px]">
                 Status
               </TableHead>
-              <TableHead className="text-right text-primary font-bold uppercase tracking-widest text-[10px] px-6">
+              <TableHead className="text-right text-white font-bold  text-[14px] px-6">
                 Actions
               </TableHead>
             </TableRow>
@@ -560,6 +615,118 @@ export default function AdminUsersPage() {
                   className="h-9 text-xs font-bold uppercase tracking-wider px-5 shadow-xl shadow-primary/20"
                 >
                   {saving ? 'Saving...' : 'Update Details'}
+                </Button>
+              </div>
+
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* Slide-out / Modal Dialog for Bootstrapping New Admin User */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary">
+                  <IconPlus size={18} />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-bold text-white">
+                    Add New Admin User
+                  </CardTitle>
+                  <CardDescription className="text-[11px] text-muted-foreground mt-0.5">
+                    Register a new administrator and create their system credentials
+                  </CardDescription>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCloseAddModal}
+                className="h-8 w-8 text-muted-foreground hover:text-white rounded-lg"
+              >
+                <IconX size={16} />
+              </Button>
+            </div>
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              
+              {/* Name Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                    First Name <span className="text-destructive">*</span>
+                  </label>
+                  <Input
+                    required
+                    placeholder="First Name"
+                    value={addFormData.name}
+                    onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })}
+                    className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                    Last Name
+                  </label>
+                  <Input
+                    placeholder="Last Name"
+                    value={addFormData.lastName}
+                    onChange={(e) => setAddFormData({ ...addFormData, lastName: e.target.value })}
+                    className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                  />
+                </div>
+              </div>
+
+              {/* Email Address */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  Email Address <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  required
+                  type="email"
+                  placeholder="name@company.com"
+                  value={addFormData.email}
+                  onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
+                  className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                />
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  Password <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  required
+                  type="password"
+                  placeholder="Minimum 8 characters with numbers & symbols"
+                  value={addFormData.password}
+                  onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
+                  className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-end pt-2 border-t border-white/5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleCloseAddModal}
+                  className="h-9 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving || !addFormData.name.trim() || !addFormData.email.trim() || !addFormData.password.trim()}
+                  className="h-9 text-xs font-bold uppercase tracking-wider px-5 shadow-xl shadow-primary/20"
+                >
+                  {saving ? 'Creating...' : 'Create Admin'}
                 </Button>
               </div>
 
