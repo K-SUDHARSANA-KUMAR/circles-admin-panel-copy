@@ -19,7 +19,7 @@ export const useLogin = () => {
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { userName: 'admin', password: 'password123' },
+    defaultValues: { userName: '', password: '' },
   });
 
   useEffect(() => {
@@ -44,20 +44,6 @@ export const useLogin = () => {
   const handleToggleRememberMe = () => setRememberMe((prev) => !prev);
 
   const handleSubmit = async (values: LoginFormValues) => {
-    // Mock login bypass for default credentials
-    if (values.userName === 'admin' && values.password === 'password123') {
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('accessToken', 'mock-access-token');
-      localStorage.setItem('user', JSON.stringify({ 
-        userId: 'admin', 
-        userName: 'Super Admin',
-        role: 'SUPER_ADMIN',
-        isSuperAdmin: true 
-      }));
-      toast.success('Login successful as Super Admin!');
-      router.replace(NavKeys.DashboardOverview);
-      return;
-    }
 
     let deviceId = localStorage.getItem('deviceId');
     if (!deviceId) {

@@ -104,13 +104,15 @@ export function buildInterestGroups(groups: ApiInterestGroup[]): InterestGroup[]
 
 // ─── Helper: Auth ────────────────────────────────────────────────────────────
 
-function getAuthHeader(): string {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  // Use the provided active Bearer token if token is missing, mock, or invalid
-  const useProvidedToken = !token || token === 'mock-access-token' || !token.startsWith('eyJ');
-  return useProvidedToken
-    ? 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjMDVhZjM1NC00ZWZkLTQ0NmQtOWRmYS03ZWRiMDA0OGQxZmYiLCJpYXQiOjE3Nzk0NTQ0NjUsImV4cCI6MTc4MjA0NjQ2NX0.9nt5US9IHDfClT9WnwFjN8f_MN-rnstGEfT6Gx-KoTI'
-    : `Bearer ${token}`;
+function authHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+  const idToken = localStorage.getItem('idToken') || '';
+  return {
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...(accessToken ? { accessToken } : {}),
+    ...(idToken ? { idToken } : {}),
+  };
 }
 
 // ─── API call ────────────────────────────────────────────────────────────────
@@ -122,7 +124,7 @@ function getAuthHeader(): string {
 export async function fetchInterestGroups(): Promise<InterestGroup[]> {
   const res = await fetch(INTEREST_GROUPS_URL, {
     headers: {
-      'Authorization': getAuthHeader()
+      ...authHeaders()
     }
   });
 
@@ -176,7 +178,7 @@ export async function createInterestGroup(name: string): Promise<void> {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
-      'Authorization': getAuthHeader()
+      ...authHeaders()
     },
     body: JSON.stringify(payload),
   });
@@ -195,7 +197,7 @@ export async function deleteInterestGroup(id: string): Promise<void> {
   const res = await fetch(`${INTEREST_GROUPS_URL}/${id}`, {
     method: 'DELETE',
     headers: {
-      'Authorization': getAuthHeader()
+      ...authHeaders()
     }
   });
 
@@ -237,7 +239,7 @@ export async function createSubInterest(name: string, interestGroupId: string): 
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
-      'Authorization': getAuthHeader()
+      ...authHeaders()
     },
     body: JSON.stringify(payload),
   });
@@ -256,7 +258,7 @@ export async function deleteSubInterest(id: string): Promise<void> {
   const res = await fetch(`${INTERESTS_URL}/${id}`, { 
     method: 'DELETE',
     headers: {
-      'Authorization': getAuthHeader()
+      ...authHeaders()
     }
   });
   if (!res.ok) {
@@ -275,7 +277,7 @@ export async function updateInterestGroup(id: string, name: string, tagIds: stri
     method: 'PUT',
     headers: { 
       'Content-Type': 'application/json',
-      'Authorization': getAuthHeader()
+      ...authHeaders()
     },
     body: JSON.stringify({ name, tags: tagIds }),
   });
@@ -294,7 +296,7 @@ export async function updateSubInterest(id: string, name: string): Promise<void>
     method: 'PUT',
     headers: { 
       'Content-Type': 'application/json',
-      'Authorization': getAuthHeader()
+      ...authHeaders()
     },
     body: JSON.stringify({ name, slug }),
   });
