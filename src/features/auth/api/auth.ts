@@ -1,30 +1,55 @@
 import axios from 'axios';
 import { ILoginCredentials, ILoginResponse } from '../types/auth.types';
-import { apiEndPoint } from '@/features/apiEndPoint';
-
-const { AUTH_BASE_URL } = apiEndPoint;
-
-// Validate AUTH_BASE_URL
-const validateAuthBaseUrl = () => {
-  if (!AUTH_BASE_URL) {
-    throw new Error('AUTH_BASE_URL is not configured. Please check your environment variables.');
-  }
-};
 
 export const authApi = {
   signInWithPassword: async (
     data: ILoginCredentials
   ): Promise<ILoginResponse> => {
-    validateAuthBaseUrl();
-    const response = await axios.post(
-      `${AUTH_BASE_URL}/auth/signin/password`,
-      data
-    );
-    return response.data.data;
+    const loginUrl = (process.env.NEXT_PUBLIC_USER_SERVICE_URL || 'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api/user-service') + '/admin-auth/login';
+    const payload = {
+      email: (data.email || data.username || data.employeeCode || '').trim(),
+      password: data.password ? data.password.trim() : '',
+    };
+    const response = await axios.post(loginUrl, payload);
+    const apiData = response.data?.data;
+    
+    return {
+      accessToken: apiData?.tokens?.accessToken || null,
+      idToken: apiData?.tokens?.idToken || null,
+      refreshToken: apiData?.tokens?.refreshToken || null,
+      user: apiData?.adminUser ? {
+        id: apiData.adminUser.id,
+        userId: apiData.adminUser.id,
+        name: apiData.adminUser.name + (apiData.adminUser.lastName ? ' ' + apiData.adminUser.lastName : ''),
+        email: apiData.adminUser.email,
+        phone: apiData.adminUser.phone,
+        roleName: apiData.adminUser.role,
+        ...apiData.adminUser
+      } : null
+    };
   },
   signInJWT: async (data: ILoginCredentials): Promise<ILoginResponse> => {
-    validateAuthBaseUrl();
-    const response = await axios.post(`${AUTH_BASE_URL}/auth/login-jwt`, data);
-    return response.data.data;
+    const loginUrl = (process.env.NEXT_PUBLIC_USER_SERVICE_URL || 'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api/user-service') + '/admin-auth/login';
+    const payload = {
+      email: (data.email || data.username || data.employeeCode || '').trim(),
+      password: data.password ? data.password.trim() : '',
+    };
+    const response = await axios.post(loginUrl, payload);
+    const apiData = response.data?.data;
+    
+    return {
+      accessToken: apiData?.tokens?.accessToken || null,
+      idToken: apiData?.tokens?.idToken || null,
+      refreshToken: apiData?.tokens?.refreshToken || null,
+      user: apiData?.adminUser ? {
+        id: apiData.adminUser.id,
+        userId: apiData.adminUser.id,
+        name: apiData.adminUser.name + (apiData.adminUser.lastName ? ' ' + apiData.adminUser.lastName : ''),
+        email: apiData.adminUser.email,
+        phone: apiData.adminUser.phone,
+        roleName: apiData.adminUser.role,
+        ...apiData.adminUser
+      } : null
+    };
   },
 };

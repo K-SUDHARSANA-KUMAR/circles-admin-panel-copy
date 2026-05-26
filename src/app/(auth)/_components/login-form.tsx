@@ -64,13 +64,13 @@ export const LoginForm = ({
           name="userName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Employee Code</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
                 <div className="relative">
                   <User className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-500" />
                   <Input
                     className="pl-10"
-                    placeholder="eg: 280902"
+                    placeholder="eg: irfan@nokha.in"
                     {...field}
                   />
                 </div>

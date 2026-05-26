@@ -25,6 +25,8 @@ export const useAuth = () => {
     mutationFn: (data: ILoginCredentials) => authApi.signInJWT(data),
     onSuccess: (tokens: Partial<ILoginResponse>) => {
       localStorage.setItem('accessToken', tokens.accessToken || '');
+      localStorage.setItem('idToken', tokens.idToken || '');
+      localStorage.setItem('refreshToken', tokens.refreshToken || '');
       localStorage.setItem('user', JSON.stringify(tokens.user || {}));
       localStorage.setItem('isAuthenticated', 'true');
       dispatch(setAuthData(tokens));

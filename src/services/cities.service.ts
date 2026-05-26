@@ -12,18 +12,22 @@ export interface City {
 
 export const CITIES_URL = apiEndPoint.CITIES_ENDPOINT as string;
 
-export async function fetchCities(): Promise<City[]> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  // Use the provided active Bearer token if token is missing, mock, or invalid
-  const useProvidedToken = !token || token === 'mock-access-token' || !token.startsWith('eyJ');
-  const authHeader = useProvidedToken
-    ? 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjMDVhZjM1NC00ZWZkLTQ0NmQtOWRmYS03ZWRiMDA0OGQxZmYiLCJpYXQiOjE3Nzk0NTQ0NjUsImV4cCI6MTc4MjA0NjQ2NX0.9nt5US9IHDfClT9WnwFjN8f_MN-rnstGEfT6Gx-KoTI'
-    : `Bearer ${token}`;
+function authHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+  const idToken = localStorage.getItem('idToken') || '';
+  return {
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...(accessToken ? { accessToken } : {}),
+    ...(idToken ? { idToken } : {}),
+  };
+}
 
+export async function fetchCities(): Promise<City[]> {
   const res = await fetch(CITIES_URL, {
     method: 'GET',
     headers: {
-      'Authorization': authHeader
+      ...authHeaders()
     }
   });
 
@@ -40,17 +44,10 @@ export async function fetchCities(): Promise<City[]> {
 }
 
 export async function createCity(payload: { name: string; country_code: string; is_active: boolean }): Promise<City> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  // Use the provided active Bearer token if token is missing, mock, or invalid
-  const useProvidedToken = !token || token === 'mock-access-token' || !token.startsWith('eyJ');
-  const authHeader = useProvidedToken
-    ? 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjMDVhZjM1NC00ZWZkLTQ0NmQtOWRmYS03ZWRiMDA0OGQxZmYiLCJpYXQiOjE3Nzk0NTQ0NjUsImV4cCI6MTc4MjA0NjQ2NX0.9nt5US9IHDfClT9WnwFjN8f_MN-rnstGEfT6Gx-KoTI'
-    : `Bearer ${token}`;
-
   const res = await fetch(CITIES_URL, {
     method: 'POST',
     headers: {
-      'Authorization': authHeader,
+      ...authHeaders(),
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(payload)
@@ -67,17 +64,10 @@ export async function createCity(payload: { name: string; country_code: string; 
 }
 
 export async function updateCity(cityId: string, payload: { name: string; country_code: string; is_active: boolean }): Promise<City> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  // Use the provided active Bearer token if token is missing, mock, or invalid
-  const useProvidedToken = !token || token === 'mock-access-token' || !token.startsWith('eyJ');
-  const authHeader = useProvidedToken
-    ? 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjMDVhZjM1NC00ZWZkLTQ0NmQtOWRmYS03ZWRiMDA0OGQxZmYiLCJpYXQiOjE3Nzk0NTQ0NjUsImV4cCI6MTc4MjA0NjQ2NX0.9nt5US9IHDfClT9WnwFjN8f_MN-rnstGEfT6Gx-KoTI'
-    : `Bearer ${token}`;
-
   const res = await fetch(`${CITIES_URL}/${cityId}`, {
     method: 'PUT',
     headers: {
-      'Authorization': authHeader,
+      ...authHeaders(),
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(payload)
@@ -94,17 +84,10 @@ export async function updateCity(cityId: string, payload: { name: string; countr
 }
 
 export async function deleteCity(cityId: string): Promise<void> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  // Use the provided active Bearer token if token is missing, mock, or invalid
-  const useProvidedToken = !token || token === 'mock-access-token' || !token.startsWith('eyJ');
-  const authHeader = useProvidedToken
-    ? 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjMDVhZjM1NC00ZWZkLTQ0NmQtOWRmYS03ZWRiMDA0OGQxZmYiLCJpYXQiOjE3Nzk0NTQ0NjUsImV4cCI6MTc4MjA0NjQ2NX0.9nt5US9IHDfClT9WnwFjN8f_MN-rnstGEfT6Gx-KoTI'
-    : `Bearer ${token}`;
-
   const res = await fetch(`${CITIES_URL}/${cityId}`, {
     method: 'DELETE',
     headers: {
-      'Authorization': authHeader
+      ...authHeaders()
     }
   });
 
