@@ -208,7 +208,7 @@ export default function UsersPage() {
             />
           </div>
           <Button
-            variant="ghost"
+            variant="ghost" 
             size="icon"
             onClick={handleRefresh}
             disabled={loading}
