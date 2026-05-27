@@ -2,129 +2,101 @@
 @import 'tw-animate-css';
 
 @theme {
-  --color-background: #030303;
-  --color-foreground: #F9FAFB;
+  --color-background: #171717;
+  --color-foreground: #FFFFFF;
   
-  --color-card: rgba(17, 24, 39, 0.4);
-  --color-card-foreground: #F9FAFB;
+  --color-card: #222222;
+  --color-card-foreground: #FFFFFF;
   
-  --color-popover: rgba(17, 24, 39, 0.8);
-  --color-popover-foreground: #F9FAFB;
+  --color-popover: #222222;
+  --color-popover-foreground: #FFFFFF;
   
-  --color-primary: #7C3AED;
+  --color-primary: #BF6DFF;
   --color-primary-foreground: #FFFFFF;
   
-  --color-secondary: #06B6D4;
-  --color-secondary-foreground: #0A0A0A;
+  --color-secondary: #BF6DFF;
+  --color-secondary-foreground: #171717;
   
-  --color-muted: rgba(31, 41, 55, 0.5);
+  --color-muted: #222222;
   --color-muted-foreground: #9CA3AF;
   
-  --color-accent: rgba(124, 58, 237, 0.1);
-  --color-accent-foreground: #F9FAFB;
+  --color-accent: rgba(191, 109, 255, 0.08);
+  --color-accent-foreground: #FFFFFF;
   
   --color-destructive: #EF4444;
   
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-input: rgba(255, 255, 255, 0.05);
-  --color-ring: #7C3AED;
+  --color-border: #333333;
+  --color-input: #222222;
+  --color-ring: #BF6DFF;
   
-  --color-sidebar: rgba(10, 10, 10, 0.6);
-  --color-sidebar-foreground: #F9FAFB;
-  --color-sidebar-primary: #7C3AED;
-  --color-sidebar-primary-foreground: #F9FAFB;
-  --color-sidebar-accent: rgba(124, 58, 237, 0.1);
-  --color-sidebar-accent-foreground: #F9FAFB;
-  --color-sidebar-border: rgba(255, 255, 255, 0.05);
-  --color-sidebar-ring: #7C3AED;
+  --color-sidebar: #171717;
+  --color-sidebar-foreground: #9CA3AF;
+  --color-sidebar-primary: #BF6DFF;
+  --color-sidebar-primary-foreground: #FFFFFF;
+  --color-sidebar-accent: rgba(191, 109, 255, 0.08);
+  --color-sidebar-accent-foreground: #FFFFFF;
+  --color-sidebar-border: #333333;
+  --color-sidebar-ring: #BF6DFF;
 
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
+  --radius-xl: 8px;
+  --radius-2xl: 12px;
   
-  --animate-glow: glow 2s ease-in-out infinite alternate;
+  --animate-glow: none;
 
-  --font-sans: var(--font-figtree);
-  --font-figtree: var(--font-figtree);
-  --font-montserrat: var(--font-figtree);
-  --font-inter: var(--font-figtree);
-  --font-instrument: var(--font-instrument-serif);
-}
-
-@keyframes glow {
-  from { box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary); }
-  to { box-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary); }
+  --font-sans: var(--font-dm-sans);
+  --font-figtree: var(--font-dm-sans);
+  --font-montserrat: var(--font-dm-sans);
+  --font-inter: var(--font-dm-sans);
+  --font-instrument: var(--font-dm-sans);
 }
 
 @layer base {
   * {
-    @apply border-border/40 outline-ring/50;
+    @apply border-border outline-ring/50;
     scrollbar-width: thin;
-    scrollbar-color: var(--color-primary) transparent;
+    scrollbar-color: #333333 transparent;
   }
   
   body {
     @apply bg-background text-foreground selection:bg-primary/30;
-    font-family: var(--font-figtree);
-    background-color: #030303;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 40%),
-      radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.15) 0px, transparent 40%),
-      radial-gradient(at 50% 50%, rgba(124, 58, 237, 0.05) 0px, transparent 60%);
-    background-attachment: fixed;
+    font-family: var(--font-sans);
+    background-color: #171717;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-figtree);
-    @apply tracking-tight font-bold;
-    color: white;
-    background: linear-gradient(to bottom right, #fff, #9CA3AF);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-family: var(--font-sans);
+    @apply tracking-tight font-bold text-foreground;
   }
 }
 
 @layer components {
   .glass-card {
     background: var(--color-card);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--color-border);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-    border-radius: var(--radius-2xl);
+    border-radius: var(--radius-xl);
     position: relative;
     overflow: hidden;
   }
   
-  .glass-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
-    pointer-events: none;
-  }
-
   .glass-morphism {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    background: #222222;
+    border: 1px solid var(--color-border);
   }
 
   .glow-primary {
-    box-shadow: 0 0 30px -5px rgba(124, 58, 237, 0.5);
+    box-shadow: none;
   }
   
   .glow-secondary {
-    box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.5);
+    box-shadow: none;
   }
   
   .smooth-transition {
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease-in-out;
   }
 
   .text-glow {
-    text-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+    text-shadow: none;
   }
 }
+

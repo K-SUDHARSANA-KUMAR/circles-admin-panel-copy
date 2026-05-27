@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -9,8 +11,11 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  output: 'export',
-  distDir: 'build',
+  // Only apply static export and E:\build output during production build
+  ...(isProd ? {
+    output: 'export',
+    distDir: 'build',
+  } : {}),
 };
 
 export default nextConfig;

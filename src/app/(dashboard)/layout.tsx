@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/sidebars/dashboard-sidebar/dashboard-siderbar';
 import { ProtectedRoute } from '@/components/auth/protected-route';
+import PageHeader from '@/components/shared/page-header';
 
 export const metadata: Metadata = {
   title: 'Circles Admin - Dashboard',
@@ -21,7 +22,10 @@ export default function DashboardLayout({
     <ProtectedRoute redirectTo="/">
       <SidebarProvider>
         <DashboardSidebar />
-        <main className="w-full p-4 overflow-x-hidden max-w-full">{children}</main>
+        <main className="w-full overflow-x-hidden max-w-full flex flex-col min-h-screen">
+          <PageHeader />
+          <div className="flex-1 p-6 w-full">{children}</div>
+        </main>
       </SidebarProvider>
     </ProtectedRoute>
   );

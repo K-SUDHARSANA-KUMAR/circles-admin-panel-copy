@@ -156,22 +156,16 @@ export default function VerificationPage() {
   };
 
   return (
-    <div className="p-6 max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700 font-figtree">
+    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700 font-figtree">
       
-      {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-figtree font-black tracking-tight text-glow">Verification Queue</h1>
-            {!loading && !error && (
-              <span className="text-[10px] font-bold text-primary/70 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 tracking-widest uppercase">
-                {total} Pending
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground font-medium">
-            Review registration requests, approve new accounts, or decline applications for access
-          </p>
+      {/* Actions / Filter bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
+        <div className="flex items-center gap-3">
+          {!loading && !error && (
+            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
+              {total} Pending Verification
+            </span>
+          )}
         </div>
 
         {/* Actions */}
@@ -186,14 +180,14 @@ export default function VerificationPage() {
             />
           </div>
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={handleRefresh}
             disabled={loading}
-            className="h-9 w-9 shrink-0 border border-white/5 hover:bg-white/5"
+            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
             title="Refresh List"
           >
-            <IconRefresh size={16} className={loading ? 'animate-spin' : ''} />
+            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
           </Button>
         </div>
       </div>

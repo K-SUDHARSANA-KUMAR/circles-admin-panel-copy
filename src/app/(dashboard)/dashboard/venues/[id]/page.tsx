@@ -13,15 +13,15 @@ const VenueDetailsPage = async ({ params }: Props) => {
 
   if (!venue) {
     return (
-      <div className="p-6 text-center">
-        <h1 className="text-2xl font-bold">Venue not found</h1>
-        <p className="text-muted-foreground mt-2">The venue you're looking for doesn't exist or has been removed.</p>
+      <div className="text-center py-12 animate-in fade-in duration-300">
+        <h3 className="text-sm font-semibold text-white">Venue Not Found</h3>
+        <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">The venue you're looking for doesn't exist or has been removed.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300">
       <VenueForm 
         initialData={venue} 
         mode="view" // Default mode, VenueForm will check searchParams
