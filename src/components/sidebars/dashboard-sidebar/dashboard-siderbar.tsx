@@ -17,98 +17,61 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {
-  IconBuildingStore,
-  IconCoinRupee,
-  IconFileDatabase,
-  IconMapRoute,
-  IconPackage,
-  IconPresentation,
-  IconShoppingCart,
-  IconAd2,
-  IconWallet,
-  IconTargetArrow,
-  IconReceiptRupee,
-  IconHeart,
-  IconUsers,
-  IconStar,
-  IconReport,
-  IconListCheck,
-  IconShieldLock,
-} from '@tabler/icons-react';
+  LayoutDashboard,
+  Users,
+  FileText,
+  Building,
+  Shield,
+  MapPin,
+  Heart,
+  CheckSquare
+} from 'lucide-react';
 
-import { useAppSelector } from '@/store/hooks';
-import { usePermissionChecker } from '@/features/auth/hooks/useHasPermission';
-import { ProfileSection } from '@/components/shared/profile-section';
 import NavKeys from '@/constants/navkeys';
-import { PERMISSIONS } from '@/constants/permissions.constant';
 
 const sidebarGroups = [
   {
-    label: 'Dashboard',
+    label: 'Operations',
     items: [
       {
-        title: 'Overview',
+        title: 'Dashboard',
         url: NavKeys.DashboardOverview,
-        icon: IconPresentation,
-        module: PERMISSIONS.DASHBOARD,
+        icon: LayoutDashboard,
       },
       {
         title: 'Venues',
         url: NavKeys.VenuesPage,
-        icon: IconPresentation,
-        module: PERMISSIONS.VENUES,
-      },
-      {
-        title: 'Interest',
-        url: NavKeys.InterestPage,
-        icon: IconHeart,
-        module: PERMISSIONS.INTEREST,
+        icon: Building,
       },
       {
         title: 'Cities',
         url: NavKeys.CitiesPage,
-        icon: IconBuildingStore,
-        module: PERMISSIONS.CITIES,
+        icon: MapPin,
       },
-    ],
-  },
-  {
-    label: 'User Management',
-    items: [
+      {
+        title: 'Interest',
+        url: NavKeys.InterestPage,
+        icon: Heart,
+      },
       {
         title: 'Users',
         url: NavKeys.Users,
-        icon: IconUsers,
-        module: 'users',
+        icon: Users,
       },
       {
-        title: 'Reviews',
-        url: '/user-management/reviews',
-        icon: IconStar,
-        module: 'reviews',
+        title: 'Verification Users',
+        url: '/user-management/verification',
+        icon: CheckSquare,
+      },
+      {
+        title: 'Admin Users',
+        url: '/admin-users',
+        icon: Shield,
       },
       {
         title: 'Reports',
         url: NavKeys.Reports,
-        icon: IconReport,
-        module: 'reports',
-      },
-      {
-        title: 'Verification Page',
-        url: '/user-management/verification',
-        icon: IconListCheck,
-        module: 'verification',
-      },
-    ],
-  },
-  {
-    label: 'Admin Users',
-    items: [
-      {
-        title: 'Admin Users',
-        url: '/admin-users',
-        icon: IconShieldLock,
-        module: 'admin-users',
+        icon: FileText,
       },
     ],
   },
@@ -116,38 +79,32 @@ const sidebarGroups = [
 
 export function DashboardSidebar() {
   const pathname = usePathname();
-  const groupedPermissionsMap = useAppSelector(
-    (state) => state.auth.groupedPermissionsMap
-  );
-
-  
-
-  const filteredGroups = sidebarGroups; // Bypass filtering to grant all access
+  const filteredGroups = sidebarGroups;
 
   return (
     <Sidebar collapsible='icon'>
-      <SidebarHeader className="flex flex-row items-center justify-center gap-2.5 px-4 py-2 transition-all duration-300">
-        <img src="/Circles_logo1.png" alt="logo" className="h-auto w-12 transition-all group-data-[collapsible=icon]:w-8" />
-        <span className="font-instrument text-[15px] font-normal tracking-wide text-foreground group-data-[collapsible=icon]:hidden">
-          Circles
+      <SidebarHeader className="flex flex-row items-center justify-start gap-2.5 px-4 py-3 border-b border-[#333333] h-[52px]">
+        <img src="/Circles_logo1.png" alt="logo" className="h-6 w-auto shrink-0 transition-all" />
+        <span className="font-sans text-sm font-bold tracking-tight text-white group-data-[collapsible=icon]:hidden">
+          Circles Admin
         </span>
       </SidebarHeader>
-      <SidebarContent className="[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <SidebarContent className="p-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {filteredGroups.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="pb-1.5 text-[10px] uppercase tracking-widest font-black text-primary/70">
+          <SidebarGroup key={group.label} className="p-0">
+            <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
                 {group.items.map((item) => {
-                  const isActive = pathname.startsWith(item.url);
+                  const isActive = pathname === item.url || pathname.startsWith(item.url + '/');
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton isActive={isActive} asChild tooltip={item.title}>
-                        <Link href={item.url}>
-                          <item.icon className="!h-5 !w-5" />
-                          <span className="font-medium">{item.title}</span>
+                        <Link href={item.url} className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors">
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          <span className="font-medium text-xs">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -158,9 +115,6 @@ export function DashboardSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="group-data-[collapsible=icon]:p-1 p-3">
-        <ProfileSection />
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

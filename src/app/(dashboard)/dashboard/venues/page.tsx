@@ -10,9 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconPlus, IconTrash, IconChevronRight } from "@tabler/icons-react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { initialVenues } from "./constants";
+import PageHeader from "@/components/shared/page-header";
 
 const VenuesPage = () => {
   const router = useRouter();
@@ -25,94 +26,90 @@ const VenuesPage = () => {
   };
 
   return (
-    <div className="flex flex-col p-4 gap-5 w-full max-w-[1400px] mx-auto animate-in fade-in duration-700">
-      {/* Header Section */}
-      <div className="flex items-center justify-between w-full">
-        <div className="flex flex-col gap-0.5">
+    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6">
+      
+      {/* Actions / Filter bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tight text-glow">Venues</h1>
-            <div className="hidden sm:inline-flex text-[10px] font-bold text-primary/70 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 tracking-widest uppercase">
+            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
               {venues.length} Total Spaces
-            </div>
+            </span>
           </div>
-          <p className="text-muted-foreground text-xs font-medium">Manage your event spaces and locations</p>
+
+          <div className="flex items-center gap-4 ml-auto sm:ml-0">
+            <Button 
+              variant="default" 
+              className="flex items-center gap-2 h-9 px-4 text-xs font-bold uppercase tracking-wider"
+              onClick={() => router.push("/dashboard/venues/create")}
+            >
+              <IconPlus size={16} />
+              <span>Add New Venue</span>
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="default" 
-            className="flex items-center gap-2 h-9 px-4 shadow-xl shadow-primary/20 text-xs font-bold uppercase tracking-wider"
-            onClick={() => router.push("/dashboard/venues/create")}
-          >
-            <IconPlus size={16} />
-            <span>Add New Venue</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Table Section */}
-      <div className="glass-card overflow-hidden shadow-2xl border-primary/10">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent border-border/50 bg-muted/30">
-              <TableHead className="w-[80px] text-primary font-bold uppercase tracking-widest text-xs">ID</TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-xs">Venue Information</TableHead>
-              <TableHead className="text-primary font-bold uppercase tracking-widest text-xs">Location</TableHead>
-              <TableHead className="text-right text-primary font-bold uppercase tracking-widest text-xs px-4">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {venues.map((venue) => (
-              <TableRow 
-                key={venue.id} 
-                className="group border-border/40 hover:bg-primary/5 smooth-transition cursor-pointer relative"
-                onClick={() => router.push(`/dashboard/venues/${venue.id}`)}
-              >
-                <TableCell className="text-xs font-extrabold text-foreground/40 group-hover:text-primary transition-colors">{venue.id}</TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{venue.name}</span>
-                    <span className="text-xs text-muted-foreground/70 flex items-center gap-1 mt-0.5">
-                      Managed by <span className="text-foreground/80 font-semibold">{venue.manager}</span>
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-xs text-foreground/80 font-medium">{venue.location}</TableCell>
-                <TableCell className="text-right px-4">
-                  <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="h-7 px-3 font-bold text-[10px] uppercase tracking-wider rounded-full hover:bg-primary hover:text-white transition-all"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/dashboard/venues/${venue.id}?edit=true`);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (venue.id) handleDelete(venue.id);
-                      }}
-                    >
-                      <IconTrash size={14} />
-                    </Button>
-                    <div className="flex items-center text-primary ml-1">
-                      <IconChevronRight size={14} />
-                    </div>
-                  </div>
-                </TableCell>
+        {/* Main Table Layout */}
+        <div className="bg-[#222222] border border-[#333333] rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-b border-[#333333] bg-[#171717] font-sans">
+                <TableHead className="w-[100px] text-white font-bold text-[13px] py-3">ID</TableHead>
+                <TableHead className="text-white font-bold text-[13px] py-3">Venue Information</TableHead>
+                <TableHead className="text-white font-bold text-[13px] py-3">Location</TableHead>
+                <TableHead className="text-right text-white font-bold text-[13px] px-6 py-3">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {venues.map((venue) => (
+                <TableRow 
+                  key={venue.id} 
+                  className="group border-b border-[#333333] hover:bg-white/5 transition-colors font-sans cursor-pointer relative"
+                  onClick={() => router.push(`/dashboard/venues/${venue.id}`)}
+                >
+                  <TableCell className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
+                    {venue.id}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors">{venue.name}</span>
+                      <span className="text-xs text-muted-foreground/60 flex items-center gap-1 mt-0.5 font-normal">
+                        Managed by <span className="text-foreground/80 font-medium">{venue.manager}</span>
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-normal">{venue.location}</TableCell>
+                  <TableCell className="text-right px-6">
+                    <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-200">
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="h-8 px-3 font-medium text-xs rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1.5"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/dashboard/venues/${venue.id}?edit=true`);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-md hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (venue.id) handleDelete(venue.id);
+                        }}
+                      >
+                        <IconTrash size={14} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
   );
 };
 

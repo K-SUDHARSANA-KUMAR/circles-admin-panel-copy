@@ -9,20 +9,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:glow-primary rounded-xl smooth-transition',
+        default: 'bg-primary text-primary-foreground hover:bg-primary/95 rounded-lg transition-colors',
         destructive:
-          'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 rounded-xl smooth-transition',
+          'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 rounded-lg transition-colors',
         outline:
-          'border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 rounded-xl smooth-transition',
+          'border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 rounded-lg transition-colors',
         secondary:
-          'glass-card text-primary hover:bg-primary/10 border-2 border-primary/50 hover:border-primary rounded-xl smooth-transition hover:glow-primary/20',
-        tertiary: 'bg-primary/10 text-primary hover:bg-primary/20 rounded-xl smooth-transition',
+          'bg-[#222222] text-foreground hover:bg-[#333333] border border-[#333333] hover:border-primary/50 rounded-lg transition-colors',
+        tertiary: 'bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors',
         ghost:
-          'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 rounded-xl smooth-transition',
-        link: 'text-primary underline-offset-4 hover:underline smooth-transition',
-        white: 'glass-card border hover:bg-accent rounded-xl smooth-transition',
+          'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 rounded-lg transition-colors',
+        link: 'text-primary underline-offset-4 hover:underline transition-colors',
+        white: 'bg-[#222222] border border-[#333333] hover:bg-[#333333] rounded-lg transition-colors',
         dotted:
-          'bg-background border-dashed border-2 border-neutral-300 hover:bg-accent text-neutral-400 rounded-xl smooth-transition',
+          'bg-background border-dashed border border-neutral-700 hover:bg-accent text-neutral-400 rounded-lg transition-colors',
       },
       size: {
         default: 'h-9 px-5 py-2 has-[>svg]:px-3',

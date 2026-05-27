@@ -52,25 +52,23 @@ const dashboardMetrics = [
 
 const DashboardPage = () => {
   return (
-    <section className="flex flex-col p-4 gap-5 w-full max-w-[1400px] mx-auto animate-in fade-in duration-700">
-      <PageHeader title="Dashboard" />
-
+    <section className="flex flex-col gap-5 w-full max-w-[1400px] mx-auto animate-in fade-in duration-700">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {dashboardMetrics.map((metric, index) => {
           const IconComponent = metric.icon;
           return (
-            <Card key={index} className="border-white/5 hover:border-primary/20 transition-all duration-500 group">
-              <CardHeader className="flex flex-row items-center gap-3.5 border-b border-white/5 pb-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-primary glow-primary/10 group-hover:glow-primary/20 transition-all">
-                  <IconComponent size={22} />
+            <Card key={index} className="border-[#333333] bg-[#222222] transition-colors duration-200 group">
+              <CardHeader className="flex flex-row items-center gap-3.5 border-b border-[#333333] pb-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#333333] bg-[#171717] text-primary transition-colors">
+                  <IconComponent size={20} />
                 </div>
                 <div className="flex flex-col">
                   <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{metric.title}</CardTitle>
-                  <div className="text-2xl font-black tracking-tight mt-0.5 text-white">{metric.value}</div>
+                  <div className="text-2xl font-bold tracking-tight mt-0.5 text-white">{metric.value}</div>
                 </div>
               </CardHeader>
               <CardContent className="pt-3">
-                <p className="text-xs text-muted-foreground/80 font-medium">
+                <p className="text-xs text-muted-foreground/80 font-normal">
                   {metric.description}
                 </p>
               </CardContent>
@@ -79,11 +77,11 @@ const DashboardPage = () => {
         })}
       </div>
 
-      <Card className="border-white/5 overflow-hidden">
+      <Card className="border-[#333333] bg-[#222222] overflow-hidden">
         <CardHeader className="p-5 pb-0">
-          <CardTitle className="text-lg font-bold">Users Overview</CardTitle>
+          <CardTitle className="text-base font-bold text-white">Users Overview</CardTitle>
           <CardDescription className="text-muted-foreground text-xs mt-1">
-            User Analytics
+            Registered user signup velocity and monthly analytics.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-5 pt-4">
@@ -91,11 +89,11 @@ const DashboardPage = () => {
             <AreaChart accessibilityLayer data={chartData} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.25}/>
                   <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
               <XAxis
                 dataKey="date"
                 tickLine={false}
@@ -114,15 +112,15 @@ const DashboardPage = () => {
                 tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }}
                 tickFormatter={(value: number) => `${value.toLocaleString()}`}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent className="glass-morphism border-white/10 p-3 rounded-xl text-xs" />} />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent className="bg-[#222222] border border-[#333333] p-3 rounded-lg text-xs" />} />
               <Area
                 dataKey="sales"
                 type="monotone"
                 fill="url(#colorSales)"
                 stroke="var(--primary)"
-                strokeWidth={3}
-                dot={{ fill: 'var(--primary)', strokeWidth: 2, r: 4, strokeOpacity: 0.8 }}
-                activeDot={{ r: 6, strokeWidth: 0, fill: '#fff', className: 'glow-primary' }}
+                strokeWidth={2}
+                dot={{ fill: 'var(--primary)', strokeWidth: 1, r: 3, strokeOpacity: 0.8 }}
+                activeDot={{ r: 5, strokeWidth: 0, fill: '#fff' }}
               />
             </AreaChart>
           </ChartContainer>

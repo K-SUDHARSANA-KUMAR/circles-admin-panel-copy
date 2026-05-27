@@ -177,27 +177,21 @@ export default function CitiesPage() {
   });
 
   return (
-    <div className="flex flex-col p-4 gap-5 w-full max-w-[1400px] mx-auto animate-in fade-in duration-700">
+    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700">
       
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tight text-glow">Cities</h1>
-            {!loading && (
-              <div className="hidden sm:inline-flex text-[10px] font-bold text-white/70 bg-white/5 px-2.5 py-1 rounded-full border border-white/10 tracking-widest uppercase">
-                {cities.length} Total Cities
-              </div>
-            )}
-          </div>
-          <p className="text-muted-foreground text-xs font-medium">
-            Manage operational cities and region configurations
-          </p>
+      {/* Actions / Filter bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
+        <div className="flex items-center gap-3">
+          {!loading && (
+            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
+              {cities.length} Total Cities
+            </span>
+          )}
         </div>
 
         {/* Actions & Search */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative w-full sm:w-64">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial sm:w-64">
             <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by city name or code..."
@@ -207,18 +201,18 @@ export default function CitiesPage() {
             />
           </div>
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={loadCities}
             disabled={loading}
-            className="h-9 w-9 shrink-0"
+            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
             title="Refresh"
           >
-            <IconRefresh size={16} className={loading ? 'animate-spin' : ''} />
+            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
           </Button>
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 h-9 px-4 shadow-xl shadow-primary/20 text-xs font-bold uppercase tracking-wider ml-auto sm:ml-0"
+            className="flex items-center gap-2 h-9 px-4 text-xs font-bold uppercase tracking-wider shrink-0"
           >
             <IconPlus size={16} />
             <span>Add City</span>

@@ -228,27 +228,21 @@ export default function InterestsPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col p-4 gap-5 w-full max-w-[1400px] mx-auto animate-in fade-in duration-700">
+    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700">
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tight text-glow">Interests</h1>
-            {!loading && (
-              <div className="hidden sm:inline-flex text-[10px] font-bold text-primary/70 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 tracking-widest uppercase">
-                {groups.length} Groups
-              </div>
-            )}
-          </div>
-          <p className="text-muted-foreground text-xs font-medium">
-            Manage interest categories and their sub-interests
-          </p>
+      {/* Actions / Filter bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
+        <div className="flex items-center gap-3">
+          {!loading && (
+            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
+              {groups.length} Interest Groups
+            </span>
+          )}
         </div>
 
         {/* Actions & Search */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative w-full sm:w-64">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial sm:w-64">
             <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search interests..."
@@ -258,18 +252,18 @@ export default function InterestsPage() {
             />
           </div>
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={loadGroups}
             disabled={loading}
-            className="h-9 w-9 shrink-0"
+            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
             title="Refresh"
           >
-            <IconRefresh size={16} className={loading ? 'animate-spin' : ''} />
+            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
           </Button>
           <Button
             onClick={() => setIsCreating(!isCreating)}
-            className="flex items-center gap-2 h-9 px-4 shadow-xl shadow-primary/20 text-xs font-bold uppercase tracking-wider ml-auto sm:ml-0"
+            className="flex items-center gap-2 h-9 px-4 text-xs font-bold uppercase tracking-wider shrink-0"
           >
             {isCreating ? <IconX size={16} /> : <IconPlus size={16} />}
             <span>{isCreating ? 'Cancel' : 'New Group'}</span>
@@ -398,14 +392,14 @@ export default function InterestsPage() {
             const style = getStyle(group.color, isOpen);
 
             return (
-              <Card
+              <div
                 key={group.id}
-                className={`overflow-hidden transition-all duration-300 border-white/5 ${style.border} ${style.glow} group`}
+                className="overflow-hidden bg-transparent rounded-lg transition-all duration-300"
               >
                 {/* Clickable Header Row */}
                 <div
                   onClick={() => setActiveGroupId(isOpen ? null : group.id)}
-                  className="flex flex-row items-center justify-between p-4 cursor-pointer bg-white/[0.01] hover:bg-white/[0.025] transition-colors select-none"
+                  className="flex flex-row items-center justify-between p-4 cursor-pointer bg-[#222222] border border-[#333333] hover:border-primary/40 rounded-lg transition-all select-none"
                 >
                   <div className="flex items-center gap-3">
                     <IconChevronRight
@@ -465,10 +459,10 @@ export default function InterestsPage() {
                       'grid-template-rows 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease-in-out',
                     opacity: isOpen ? 1 : 0,
                   }}
-                  className={isOpen ? '' : 'pointer-events-none'}
+                  className={isOpen ? 'mt-2' : 'pointer-events-none'}
                 >
                   <div className="min-h-0 overflow-hidden">
-                    <CardContent className="p-4 pt-3 flex flex-col gap-4 border-t border-white/5 bg-white/[0.003]">
+                    <div className="p-4 flex flex-col gap-4 bg-[#222222] border border-[#333333] rounded-lg">
                       {/* Sub-Interests */}
                       <div className="flex flex-wrap gap-2 min-h-[36px]">
                         {group.subInterests.length > 0 ? (
@@ -528,10 +522,10 @@ export default function InterestsPage() {
                           Add
                         </Button>
                       </div>
-                    </CardContent>
+                    </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>

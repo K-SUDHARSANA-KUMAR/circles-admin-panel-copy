@@ -25,20 +25,20 @@ const customStyles: StylesConfig<Option, true> = {
     minHeight: '36px',
     height: '36px',
     border: state.isFocused 
-      ? '1px solid hsl(var(--freshleaf))' 
-      : '1px solid hsl(var(--border))',
-    borderRadius: '6px',
-    backgroundColor: 'transparent',
+      ? '1px solid var(--color-primary)' 
+      : '1px solid var(--color-border)',
+    borderRadius: '8px',
+    backgroundColor: '#222222',
     boxShadow: state.isFocused 
-      ? '0 0 0 3px hsl(var(--freshleaf) / 0.4)' 
+      ? '0 0 0 3px rgba(191, 109, 255, 0.2)' 
       : 'none',
     '&:hover': {
       borderColor: state.isFocused 
-        ? 'hsl(var(--freshleaf))' 
-        : 'hsl(var(--input) / 0.5)',
-      backgroundColor: 'hsl(var(--input) / 0.5)',
+        ? 'var(--color-primary)' 
+        : 'var(--color-border)',
+      backgroundColor: '#222222',
     },
-    fontSize: '16px',
+    fontSize: '13px',
     fontWeight: '400',
     transition: 'all 0.2s ease-in-out',
   }),

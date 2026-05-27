@@ -5,7 +5,7 @@ import { VenueForm } from "../venue-form";
 
 const CreateVenuePage = () => {
   return (
-    <div className="p-6">
+    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300">
       <VenueForm mode="create" />
     </div>
   );
