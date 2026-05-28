@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchWaitlist, approveWaitlistUser, rejectWaitlistUser, type WaitlistUser } from '@/services/user.service';
+import { fetchRejectedWaitlist, approveWaitlistUser, rejectWaitlistUser, type WaitlistUser } from '@/services/user.service';
 import {
   IconSearch,
   IconRefresh,
@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/table';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // ─── Table Loading Skeleton ──────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ function TableSkeleton() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function VerificationPage() {
+export default function RejectedWaitlistPage() {
   const [users, setUsers] = useState<WaitlistUser[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,8 @@ export default function VerificationPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [processing, setProcessing] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Debounce search query to prevent excessive API requests
   useEffect(() => {
@@ -82,11 +85,18 @@ export default function VerificationPage() {
     };
   }, [searchQuery]);
 
-  const loadWaitlist = useCallback(async (searchVal = '') => {
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  const loadWaitlist = useCallback(async (searchVal = '', page = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetchWaitlist({ search: searchVal, limit: 50, skip: 0 });
+      const skip = (page - 1) * itemsPerPage;
+      const response = await fetchRejectedWaitlist({ search: searchVal, limit: itemsPerPage, skip });
+
       setUsers(response.users);
       setTotal(response.total);
     } catch (err: unknown) {
@@ -96,14 +106,14 @@ export default function VerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [itemsPerPage]);
 
   useEffect(() => {
-    loadWaitlist(debouncedSearch);
-  }, [debouncedSearch, loadWaitlist]);
+    loadWaitlist(debouncedSearch, currentPage);
+  }, [debouncedSearch, currentPage, loadWaitlist]);
 
   const handleRefresh = () => {
-    loadWaitlist(searchQuery);
+    loadWaitlist(searchQuery, currentPage);
   };
 
   const handleApprove = async (id: string, name: string) => {
@@ -167,14 +177,21 @@ export default function VerificationPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
         <div className="flex items-center gap-3">
           {!loading && !error && (
-            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
-              {total} Pending Verification
+            <span className="text-xs font-bold text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-full border border-rose-500/20 tracking-wider uppercase">
+              {total} Rejected Users
             </span>
           )}
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Link href="/user-management/waitlist">
+            <Button
+              variant="outline"
+              className="h-9 text-xs border-[#333333] hover:bg-[#333333] text-primary hover:text-primary/80 transition-colors"
+            >
+              Back to Waitlist
+            </Button>
+          </Link>
           <div className="relative flex-1 sm:flex-initial sm:w-64">
             <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -218,7 +235,7 @@ export default function VerificationPage() {
                 Status
               </TableHead>
               <TableHead className="text-right text-white font-bold text-[14px] px-6">
-                Actions
+                
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -353,45 +370,6 @@ export default function VerificationPage() {
 
                     {/* Action buttons (Approve / Reject) */}
                     <TableCell className="text-right px-6">
-                      <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
-                        {/* Approve Tick Button */}
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={isAnyProcessing}
-                          className="h-8 w-8 rounded-full bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 text-emerald-400 p-0 flex items-center justify-center smooth-transition hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleApprove(user.id, displayName);
-                          }}
-                          title="Approve User"
-                        >
-                          {isApproving ? (
-                            <IconLoader size={15} className="animate-spin" />
-                          ) : (
-                            <IconCheck size={16} />
-                          )}
-                        </Button>
-
-                        {/* Reject Cross Button */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={isAnyProcessing}
-                          className="h-8 w-8 rounded-full bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 text-rose-400 p-0 flex items-center justify-center smooth-transition hover:shadow-lg hover:shadow-rose-500/20 disabled:opacity-50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReject(user.id, displayName);
-                          }}
-                          title="Reject User"
-                        >
-                          {isRejecting ? (
-                            <IconLoader size={15} className="animate-spin" />
-                          ) : (
-                            <IconX size={16} />
-                          )}
-                        </Button>
-                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -400,6 +378,40 @@ export default function VerificationPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Controls */}
+      {total > 0 && (
+        <div className="flex items-center justify-between px-2 text-sm text-muted-foreground mt-4">
+          <div>
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, total)} of {total} entries
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1 || loading}
+              className="border-[#333333] hover:bg-[#333333] h-8 text-xs"
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1 mx-2">
+              <span className="font-medium text-foreground">{currentPage}</span>
+              <span>/</span>
+              <span>{Math.ceil(total / itemsPerPage)}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(Math.ceil(total / itemsPerPage), prev + 1))}
+              disabled={currentPage >= Math.ceil(total / itemsPerPage) || loading}
+              className="border-[#333333] hover:bg-[#333333] h-8 text-xs"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
