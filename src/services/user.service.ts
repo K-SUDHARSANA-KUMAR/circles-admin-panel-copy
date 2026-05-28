@@ -49,7 +49,7 @@ export async function fetchCustomers(params?: {
   search?: string;
 }): Promise<CustomersResponse> {
   const url = new URL(ADMIN_CUSTOMERS_URL);
-  
+
   if (params?.limit !== undefined) {
     url.searchParams.append('limit', params.limit.toString());
   } else {
@@ -74,7 +74,7 @@ export async function fetchCustomers(params?: {
   }
 
   const json = await res.json();
-  
+
   // Handle response format variations
   const data = json?.result?.data ?? json?.data ?? json;
 
@@ -136,7 +136,7 @@ export async function fetchWaitlist(params?: {
   search?: string;
 }): Promise<WaitlistResponse> {
   const url = new URL(ADMIN_WAITLIST_URL);
-  
+
   if (params?.limit !== undefined) {
     url.searchParams.append('limit', params.limit.toString());
   } else {
@@ -161,7 +161,7 @@ export async function fetchWaitlist(params?: {
   }
 
   const json = await res.json();
-  
+
   // Handle response format variations
   const data = json?.result?.data ?? json?.data ?? json;
 
@@ -198,7 +198,7 @@ export async function fetchWaitlist(params?: {
 /**
  * Updates a waitlist user's status.
  */
-export async function updateWaitlistStatus(waitlistId: string, status: 'approved' | 'rejected'): Promise<any> {
+export async function updateWaitlistStatus(waitlistId: string, status: 'active' | 'rejected'): Promise<any> {
   const res = await fetch(`${ADMIN_WAITLIST_URL}/${waitlistId}`, {
     method: 'PATCH',
     headers: getAdminHeaders(),
@@ -219,40 +219,14 @@ export async function updateWaitlistStatus(waitlistId: string, status: 'approved
  * Approves a waitlist/verification user.
  */
 export async function approveWaitlistUser(waitlistId: string): Promise<any> {
-  try {
-    return await updateWaitlistStatus(waitlistId, 'approved');
-  } catch (e) {
-    // Fallback: try POST /admin/waitlist/{id}/approve
-    const res = await fetch(`${ADMIN_WAITLIST_URL}/${waitlistId}/approve`, {
-      method: 'POST',
-      headers: getAdminHeaders(),
-    });
-    if (!res.ok) {
-      throw e; // throw the original error if fallback also fails
-    }
-    const json = await res.json();
-    return json?.result?.data ?? json?.data ?? json;
-  }
+  return await updateWaitlistStatus(waitlistId, 'active');
 }
 
 /**
  * Rejects a waitlist/verification user.
  */
 export async function rejectWaitlistUser(waitlistId: string): Promise<any> {
-  try {
-    return await updateWaitlistStatus(waitlistId, 'rejected');
-  } catch (e) {
-    // Fallback: try POST /admin/waitlist/{id}/reject
-    const res = await fetch(`${ADMIN_WAITLIST_URL}/${waitlistId}/reject`, {
-      method: 'POST',
-      headers: getAdminHeaders(),
-    });
-    if (!res.ok) {
-      throw e; // throw original error
-    }
-    const json = await res.json();
-    return json?.result?.data ?? json?.data ?? json;
-  }
+  return await updateWaitlistStatus(waitlistId, 'rejected');
 }
 
 /**

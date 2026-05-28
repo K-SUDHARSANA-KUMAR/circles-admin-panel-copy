@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchWaitlist, approveWaitlistUser, rejectWaitlistUser, type WaitlistUser } from '@/services/user.service';
-import { 
-  IconSearch, 
-  IconRefresh, 
-  IconAlertCircle, 
-  IconUser, 
-  IconPhone, 
-  IconMail, 
-  IconCheck, 
+import {
+  IconSearch,
+  IconRefresh,
+  IconAlertCircle,
+  IconUser,
+  IconPhone,
+  IconMail,
+  IconCheck,
   IconX,
   IconLoader
 } from '@tabler/icons-react';
@@ -24,6 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 // ─── Table Loading Skeleton ──────────────────────────────────────────────────
 
@@ -108,7 +109,8 @@ export default function VerificationPage() {
   const handleApprove = async (id: string, name: string) => {
     setProcessing({ id, action: 'approve' });
     try {
-      await approveWaitlistUser(id);
+      const response = await approveWaitlistUser(id);
+      // console.log("response ::::::", response);
       toast.success(`Successfully approved ${name}`);
       await loadWaitlist(debouncedSearch);
     } catch (err: unknown) {
@@ -122,7 +124,10 @@ export default function VerificationPage() {
   const handleReject = async (id: string, name: string) => {
     setProcessing({ id, action: 'reject' });
     try {
-      await rejectWaitlistUser(id);
+      const response = await rejectWaitlistUser(id);
+
+      // console.log("response ::::::", response);
+
       toast.success(`Successfully rejected ${name}`);
       await loadWaitlist(debouncedSearch);
     } catch (err: unknown) {
@@ -157,7 +162,7 @@ export default function VerificationPage() {
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700 font-figtree">
-      
+
       {/* Actions / Filter bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
         <div className="flex items-center gap-3">
@@ -262,11 +267,12 @@ export default function VerificationPage() {
               users.map((user, index) => {
                 const statusStyle = getStatusStyle(user.status);
                 const displayName = user.name ? `${user.name} ${user.lastName || ''}`.trim() : 'Unnamed Applicant';
+                const profileImg = user?.profilePictureUrl;
                 const isProcessingThis = processing?.id === user.id;
                 const isApproving = isProcessingThis && processing?.action === 'approve';
                 const isRejecting = isProcessingThis && processing?.action === 'reject';
                 const isAnyProcessing = processing !== null;
-                
+
                 return (
                   <TableRow
                     key={user.id || index}
@@ -287,7 +293,23 @@ export default function VerificationPage() {
                             boxShadow: "0 0 12px rgba(124, 58, 237, 0.3)",
                           }}
                         >
-                          {user.name ? user.name.charAt(0).toUpperCase() : 'W'}
+                          {profileImg ? (
+                            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-muted shrink-0">
+                              <Image
+                                src={profileImg}
+                                alt="Profile"
+                                width={32}
+                                height={32}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <span className="text-sm font-bold text-foreground/90">
+                                {displayName.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <span className="text-sm font-bold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
                           {displayName}
@@ -333,9 +355,9 @@ export default function VerificationPage() {
                     <TableCell className="text-right px-6">
                       <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
                         {/* Approve Tick Button */}
-                        <Button 
-                          variant="secondary" 
-                          size="sm" 
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           disabled={isAnyProcessing}
                           className="h-8 w-8 rounded-full bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 text-emerald-400 p-0 flex items-center justify-center smooth-transition hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50"
                           onClick={(e) => {
@@ -350,11 +372,11 @@ export default function VerificationPage() {
                             <IconCheck size={16} />
                           )}
                         </Button>
-                        
+
                         {/* Reject Cross Button */}
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           disabled={isAnyProcessing}
                           className="h-8 w-8 rounded-full bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 text-rose-400 p-0 flex items-center justify-center smooth-transition hover:shadow-lg hover:shadow-rose-500/20 disabled:opacity-50"
                           onClick={(e) => {

@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "d2jialh2zz1lcb.cloudfront.net",
+      },
+    ],
+  },
   // Good for S3 hosting – makes URLs end with `/`
   trailingSlash: true,
   typescript: {
