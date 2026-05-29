@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCustomerById, type Customer } from '@/services/user.service';
 import { fetchInterestGroups } from '@/services/interest.service';
@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 interface DetailedUser extends Customer {
   role?: string;
   referralCode?: string;
+  referralMedium?: string | null;
   subscriptionStatus?: string | null;
   profileVerificationStatus?: string;
   profileVerified?: boolean;
@@ -49,13 +50,11 @@ interface DetailedUser extends Customer {
 }
 
 type UserDetailClientProps = {
-  params: Promise<{ id: string }>;
+  userId: string;
 };
 
-export default function UserDetailClient({ params }: UserDetailClientProps) {
+export default function UserDetailClient({ userId }: UserDetailClientProps) {
   const router = useRouter();
-  const resolvedParams = use(params);
-  const userId = resolvedParams.id;
 
   const [user, setUser] = useState<DetailedUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -252,19 +251,19 @@ export default function UserDetailClient({ params }: UserDetailClientProps) {
               
               {/* Badges Row */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className={`inline-flex text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                {/* <span className={`inline-flex text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
                   (user.status || 'active').toLowerCase() === 'active' 
                     ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' 
                     : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                 }`}>
                   {user.status || 'Active'}
-                </span>
+                </span> */}
                 
-                <span className="inline-flex text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                {/* <span className="inline-flex text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20">
                   {user.role || 'User'}
-                </span>
+                </span> */}
 
-                {user.profileVerified ? (
+                {/* {user.profileVerified ? (
                   <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     <IconShieldCheck size={10} />
                     <span>Verified</span>
@@ -274,7 +273,7 @@ export default function UserDetailClient({ params }: UserDetailClientProps) {
                     <IconAlertCircle size={10} />
                     <span>{user.profileVerificationStatus || 'Pending'}</span>
                   </span>
-                )}
+                )} */}
               </div>
             </div>
 
@@ -335,7 +334,7 @@ export default function UserDetailClient({ params }: UserDetailClientProps) {
               <IconCopy size={14} className="text-primary/70" />
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 pt-0 space-y-3">
+          <CardContent className="p-4 pt-0 space-y-2.5">
             {user.referralCode ? (
               <div className="flex items-center justify-between bg-[#171717] border border-[#333333] px-3 py-1.5 rounded-md">
                 <code className="text-sm font-mono font-bold text-white">{user.referralCode}</code>
@@ -351,6 +350,11 @@ export default function UserDetailClient({ params }: UserDetailClientProps) {
             ) : (
               <p className="text-xs text-muted-foreground/60 italic py-1.5">No Referral Code</p>
             )}
+
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground border-t border-[#333333]/40 pt-2 mt-1">
+              <span>Referral Medium</span>
+              <span className="font-bold text-white capitalize">{user.referralMedium || 'Direct / N/A'}</span>
+            </div>
           </CardContent>
         </Card>
 
@@ -534,6 +538,28 @@ export default function UserDetailClient({ params }: UserDetailClientProps) {
                 </div>
               </div>
 
+            </div>
+
+            {/* Account Status & Referral details */}
+            <div className="bg-[#171717] border border-[#333333] p-3.5 rounded-lg space-y-2.5 pt-2">
+              <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground block border-b border-[#333333] pb-1.5">Account Status</label>
+              
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">User Role</span>
+                <span className="font-semibold text-white capitalize">{user.role || 'User'}</span>
+              </div>
+
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Profile Verification</span>
+                <span className="font-semibold text-white capitalize">
+                  {user.profileVerificationStatus || 'Pending'} {user.profileVerified ? '(Verified)' : '(Unverified)'}
+                </span>
+              </div>
+
+              {/* <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Referral Medium</span>
+                <span className="font-semibold text-white capitalize">{user.referralMedium || 'Direct / N/A'}</span>
+              </div> */}
             </div>
 
             {/* Time Stamp Log Cards */}
