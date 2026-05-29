@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconPlus, IconTrash, IconLayoutGrid, IconList } from "@tabler/icons-react";
+import { IconPlus, IconTrash, IconLayoutGrid, IconList, IconBuilding } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { initialVenues } from "./constants";
 import PageHeader from "@/components/shared/page-header";
@@ -50,7 +50,6 @@ const VenuesPage = () => {
               }`}
             >
               <IconList size={14} />
-              <span>Table</span>
             </button>
             <button
               type="button"
@@ -62,7 +61,6 @@ const VenuesPage = () => {
               }`}
             >
               <IconLayoutGrid size={14} />
-              <span>Cards</span>
             </button>
           </div>
 
@@ -146,61 +144,95 @@ const VenuesPage = () => {
             <div
               key={venue.id}
               onClick={() => router.push(`/dashboard/venues/${venue.id}`)}
-              className="group relative flex flex-col justify-between bg-[#222222] hover:bg-[#282828] border border-[#333333] hover:border-primary/40 rounded-xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden"
+              className="group relative flex flex-col bg-[#222222] hover:bg-[#282828] border border-[#333333] hover:border-primary/40 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden"
             >
-              {/* ID badge top right */}
-              <span className="absolute top-4 right-4 text-[10px] font-extrabold text-muted-foreground/45 group-hover:text-primary transition-colors bg-white/5 group-hover:bg-primary/10 px-2.5 py-0.5 rounded border border-white/5 group-hover:border-primary/10 uppercase tracking-widest font-mono">
-                {venue.id}
-              </span>
+              {/* Image Cover */}
+              <div className="relative h-44 w-full bg-[#171717] overflow-hidden border-b border-[#333333]">
+                {venue.image ? (
+                  <img
+                    src={venue.image}
+                    alt={venue.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-[#1e1e1e] relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
+                    <IconBuilding className="h-8 w-8 text-primary/40 mb-2 relative z-10" />
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest relative z-10">No Image</span>
+                  </div>
+                )}
 
-              <div className="space-y-4">
-                {/* Title & Manager */}
-                <div className="space-y-1 pr-12">
-                  <h3 className="text-base font-bold text-white group-hover:text-primary transition-colors truncate">
-                    {venue.name}
-                  </h3>
-                  <p className="text-xs text-muted-foreground/60 font-medium">
-                    Managed by <span className="text-foreground/80 font-bold">{venue.manager}</span>
-                  </p>
-                </div>
+                {/* ID badge overlay */}
+                <span className="absolute top-3 right-3 text-[10px] font-extrabold text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded border border-white/10 uppercase tracking-widest font-mono z-20">
+                  {venue.id}
+                </span>
 
-                {/* Location Info */}
-                <div className="bg-[#171717] border border-[#2a2a2a] p-3 rounded-lg">
-                  <span className="text-xs text-muted-foreground/85 leading-relaxed truncate block">
-                    {venue.location}
-                  </span>
+                {/* Status badge top left overlay */}
+                <div className={`absolute top-3 left-3 px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider border backdrop-blur-md z-20 ${
+                  venue.status === 'Available'
+                    ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/80'
+                    : venue.status === 'Occupied'
+                    ? 'bg-amber-950/80 text-amber-400 border-amber-800/80'
+                    : 'bg-zinc-900/80 text-zinc-400 border-zinc-700/80'
+                }`}>
+                  {venue.status}
                 </div>
               </div>
 
-              {/* Actions Footer */}
-              <div className="flex items-center justify-between border-t border-[#333333] pt-4 mt-5">
-                <span className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  Venue Details
-                </span>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="h-8 px-3 font-semibold text-xs rounded-lg bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/dashboard/venues/${venue.id}?edit=true`);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors flex items-center justify-center"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (venue.id) handleDelete(venue.id);
-                    }}
-                  >
-                    <IconTrash size={14} />
-                  </Button>
+              {/* Card Body */}
+              <div className="p-5 flex-1 flex flex-col justify-between">
+                <div className="space-y-4">
+                  {/* Title & Manager */}
+                  <div className="space-y-1">
+                    <h3 className="text-base font-bold text-white group-hover:text-primary transition-colors truncate">
+                      {venue.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground/60 font-medium">
+                      Managed by <span className="text-foreground/80 font-bold">{venue.manager}</span>
+                    </p>
+                  </div>
+
+                  {/* Location Info & Capacity */}
+                  <div className="bg-[#171717] border border-[#2a2a2a] p-3 rounded-lg flex items-center justify-between gap-4">
+                    <span className="text-xs text-muted-foreground/85 leading-relaxed truncate block">
+                      {venue.location}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-400 shrink-0">
+                      Cap: {venue.capacity}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions Footer */}
+                <div className="flex items-center justify-between border-t border-[#333333] pt-4 mt-5">
+                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    Venue Details
+                  </span>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="h-8 px-3 font-semibold text-xs rounded-lg bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/dashboard/venues/${venue.id}?edit=true`);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors flex items-center justify-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (venue.id) handleDelete(venue.id);
+                      }}
+                    >
+                      <IconTrash size={14} />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

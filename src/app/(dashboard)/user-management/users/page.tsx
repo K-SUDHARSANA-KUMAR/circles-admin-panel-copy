@@ -308,8 +308,8 @@ export default function UsersPage() {
             columns={columns}
             data={customers}
             isLoading={loading}
-            isColumnDisplay={true}
-            isDownload={true}
+            isColumnDisplay={false}
+            isDownload={false}
             getRowClassName={() => "group border-b border-[#333333] hover:bg-white/5 transition-colors font-sans"}
             onRowClick={(row) => router.push(`/user-management/users/${row.id}`)}
           />
