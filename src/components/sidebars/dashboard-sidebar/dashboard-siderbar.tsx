@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 
 import NavKeys from '@/constants/navkeys';
+import { ProfileSection } from '@/components/shared/profile-section';
 
 const sidebarGroups = [
   {
@@ -120,6 +121,9 @@ export function DashboardSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
+      <SidebarFooter className="p-4 border-t border-[#333333]">
+        <ProfileSection />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
