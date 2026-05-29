@@ -17,48 +17,11 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { toast } from 'sonner';
+import { DataTable } from '@/components/ui/data-table';
+import { type ColumnDef } from '@tanstack/react-table';
 
-// ─── Table Loading Skeleton ──────────────────────────────────────────────────
-
-function TableSkeleton() {
-  return (
-    <>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <TableRow key={i} className="hover:bg-transparent border-border/40">
-          <TableCell className="py-4 w-[80px]">
-            <div className="h-4 w-8 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-white/5 animate-pulse shrink-0" />
-              <div className="h-4 w-32 bg-white/5 rounded animate-pulse" />
-            </div>
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-4 w-40 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-6 w-20 rounded-full bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4 text-right pr-6">
-            <div className="h-8 w-24 ml-auto rounded bg-white/5 animate-pulse" />
-          </TableCell>
-        </TableRow>
-      ))}
-    </>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// Obsolete TableSkeleton removed
 
 export default function ProfileVerificationPage() {
   const [users, setUsers] = useState<ProfileVerificationUser[]>([]);
@@ -161,6 +124,97 @@ export default function ProfileVerificationPage() {
     return { bg: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', border: '1px solid rgba(245, 158, 11, 0.2)' };
   };
 
+  // TanStack columns definition for generic DataTable
+  const columns: ColumnDef<ProfileVerificationUser>[] = [
+    {
+      id: 'sNo',
+      header: 'S.No',
+      cell: ({ row }) => (
+        <span className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
+          {(page - 1) * limit + row.index + 1}
+        </span>
+      ),
+    },
+    {
+      id: 'user',
+      accessorKey: 'name',
+      header: 'User',
+      cell: ({ row }) => {
+        const displayName = row.original.name ? `${row.original.name} ${row.original.lastName || ''}`.trim() : 'Unnamed User';
+        return (
+          <div className="flex items-center gap-3">
+            {row.original.profilePictureUrl ? (
+               <img 
+                src={row.original.profilePictureUrl} 
+                alt={displayName}
+                className="w-8 h-8 rounded-full object-cover border border-[#333333]"
+               />
+            ) : (
+              <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105">
+                {row.original.name ? row.original.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+            )}
+            <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
+              {displayName}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'email',
+      accessorKey: 'email',
+      header: 'Email',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
+          <span className="truncate max-w-[240px]">{row.original.email}</span>
+        </div>
+      ),
+    },
+    {
+      id: 'profileVerificationStatus',
+      accessorKey: 'profileVerificationStatus',
+      header: 'Verification Status',
+      cell: ({ row }) => {
+        const statusStyle = getStatusStyle(row.original.profileVerificationStatus);
+        return (
+          <span
+            className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
+            style={{
+              background: statusStyle.bg,
+              color: statusStyle.color,
+              border: statusStyle.border,
+            }}
+          >
+            {row.original.profileVerificationStatus || 'Pending'}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: () => <div className="text-right pr-6">Action</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="h-8 px-4 font-medium text-xs rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1.5 ml-auto"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenVerify(row.original);
+            }}
+            title="Profile Verify"
+          >
+            <IconShieldCheck size={14} />
+            <span>Profile Verify</span>
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6 p-6">
       
@@ -194,160 +248,45 @@ export default function ProfileVerificationPage() {
         </div>
       </div>
 
-      <div className="bg-[#222222] border border-[#333333] rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent border-b border-[#333333] bg-[#171717] font-sans">
-              <TableHead className="w-[80px] text-white font-bold text-[13px] py-3">S.No</TableHead>
-              <TableHead className="text-white font-bold text-[13px] py-3">User</TableHead>
-              <TableHead className="text-white font-bold text-[13px] py-3">Email</TableHead>
-              <TableHead className="text-white font-bold text-[13px] py-3">Verification Status</TableHead>
-              <TableHead className="text-right text-white font-bold text-[13px] px-6 py-3">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableSkeleton />
-            ) : error ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="h-64 text-center">
-                  <div className="flex flex-col items-center justify-center gap-4 py-8 animate-in fade-in duration-300">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10 border border-destructive/20">
-                      <IconAlertCircle size={24} className="text-destructive" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">Failed to load profiles</p>
-                      <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
-                    </div>
-                    <Button
-                      onClick={handleRefresh}
-                      variant="outline"
-                      className="gap-2 text-xs font-bold uppercase tracking-wider border-[#333333] hover:bg-[#333333]"
-                    >
-                      <IconRefresh size={12} />
-                      Try Again
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : users.length === 0 ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="h-64 text-center">
-                  <div className="flex flex-col items-center justify-center gap-3 py-8 animate-in fade-in duration-300">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#171717] border border-[#333333]">
-                      <IconShieldCheck size={20} className="text-muted-foreground" />
-                    </div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {searchQuery ? 'No matching profiles found' : 'All caught up!'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {searchQuery ? 'Try refining your search terms.' : 'There are no pending profile verifications.'}
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user, index) => {
-                const statusStyle = getStatusStyle(user.profileVerificationStatus);
-                const displayName = user.name ? `${user.name} ${user.lastName || ''}`.trim() : 'Unnamed User';
-                
-                return (
-                  <TableRow
-                    key={user.id || index}
-                    className="group border-b border-[#333333] hover:bg-white/5 transition-colors font-sans"
-                  >
-                    <TableCell className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
-                      {index + 1}
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        {user.profilePictureUrl ? (
-                           <img 
-                            src={user.profilePictureUrl} 
-                            alt={displayName}
-                            className="w-8 h-8 rounded-full object-cover border border-[#333333]"
-                           />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105">
-                            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                          </div>
-                        )}
-                        <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
-                          {displayName}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
-                        <span className="truncate max-w-[240px]">{user.email}</span>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <span
-                        className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-                        style={{
-                          background: statusStyle.bg,
-                          color: statusStyle.color,
-                          border: statusStyle.border,
-                        }}
-                      >
-                        {user.profileVerificationStatus || 'Pending'}
-                      </span>
-                    </TableCell>
-
-                    <TableCell className="text-right px-6">
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="h-8 px-4 font-medium text-xs rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1.5 ml-auto"
-                        onClick={() => handleOpenVerify(user)}
-                        title="Profile Verify"
-                      >
-                        <IconShieldCheck size={14} />
-                        <span>Profile Verify</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between px-2 gap-4">
-        <div className="text-xs text-muted-foreground">
-          Showing {users.length > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, total)} of {total} entries
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1 || loading}
-            className="text-xs h-8 border-[#333333] hover:bg-[#333333] text-foreground"
-          >
-            Previous
-          </Button>
-          <div className="text-xs font-medium text-white px-2">
-            Page {page} of {Math.max(1, Math.ceil(total / limit))}
+      {/* Main Table Layout */}
+      {error ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#222222] border border-[#333333] rounded-lg">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10 border border-destructive/20">
+            <IconAlertCircle size={24} className="text-destructive" />
+          </div>
+          <div className="space-y-1 text-center">
+            <p className="text-sm font-semibold text-foreground">Failed to load profiles</p>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
           </div>
           <Button
+            onClick={handleRefresh}
             variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.min(Math.ceil(total / limit), p + 1))}
-            disabled={page === Math.ceil(total / limit) || total === 0 || loading}
-            className="text-xs h-8 border-[#333333] hover:bg-[#333333] text-foreground"
+            className="gap-2 text-xs font-bold uppercase tracking-wider border-[#333333] hover:bg-[#333333]"
           >
-            Next
+            <IconRefresh size={12} />
+            Try Again
           </Button>
         </div>
-      </div>
+      ) : (
+        <div className="glass-card overflow-hidden shadow-2xl border-[#333333] p-4 bg-[#222222]">
+          <DataTable
+            tableId="pending_verifications_table"
+            columns={columns}
+            data={users}
+            isLoading={loading}
+            isColumnDisplay={true}
+            isDownload={true}
+            manualPagination={true}
+            pageCount={Math.ceil(total / limit)}
+            totalItems={total}
+            initialPagination={{ pageIndex: page - 1, pageSize: limit }}
+            onPaginationChange={(paginationState) => {
+              setPage(paginationState.pageIndex + 1);
+            }}
+            getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
+          />
+        </div>
+      )}
 
       {/* Verification Modal */}
       {isModalOpen && verifyingUser && (
@@ -387,7 +326,7 @@ export default function ProfileVerificationPage() {
                       className="w-12 h-12 rounded-full object-cover border-2 border-primary/30"
                     />
                  ) : (
-                   <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg text-white bg-primary/20 text-primary border-2 border-primary/30">
+                   <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-primary/20 text-primary border-2 border-primary/30">
                      {verifyingUser.name ? verifyingUser.name.charAt(0).toUpperCase() : 'U'}
                    </div>
                  )}

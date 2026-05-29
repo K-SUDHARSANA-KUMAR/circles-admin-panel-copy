@@ -7,14 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   IconPlus,
   IconSearch,
   IconRefresh,
@@ -27,33 +19,10 @@ import {
 } from '@tabler/icons-react';
 import { fetchCities, createCity, updateCity, deleteCity, type City } from '@/services/cities.service';
 import { toast } from 'sonner';
+import { DataTable } from '@/components/ui/data-table';
+import { type ColumnDef } from '@tanstack/react-table';
 
-// ─── Table Loading Skeleton ──────────────────────────────────────────────────
-function TableSkeleton() {
-  return (
-    <>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <TableRow key={i} className="hover:bg-transparent border-border/40">
-          <TableCell className="py-4">
-            <div className="h-4 w-8 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-5 w-40 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-4 w-12 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-6 w-16 rounded-full bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4 text-right">
-            <div className="h-7 w-20 ml-auto rounded bg-white/5 animate-pulse" />
-          </TableCell>
-        </TableRow>
-      ))}
-    </>
-  );
-}
+// Obsolete TableSkeleton removed
 
 export default function CitiesPage() {
   const [cities, setCities] = useState<City[]>([]);
@@ -71,6 +40,90 @@ export default function CitiesPage() {
   const [newCityCode, setNewCityCode] = useState('');
   const [newCityActive, setNewCityActive] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // TanStack columns definition for generic DataTable
+  const columns: ColumnDef<City>[] = [
+    {
+      id: 'sNo',
+      header: 'S.No',
+      cell: ({ row }) => (
+        <span className="text-xs font-extrabold text-white group-hover:text-primary transition-colors">
+          {row.index + 1}
+        </span>
+      ),
+    },
+    {
+      id: 'name',
+      accessorKey: 'name',
+      header: 'City Name',
+      cell: ({ row }) => (
+        <span className="font-bold text-foreground/90 group-hover:text-primary transition-colors text-sm">
+          {row.original.name}
+        </span>
+      ),
+    },
+    {
+      id: 'country_code',
+      accessorKey: 'country_code',
+      header: 'City Code',
+      cell: ({ row }) => (
+        <span className="text-xs font-mono font-medium text-foreground/75">
+          {row.original.country_code}
+        </span>
+      ),
+    },
+    {
+      id: 'is_active',
+      accessorKey: 'is_active',
+      header: 'Status',
+      cell: ({ row }) =>
+        row.original.is_active ? (
+          <Badge
+            variant="success"
+            className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full shadow-lg shadow-emerald-500/10 border-emerald-500/10"
+          >
+            Active
+          </Badge>
+        ) : (
+          <Badge
+            variant="destructive"
+            className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full shadow-lg shadow-red-500/10 border-red-500/10"
+          >
+            Inactive
+          </Badge>
+        ),
+    },
+    {
+      id: 'actions',
+      header: () => <div className="text-right pr-4">Actions</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 pr-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-7 px-3 font-bold text-[10px] uppercase tracking-wider rounded-full hover:bg-primary hover:text-white transition-all flex items-center gap-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenEdit(row.original);
+            }}
+          >
+            <IconPencil size={12} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors flex items-center justify-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteTarget(row.original);
+            }}
+          >
+            <IconTrash size={14} />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   // ─── Fetch Cities ──────────────────────────────────────────────────────────
   const loadCities = useCallback(async () => {
@@ -221,135 +274,39 @@ export default function CitiesPage() {
       </div>
 
       {/* Main Table Content */}
-      <div className="glass-card overflow-hidden shadow-2xl border-primary/10">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent border-border/50 bg-muted/30">
-              <TableHead className="w-[100px] text-white font-bold text-[14px]">
-                S.No
-              </TableHead>
-              <TableHead className="text-white font-bold text-[14px]">
-                City Name
-              </TableHead>
-              <TableHead className="text-white font-bold text-[14px]">
-                City Code
-              </TableHead>
-              <TableHead className="text-white font-bold text-[14px]">
-                Status
-              </TableHead>
-              <TableHead className="text-right text-white font-bold text-[14px] px-4">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableSkeleton />
-            ) : error ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="h-48 text-center">
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
-                      <IconAlertCircle size={24} className="text-destructive" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Failed to load operational cities</p>
-                      <p className="text-xs text-muted-foreground/80 max-w-xs mx-auto mt-0.5">{error}</p>
-                    </div>
-                    <Button
-                      onClick={loadCities}
-                      variant="outline"
-                      size="sm"
-                      className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8"
-                    >
-                      <IconRefresh size={12} />
-                      Try Again
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : filteredCities.length === 0 ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="h-48 text-center">
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 border border-white/10">
-                      <IconMapPin size={20} className="text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {searchQuery ? 'No matching cities found' : 'No operational cities yet'}
-                      </p>
-                      <p className="text-xs text-muted-foreground/80 mt-0.5">
-                        {searchQuery ? 'Try a different search query' : 'Configure your first city location to get started'}
-                      </p>
-                    </div>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredCities.map((city, index) => (
-                <TableRow
-                  key={city.city_id || city.id || index}
-                  className="group border-border/40 hover:bg-primary/5 smooth-transition"
-                >
-                  <TableCell className="text-xs font-extrabold text-foreground/40 group-hover:text-primary transition-colors">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className="font-bold text-foreground/90 group-hover:text-primary transition-colors text-sm">
-                    {city.name}
-                  </TableCell>
-                  <TableCell className="text-xs font-mono font-medium text-foreground/75">
-                    {city.country_code}
-                  </TableCell>
-                  <TableCell>
-                    {city.is_active ? (
-                      <Badge
-                        variant="success"
-                        className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full shadow-lg shadow-emerald-500/10 border-emerald-500/10"
-                      >
-                        Active
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="destructive"
-                        className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full shadow-lg shadow-red-500/10 border-red-500/10"
-                      >
-                        Inactive
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right px-4">
-                    <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="h-7 px-3 font-bold text-[10px] uppercase tracking-wider rounded-full hover:bg-primary hover:text-white transition-all flex items-center gap-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenEdit(city);
-                        }}
-                      >
-                        <IconPencil size={12} />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteTarget(city);
-                        }}
-                      >
-                        <IconTrash size={14} />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {error ? (
+        <div className="flex flex-col items-center justify-center gap-3 bg-[#222222] border border-[#333333] p-8 rounded-lg">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
+            <IconAlertCircle size={24} className="text-destructive" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Failed to load operational cities</p>
+            <p className="text-xs text-muted-foreground/80 max-w-xs mx-auto mt-0.5">{error}</p>
+          </div>
+          <Button
+            onClick={loadCities}
+            variant="outline"
+            size="sm"
+            className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8"
+          >
+            <IconRefresh size={12} />
+            Try Again
+          </Button>
+        </div>
+      ) : (
+        <div className="glass-card overflow-hidden shadow-2xl border-[#333333] p-4 bg-[#222222]">
+          <DataTable
+            tableId="cities_table"
+            columns={columns}
+            data={filteredCities}
+            isLoading={loading}
+            isColumnDisplay={true}
+            isDownload={true}
+            hidePagination={filteredCities.length <= 10}
+            getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
+          />
+        </div>
+      )}
 
       {/* Slide-out / Modal Dialog for Creating and Editing a City */}
       {isModalOpen && (
