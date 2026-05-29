@@ -59,8 +59,13 @@ const sidebarGroups = [
         icon: Users,
       },
       {
-        title: 'Verification Users',
-        url: '/user-management/verification',
+        title: 'Waitlist Users',
+        url: '/user-management/waitlist',
+        icon: CheckSquare,
+      },
+      {
+        title: 'Profile Verification',
+        url: '/user-management/profile-verification',
         icon: CheckSquare,
       },
       {

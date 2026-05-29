@@ -53,7 +53,7 @@ export async function fetchCustomers(params?: {
   if (params?.limit !== undefined) {
     url.searchParams.append('limit', params.limit.toString());
   } else {
-    url.searchParams.append('limit', '50');
+    url.searchParams.append('limit', '10');
   }
   if (params?.skip !== undefined) {
     url.searchParams.append('skip', params.skip.toString());
@@ -140,7 +140,7 @@ export async function fetchWaitlist(params?: {
   if (params?.limit !== undefined) {
     url.searchParams.append('limit', params.limit.toString());
   } else {
-    url.searchParams.append('limit', '50');
+    url.searchParams.append('limit', '10');
   }
   if (params?.skip !== undefined) {
     url.searchParams.append('skip', params.skip.toString());
@@ -192,6 +192,48 @@ export async function fetchWaitlist(params?: {
   return {
     users: waitlistList,
     total: totalCount,
+  };
+}
+
+/**
+ * Fetches the rejected waitlist users from the standalone backend endpoint.
+ */
+export async function fetchRejectedWaitlist(params?: {
+  limit?: number;
+  skip?: number;
+  search?: string;
+}): Promise<WaitlistResponse> {
+  const url = new URL(`${ADMIN_WAITLIST_URL}/rejected`);
+
+  if (params?.limit !== undefined) {
+    url.searchParams.append('limit', params.limit.toString());
+  } else {
+    url.searchParams.append('limit', '10');
+  }
+  if (params?.skip !== undefined) {
+    url.searchParams.append('skip', params.skip.toString());
+  } else {
+    url.searchParams.append('skip', '0');
+  }
+  if (params?.search !== undefined && params.search.trim() !== '') {
+    url.searchParams.append('search', params.search.trim());
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'GET',
+    headers: getAdminHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server responded with status code ${res.status}`);
+  }
+
+  const json = await res.json();
+  const data = json?.data;
+
+  return {
+    users: data?.items || [],
+    total: data?.totalItems || 0,
   };
 }
 
