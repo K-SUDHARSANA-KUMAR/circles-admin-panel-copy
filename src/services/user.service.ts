@@ -102,6 +102,7 @@ export interface WaitlistUser {
   name: string;
   lastName?: string;
   status: string;
+  profilePictureUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }

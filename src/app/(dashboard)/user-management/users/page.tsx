@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { fetchCustomers, updateCustomerStatus, type Customer } from '@/services/user.service';
 import { 
   IconSearch, 
@@ -17,57 +18,14 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { toast } from 'sonner';
-import PageHeader from '@/components/shared/page-header';
+import { DataTable } from '@/components/ui/data-table';
+import { type ColumnDef } from '@tanstack/react-table';
 
-// ─── Table Loading Skeleton ──────────────────────────────────────────────────
-
-function TableSkeleton() {
-  return (
-    <>
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <TableRow key={i} className="hover:bg-transparent border-border/40">
-          <TableCell className="py-4 w-[80px]">
-            <div className="h-4 w-8 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-white/5 animate-pulse shrink-0" />
-              <div className="h-4 w-32 bg-white/5 rounded animate-pulse" />
-            </div>
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-4 w-40 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-4 w-28 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-6 w-16 rounded-full bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-5 w-12 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4 text-right pr-6">
-            <div className="h-8 w-8 ml-auto rounded-full bg-white/5 animate-pulse" />
-          </TableCell>
-        </TableRow>
-      ))}
-    </>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// Obsolete TableSkeleton removed
 
 export default function UsersPage() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -82,6 +40,143 @@ export default function UsersPage() {
     status: 'active'
   });
   const [saving, setSaving] = useState(false);
+
+  const getStatusStyle = (status: string) => {
+    const s = status ? status.toLowerCase() : 'active';
+    if (s === 'active') {
+      return {
+        bg: 'rgba(6, 182, 212, 0.1)',
+        color: '#06B6D4',
+        border: '1px solid rgba(6, 182, 212, 0.2)',
+      };
+    }
+    return {
+      bg: 'rgba(239, 68, 68, 0.1)',
+      color: '#EF4444',
+      border: '1px solid rgba(239, 68, 68, 0.2)',
+    };
+  };
+
+  const getScoreStyle = (score: number) => {
+    if (score >= 80) {
+      return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+    } else if (score >= 50) {
+      return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+    }
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+  };
+
+  // TanStack columns definition for generic DataTable
+  const columns: ColumnDef<Customer>[] = [
+    {
+      id: 'sNo',
+      header: 'S.No',
+      cell: ({ row }) => (
+        <span className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
+          {row.index + 1}
+        </span>
+      ),
+    },
+    {
+      id: 'name',
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => {
+        const displayName = row.original.name ? `${row.original.name} ${row.original.lastName || ''}`.trim() : 'Unnamed User';
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105">
+              {row.original.name ? row.original.name.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
+              {displayName}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'email',
+      accessorKey: 'email',
+      header: 'Email',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
+          <span className="truncate max-w-[240px]">{row.original.email}</span>
+        </div>
+      ),
+    },
+    {
+      id: 'phone',
+      accessorKey: 'phone',
+      header: 'Phone No',
+      cell: ({ row }) => row.original.phone ? (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <IconPhone size={12} className="shrink-0 text-muted-foreground/60" />
+          <span>{row.original.phone}</span>
+        </div>
+      ) : (
+        <span className="text-xs text-muted-foreground/40">—</span>
+      ),
+    },
+    {
+      id: 'status',
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => {
+        const statusStyle = getStatusStyle(row.original.status);
+        return (
+          <span
+            className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
+            style={{
+              background: statusStyle.bg,
+              color: statusStyle.color,
+              border: statusStyle.border,
+            }}
+          >
+            {row.original.status || 'Active'}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'reliabilityScore',
+      accessorKey: 'reliabilityScore',
+      header: 'Reliability Score',
+      cell: ({ row }) => {
+        const score = row.original.reliabilityScore !== undefined ? row.original.reliabilityScore : 100;
+        return (
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)}`}>
+              <IconAward size={12} className="shrink-0" />
+              <span>{score}%</span>
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: () => <div className="text-right pr-6">Actions</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="h-8 px-3 font-medium text-xs rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1.5"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenEdit(row.original);
+            }}
+            title="Edit User Status"
+          >
+            <IconPencil size={13} />
+            <span>Edit Status</span>
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   // Debounce search query to prevent excessive API requests
   useEffect(() => {
@@ -153,233 +248,73 @@ export default function UsersPage() {
     }
   };
 
-  const getStatusStyle = (status: string) => {
-    const s = status ? status.toLowerCase() : 'active';
-    if (s === 'active') {
-      return {
-        bg: 'rgba(6, 182, 212, 0.1)',
-        color: '#06B6D4',
-        border: '1px solid rgba(6, 182, 212, 0.2)',
-      };
-    }
-    return {
-      bg: 'rgba(239, 68, 68, 0.1)',
-      color: '#EF4444',
-      border: '1px solid rgba(239, 68, 68, 0.2)',
-    };
-  };
-
-  const getScoreStyle = (score: number) => {
-    if (score >= 80) {
-      return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-    } else if (score >= 50) {
-      return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-    }
-    return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
-  };
-
   return (
     <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6">
       
       {/* Actions / Filter bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
-              {total} Total Users
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:flex-initial sm:w-64">
-              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-xs"
-              />
-            </div>
-            <Button
-              variant="outline" 
-              size="icon"
-              onClick={handleRefresh}
-              disabled={loading}
-              className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
-              title="Refresh List"
-            >
-              <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
-            </Button>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
+            {total} Total Users
+          </span>
         </div>
 
-        {/* Main Table Layout */}
-        <div className="bg-[#222222] border border-[#333333] rounded-lg overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent border-b border-[#333333] bg-[#171717] font-sans">
-                <TableHead className="w-[80px] text-white font-bold text-[13px] py-3">
-                  S.No
-                </TableHead>
-                <TableHead className="text-white font-bold text-[13px] py-3">
-                  Name
-                </TableHead>
-                <TableHead className="text-white font-bold text-[13px] py-3">
-                  Email
-                </TableHead>
-                <TableHead className="text-white font-bold text-[13px] py-3">
-                  Phone No
-                </TableHead>
-                <TableHead className="text-white font-bold text-[13px] py-3">
-                  Status
-                </TableHead>
-                <TableHead className="text-white font-bold text-[13px] py-3">
-                  Reliability Score
-                </TableHead>
-                <TableHead className="text-right text-white font-bold text-[13px] px-6 py-3">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableSkeleton />
-              ) : error ? (
-                <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={7} className="h-64 text-center">
-                    <div className="flex flex-col items-center justify-center gap-4 py-8 animate-in fade-in duration-300">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10 border border-destructive/20">
-                        <IconAlertCircle size={24} className="text-destructive" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-foreground">Failed to load users</p>
-                        <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
-                      </div>
-                      <Button
-                        onClick={handleRefresh}
-                        variant="outline"
-                        className="gap-2 text-xs font-bold uppercase tracking-wider border-[#333333] hover:bg-[#333333]"
-                      >
-                        <IconRefresh size={12} />
-                        Try Again
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : customers.length === 0 ? (
-                <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={7} className="h-64 text-center">
-                    <div className="flex flex-col items-center justify-center gap-3 py-8 animate-in fade-in duration-300">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#171717] border border-[#333333]">
-                        <IconUser size={20} className="text-muted-foreground" />
-                      </div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {searchQuery ? 'No matching users found' : 'No registered users found'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {searchQuery ? 'Try refining your search terms.' : 'Customers will appear here once registered.'}
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                customers.map((customer, index) => {
-                  const statusStyle = getStatusStyle(customer.status);
-                  const displayName = customer.name ? `${customer.name} ${customer.lastName || ''}`.trim() : 'Unnamed User';
-                  const score = customer.reliabilityScore !== undefined ? customer.reliabilityScore : 100;
-                  
-                  return (
-                    <TableRow
-                      key={customer.id || index}
-                      className="group border-b border-[#333333] hover:bg-white/5 transition-colors font-sans"
-                    >
-                      {/* Index */}
-                      <TableCell className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
-                        {index + 1}
-                      </TableCell>
-  
-                      {/* Customer Profile Name */}
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105"
-                          >
-                            {customer.name ? customer.name.charAt(0).toUpperCase() : 'U'}
-                          </div>
-                          <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
-                            {displayName}
-                          </span>
-                        </div>
-                      </TableCell>
-  
-                      {/* Email */}
-                      <TableCell>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
-                          <span className="truncate max-w-[240px]">{customer.email}</span>
-                        </div>
-                      </TableCell>
-  
-                      {/* Phone Number */}
-                      <TableCell>
-                        {customer.phone ? (
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <IconPhone size={12} className="shrink-0 text-muted-foreground/60" />
-                            <span>{customer.phone}</span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/40">—</span>
-                        )}
-                      </TableCell>
-  
-                      {/* Status */}
-                      <TableCell>
-                        <span
-                          className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-                          style={{
-                            background: statusStyle.bg,
-                            color: statusStyle.color,
-                            border: statusStyle.border,
-                          }}
-                        >
-                          {customer.status || 'Active'}
-                        </span>
-                      </TableCell>
-  
-                      {/* Reliability Score */}
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)}`}>
-                            <IconAward size={12} className="shrink-0" />
-                            <span>{score}%</span>
-                          </span>
-                        </div>
-                      </TableCell>
-  
-                      {/* Actions */}
-                      <TableCell className="text-right px-6">
-                        <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
-                          <Button 
-                            variant="secondary" 
-                            size="sm" 
-                            className="h-8 px-3 font-medium text-xs rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1.5"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenEdit(customer);
-                            }}
-                            title="Edit User Status"
-                          >
-                            <IconPencil size={13} />
-                            <span>Edit Status</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial sm:w-64">
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 text-xs"
+            />
+          </div>
+          <Button
+            variant="outline" 
+            size="icon"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
+            title="Refresh List"
+          >
+            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
+          </Button>
         </div>
+      </div>
+
+      {/* Main Table Layout */}
+      {error ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#222222] border border-[#333333] rounded-lg">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10 border border-destructive/20">
+            <IconAlertCircle size={24} className="text-destructive" />
+          </div>
+          <div className="space-y-1 text-center">
+            <p className="text-sm font-semibold text-foreground">Failed to load users</p>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
+          </div>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            className="gap-2 text-xs font-bold uppercase tracking-wider border-[#333333] hover:bg-[#333333]"
+          >
+            <IconRefresh size={12} />
+            Try Again
+          </Button>
+        </div>
+      ) : (
+        <div className="glass-card overflow-hidden shadow-2xl border-[#333333] p-4 bg-[#222222]">
+          <DataTable
+            tableId="registered_users_table"
+            columns={columns}
+            data={customers}
+            isLoading={loading}
+            isColumnDisplay={true}
+            isDownload={true}
+            getRowClassName={() => "group border-b border-[#333333] hover:bg-white/5 transition-colors font-sans"}
+            onRowClick={(row) => router.push(`/user-management/users/${row.id}`)}
+          />
+        </div>
+      )}
 
       {/* Slide-out / Modal Dialog for Editing Customer Status */}
       {isModalOpen && editingCustomer && (

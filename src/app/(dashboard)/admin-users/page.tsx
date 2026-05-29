@@ -20,55 +20,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { toast } from 'sonner';
+import { DataTable } from '@/components/ui/data-table';
+import { type ColumnDef } from '@tanstack/react-table';
 
-// ─── Table Loading Skeleton ──────────────────────────────────────────────────
-
-function TableSkeleton() {
-  return (
-    <>
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <TableRow key={i} className="hover:bg-transparent border-border/40">
-          <TableCell className="py-4 w-[80px]">
-            <div className="h-4 w-8 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-white/5 animate-pulse shrink-0" />
-              <div className="h-4 w-32 bg-white/5 rounded animate-pulse" />
-            </div>
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="space-y-1.5">
-              <div className="h-3 w-40 rounded bg-white/5 animate-pulse" />
-              <div className="h-3 w-28 rounded bg-white/5 animate-pulse" />
-            </div>
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-6 w-20 rounded-full bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-5 w-10 rounded bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4">
-            <div className="h-6 w-16 rounded-full bg-white/5 animate-pulse" />
-          </TableCell>
-          <TableCell className="py-4 text-right">
-            <div className="h-7 w-16 ml-auto rounded bg-white/5 animate-pulse" />
-          </TableCell>
-        </TableRow>
-      ))}
-    </>
-  );
-}
+// Obsolete TableSkeleton removed
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -99,6 +55,153 @@ export default function AdminUsersPage() {
     password: ''
   });
   const [saving, setSaving] = useState(false);
+
+  // TanStack columns definition for generic DataTable
+  const columns: ColumnDef<AdminUser>[] = [
+    {
+      id: 'sNo',
+      header: 'S.No',
+      cell: ({ row }) => (
+        <span className="text-xs font-extrabold text-white group-hover:text-primary transition-colors">
+          {row.index + 1}
+        </span>
+      ),
+    },
+    {
+      id: 'name',
+      accessorKey: 'name',
+      header: 'Admin User',
+      cell: ({ row }) => {
+        const displayName = row.original.name ? `${row.original.name} ${row.original.lastName || ''}`.trim() : 'Unnamed Admin';
+        return (
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 smooth-transition group-hover:scale-105"
+              style={{
+                background: "linear-gradient(135deg, #7C3AED, #06B6D4)",
+                boxShadow: "0 0 12px rgba(124, 58, 237, 0.3)",
+              }}
+            >
+              {row.original.name ? row.original.name.charAt(0).toUpperCase() : 'A'}
+            </div>
+            <span className="text-sm font-bold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[180px]">
+              {displayName}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'email',
+      accessorKey: 'email',
+      header: 'Contact Info',
+      cell: ({ row }) => (
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
+            <span className="truncate max-w-[200px]">{row.original.email}</span>
+          </div>
+          {row.original.phone && (
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
+              <IconPhone size={11} className="shrink-0 text-muted-foreground/50" />
+              <span className="truncate">{row.original.phone}</span>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'role',
+      accessorKey: 'role',
+      header: 'Role',
+      cell: ({ row }) => {
+        const roleStyle = getRoleStyle(row.original.role);
+        return (
+          <span
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full"
+            style={{
+              background: roleStyle.bg,
+              color: roleStyle.color,
+              border: roleStyle.border,
+            }}
+          >
+            <IconShield size={9} className="shrink-0" />
+            <span>{row.original.role || 'Admin'}</span>
+          </span>
+        );
+      },
+    },
+    {
+      id: 'gender',
+      accessorKey: 'gender',
+      header: 'Gender',
+      cell: ({ row }) => row.original.gender ? (
+        <div 
+          className="inline-flex items-center p-1 rounded bg-white/5 text-muted-foreground/85 border border-white/5" 
+          title={`Gender: ${row.original.gender}`}
+        >
+          {row.original.gender.toLowerCase() === 'male' ? (
+            <IconGenderMale size={13} className="text-cyan-400" />
+          ) : (
+            <IconGenderFemale size={13} className="text-pink-400" />
+          )}
+        </div>
+      ) : (
+        <span className="text-xs text-muted-foreground/40">—</span>
+      ),
+    },
+    {
+      id: 'status',
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => {
+        const statusStyle = getStatusStyle(row.original.status);
+        return (
+          <span
+            className="inline-flex text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+            style={{
+              background: statusStyle.bg,
+              color: statusStyle.color,
+              border: statusStyle.border,
+            }}
+          >
+            {row.original.status || 'Active'}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: () => <div className="text-right pr-6">Actions</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 pr-4">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="h-7 px-3 font-bold text-[10px] uppercase tracking-wider rounded-full hover:bg-primary hover:text-white transition-all flex items-center gap-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenEdit(row.original);
+            }}
+          >
+            <IconPencil size={12} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors flex items-center justify-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteTarget(row.original);
+            }}
+            title="Delete Admin"
+          >
+            <IconTrash size={13} />
+          </Button>
+        </div>
+      ),
+    }
+  ];
 
   // Debounce search query to prevent excessive API requests
   useEffect(() => {
@@ -304,7 +407,7 @@ export default function AdminUsersPage() {
             onClick={handleRefresh}
             disabled={loading}
             className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
-            title="Refresh List"
+            title="Refresh"
           >
             <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
           </Button>
@@ -319,206 +422,37 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Main Table Layout */}
-      <div className="glass-card overflow-hidden shadow-2xl border-primary/10">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent border-border/50 bg-muted/30 font-figtree">
-              <TableHead className="w-[80px] text-white font-bold text-[14px]">
-                S.No
-              </TableHead>
-              <TableHead className="text-white font-bold text-[14px]">
-                Admin User
-              </TableHead>
-              <TableHead className="text-white font-bold text-[14px]">
-                Contact Info
-              </TableHead>
-              <TableHead className="text-white font-bold text-[14px]">
-                Role
-              </TableHead>
-              <TableHead className="text-white font-bold text-[14px]">
-                Gender
-              </TableHead>
-              <TableHead className="text-white font-bold  text-[14px]">
-                Status
-              </TableHead>
-              <TableHead className="text-right text-white font-bold  text-[14px] px-6">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableSkeleton />
-            ) : error ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7} className="h-64 text-center">
-                  <div className="flex flex-col items-center justify-center gap-4 py-8 animate-in fade-in duration-300">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
-                      <IconAlertCircle size={28} className="text-destructive" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">Failed to load admin users</p>
-                      <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
-                    </div>
-                    <Button
-                      onClick={handleRefresh}
-                      variant="outline"
-                      className="gap-2 text-xs font-bold uppercase tracking-wider border-white/10 hover:bg-white/5"
-                    >
-                      <IconRefresh size={14} />
-                      Try Again
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : users.length === 0 ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7} className="h-64 text-center">
-                  <div className="flex flex-col items-center justify-center gap-3 py-8 animate-in fade-in duration-300">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10">
-                      <IconUser size={24} className="text-muted-foreground" />
-                    </div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {searchQuery ? 'No matching admin users found' : 'No admin users registered'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {searchQuery ? 'Try refinement of your search terms.' : 'Register new administrators to get started.'}
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user, index) => {
-                const roleStyle = getRoleStyle(user.role);
-                const statusStyle = getStatusStyle(user.status);
-                const displayName = user.name ? `${user.name} ${user.lastName || ''}`.trim() : 'Unnamed Admin';
-                
-                return (
-                  <TableRow
-                    key={user.id}
-                    className="group border-border/40 hover:bg-primary/5 smooth-transition"
-                  >
-                    {/* Index */}
-                    <TableCell className="text-xs font-extrabold text-foreground/40 group-hover:text-primary transition-colors">
-                      {index + 1}
-                    </TableCell>
-
-                    {/* Admin User Profile */}
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 smooth-transition group-hover:scale-105"
-                          style={{
-                            background: "linear-gradient(135deg, #7C3AED, #06B6D4)",
-                            boxShadow: "0 0 12px rgba(124, 58, 237, 0.3)",
-                          }}
-                        >
-                          {user.name ? user.name.charAt(0).toUpperCase() : 'A'}
-                        </div>
-                        <span className="text-sm font-bold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[180px]">
-                          {displayName}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    {/* Contact Details */}
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
-                          <span className="truncate max-w-[200px]">{user.email}</span>
-                        </div>
-                        {user.phone && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
-                            <IconPhone size={11} className="shrink-0 text-muted-foreground/50" />
-                            <span className="truncate">{user.phone}</span>
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-
-                    {/* Role Badge */}
-                    <TableCell>
-                      <span
-                        className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full"
-                        style={{
-                          background: roleStyle.bg,
-                          color: roleStyle.color,
-                          border: roleStyle.border,
-                        }}
-                      >
-                        <IconShield size={9} className="shrink-0" />
-                        <span>{user.role || 'Admin'}</span>
-                      </span>
-                    </TableCell>
-
-                    {/* Gender */}
-                    <TableCell>
-                      {user.gender ? (
-                        <div 
-                          className="inline-flex items-center p-1 rounded bg-white/5 text-muted-foreground/85 border border-white/5" 
-                          title={`Gender: ${user.gender}`}
-                        >
-                          {user.gender.toLowerCase() === 'male' ? (
-                            <IconGenderMale size={13} className="text-cyan-400" />
-                          ) : (
-                            <IconGenderFemale size={13} className="text-pink-400" />
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/40">—</span>
-                      )}
-                    </TableCell>
-
-                    {/* Status */}
-                    <TableCell>
-                      <span
-                        className="inline-flex text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                        style={{
-                          background: statusStyle.bg,
-                          color: statusStyle.color,
-                          border: statusStyle.border,
-                        }}
-                      >
-                        {user.status || 'Active'}
-                      </span>
-                    </TableCell>
-
-                    {/* Actions */}
-                    <TableCell className="text-right px-6">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                        <Button 
-                          variant="secondary" 
-                          size="sm" 
-                          className="h-7 px-3 font-bold text-[10px] uppercase tracking-wider rounded-full hover:bg-primary hover:text-white transition-all flex items-center gap-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEdit(user);
-                          }}
-                        >
-                          <IconPencil size={12} />
-                        </Button>
-                        {/* <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteTarget(user);
-                          }}
-                          title="Delete Admin"
-                        >
-                          <IconTrash size={13} />
-                        </Button> */}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {error ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#222222] border border-[#333333] rounded-lg">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
+            <IconAlertCircle size={28} className="text-destructive" />
+          </div>
+          <div className="space-y-1 text-center">
+            <p className="text-sm font-semibold text-foreground">Failed to load admin users</p>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
+          </div>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            className="gap-2 text-xs font-bold uppercase tracking-wider border-white/10 hover:bg-white/5"
+          >
+            <IconRefresh size={14} />
+            Try Again
+          </Button>
+        </div>
+      ) : (
+        <div className="glass-card overflow-hidden shadow-2xl border-[#333333] p-4 bg-[#222222]">
+          <DataTable
+            tableId="admin_users_table"
+            columns={columns}
+            data={users}
+            isLoading={loading}
+            isColumnDisplay={true}
+            isDownload={true}
+            getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
+          />
+        </div>
+      )}
 
       {/* Slide-out / Modal Dialog for Editing Admin User */}
       {isModalOpen && editingUser && (
