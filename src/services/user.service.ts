@@ -290,3 +290,149 @@ export async function updateCustomerStatus(customerId: string, status: 'active' 
   const json = await res.json();
   return json?.result?.data ?? json?.data ?? json;
 }
+
+export interface VerificationImage {
+  id: string;
+  type: string;
+  status: string;
+  s3Key: string;
+  url: string;
+  verifiedAgainstSelfieImageId?: string | null;
+  verifiedByAdminUserId?: string | null;
+  verifiedAt?: string | null;
+  rejectedReason?: string | null;
+  createdAt: string;
+}
+
+export interface ProfileVerificationUser {
+  id: string;
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
+  lastActiveAt?: string;
+  onWaitlist: boolean;
+  status: string;
+  role: string;
+  reliabilityScore?: number;
+  referralCode?: string;
+  referralMedium?: string;
+  subscriptionStatus?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  profileVerificationStatus: string;
+  profileVerified: boolean;
+  email: string;
+  phone?: string | null;
+  name: string;
+  lastName?: string | null;
+  bio?: string | null;
+  dob?: string | null;
+  gender?: string | null;
+  cityId?: string | null;
+  location?: string | null;
+  website?: string | null;
+  profilePictureUrl?: string | null;
+  profileS3ImageFileName?: string | null;
+  selfieImageS3FileName?: string | null;
+  selfieImageUrl?: string | null;
+  coverPhotoUrl?: string | null;
+  visibility?: string;
+  socialLinks?: any;
+  interests?: string;
+  languages?: string;
+  verificationImages?: VerificationImage[];
+}
+
+export interface ProfileUsersResponse {
+  users: ProfileVerificationUser[];
+  total: number;
+}
+
+export const ADMIN_PROFILE_USERS_URL = `${USER_SERVICE_URL}/admin/customers/pending-verification`;
+
+/**
+ * Fetches the list of profile users for verification.
+ */
+export async function fetchProfileUsersGetAll(params?: {
+  limit?: number;
+  skip?: number;
+  search?: string;
+}): Promise<ProfileUsersResponse> {
+  const url = new URL(ADMIN_PROFILE_USERS_URL);
+
+  if (params?.limit !== undefined) {
+    url.searchParams.append('limit', params.limit.toString());
+  } else {
+    url.searchParams.append('limit', '10');
+  }
+  if (params?.skip !== undefined) {
+    url.searchParams.append('skip', params.skip.toString());
+  } else {
+    url.searchParams.append('skip', '0');
+  }
+  if (params?.search !== undefined && params.search.trim() !== '') {
+    url.searchParams.append('search', params.search.trim());
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'GET',
+    headers: getAdminHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server responded with status code ${res.status}`);
+  }
+
+  const json = await res.json();
+  const data = json?.result?.data ?? json?.data ?? json;
+
+  let usersList: ProfileVerificationUser[] = [];
+  let totalCount = 0;
+
+  if (Array.isArray(data)) {
+    usersList = data;
+    totalCount = data.length;
+  } else if (data && typeof data === 'object') {
+    const possibleArray = data.items ?? data.users ?? data.records ?? data.data;
+    if (Array.isArray(possibleArray)) {
+      usersList = possibleArray;
+      totalCount = data.total ?? data.totalItems ?? possibleArray.length;
+    } else {
+      const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
+      if (arrayKey) {
+        usersList = (data as any)[arrayKey];
+        totalCount = data.totalItems ?? data.total ?? usersList.length;
+      }
+    }
+  }
+
+  return {
+    users: usersList,
+    total: totalCount,
+  };
+}
+
+/**
+ * Approves or rejects a profile verification image.
+ */
+export async function verifyProfileImage(
+  userId: string,
+  imageId: string,
+  verified: boolean
+): Promise<any> {
+  const url = `${USER_SERVICE_URL}/admin/customers/${userId}/profile-verification/images/${imageId}`;
+  
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: getAdminHeaders(),
+    body: JSON.stringify({ verified }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+    throw new Error(msg);
+  }
+
+  const json = await res.json();
+  return json?.result?.data ?? json?.data ?? json;
+}
