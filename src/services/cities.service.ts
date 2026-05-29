@@ -1,4 +1,5 @@
 import { apiEndPoint } from '@/features/apiEndPoint';
+import customAxios from '@/lib/axios';
 
 export interface City {
   city_id?: string;
@@ -12,96 +13,57 @@ export interface City {
 
 export const CITIES_URL = apiEndPoint.CITIES_ENDPOINT as string;
 
-function authHeaders(): Record<string, string> {
-  if (typeof window === 'undefined') return {};
-  const origin = window.location.origin ? window.location.origin.replace(/\/$/, '') : '';
-
-  const headers: Record<string, string> = {
-    'X-Admin-Api-Key': 'local-admin-key-123',
-  };
-
-  if (origin) {
-    try {
-      headers['Origin'] = origin;
-    } catch (e) {
-      // ignore browser restriction
-    }
-  }
-
-  return headers;
-}
-
+/**
+ * Fetches the list of cities.
+ */
 export async function fetchCities(): Promise<City[]> {
-  const res = await fetch(CITIES_URL, {
-    method: 'GET',
-    headers: {
-      ...authHeaders()
+  try {
+    const res = await customAxios.get(CITIES_URL);
+    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
+    if (!Array.isArray(data)) {
+      throw new Error('Unexpected response format from API');
     }
-  });
-
-  if (!res.ok) {
-    throw new Error(`Server responded with ${res.status}`);
+    return data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message || 'Server responded with error';
+    throw new Error(msg);
   }
-
-  const json = await res.json();
-  const data = json?.result?.data ?? json?.data ?? json;
-  if (!Array.isArray(data)) {
-    throw new Error('Unexpected response format from API');
-  }
-  return data;
 }
 
+/**
+ * Creates a new city.
+ */
 export async function createCity(payload: { name: string; country_code: string; is_active: boolean }): Promise<City> {
-  const res = await fetch(CITIES_URL, {
-    method: 'POST',
-    headers: {
-      ...authHeaders(),
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with ${res.status}`;
+  try {
+    const res = await customAxios.post(CITIES_URL, payload);
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
-
-  const json = await res.json();
-  return json?.result?.data ?? json?.data ?? json;
 }
 
+/**
+ * Updates an existing city.
+ */
 export async function updateCity(cityId: string, payload: { name: string; country_code: string; is_active: boolean }): Promise<City> {
-  const res = await fetch(`${CITIES_URL}/${cityId}`, {
-    method: 'PUT',
-    headers: {
-      ...authHeaders(),
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with ${res.status}`;
+  try {
+    const res = await customAxios.put(`${CITIES_URL}/${cityId}`, payload);
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
-
-  const json = await res.json();
-  return json?.result?.data ?? json?.data ?? json;
 }
 
+/**
+ * Deletes a city.
+ */
 export async function deleteCity(cityId: string): Promise<void> {
-  const res = await fetch(`${CITIES_URL}/${cityId}`, {
-    method: 'DELETE',
-    headers: {
-      ...authHeaders()
-    }
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with ${res.status}`;
+  try {
+    await customAxios.delete(`${CITIES_URL}/${cityId}`);
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
 }

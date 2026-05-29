@@ -301,7 +301,7 @@ export default function UsersPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105"
+                            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105"
                           >
                             {customer.name ? customer.name.charAt(0).toUpperCase() : 'U'}
                           </div>
@@ -416,7 +416,7 @@ export default function UsersPage() {
               <div className="bg-[#171717] border border-[#333333] rounded-lg p-3.5 space-y-2.5">
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 bg-primary/20 text-primary border border-primary/30"
+                    className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30"
                   >
                     {editingCustomer.name ? editingCustomer.name.charAt(0).toUpperCase() : 'U'}
                   </div>

@@ -1,14 +1,11 @@
 import { apiEndPoint } from '@/features/apiEndPoint';
+import customAxios from '@/lib/axios';
 
 // ─── Endpoint ────────────────────────────────────────────────────────────────
-// /interest-groups already embeds each group's interests as `tags[]`
-// so a single call is enough — no separate /interests fetch needed.
-
 export const INTEREST_GROUPS_URL = apiEndPoint.INTEREST_GROUPS_ENDPOINT as string;
 export const INTERESTS_URL = apiEndPoint.INTERESTS_ENDPOINT as string;
 
 // ─── API response types ───────────────────────────────────────────────────────
-
 export interface ApiInterest {
   Interestid: string;
   name: string;
@@ -27,7 +24,7 @@ export interface ApiInterestGroup {
   name: string;
   slug: string;
   iconUrl: string;
-  tags: ApiInterest[]; // ← interests that belong to this group
+  tags: ApiInterest[];
   isActive: boolean;
   s3ImageFileName: string;
   cover_image_url: string;
@@ -44,7 +41,6 @@ export interface ApiGroupsResponse {
 }
 
 // ─── UI types ────────────────────────────────────────────────────────────────
-
 export type GroupColor =
   | 'blue'
   | 'emerald'
@@ -65,16 +61,7 @@ export interface InterestGroup {
   subInterests: SubInterest[];
 }
 
-export interface GroupStyle {
-  border: string;
-  text: string;
-  bg: string;
-  badge: GroupColor;
-  glow: string;
-}
-
 // ─── Constants ───────────────────────────────────────────────────────────────
-
 export const COLOR_CYCLE: GroupColor[] = [
   'blue',
   'emerald',
@@ -85,11 +72,6 @@ export const COLOR_CYCLE: GroupColor[] = [
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/**
- * Maps the raw API response to the local `InterestGroup` UI shape.
- * Each group's `tags[]` array already contains its interests — no join needed.
- */
 export function buildInterestGroups(groups: ApiInterestGroup[]): InterestGroup[] {
   return groups.map((group, index) => ({
     id: group.Interestgroup_id,
@@ -102,70 +84,27 @@ export function buildInterestGroups(groups: ApiInterestGroup[]): InterestGroup[]
   }));
 }
 
-// ─── Helper: Auth ────────────────────────────────────────────────────────────
-
-function authHeaders(): Record<string, string> {
-  if (typeof window === 'undefined') return {};
-  const origin = window.location.origin ? window.location.origin.replace(/\/$/, '') : '';
-
-  const headers: Record<string, string> = {
-    'X-Admin-Api-Key': 'local-admin-key-123',
-  };
-
-  if (origin) {
-    try {
-      headers['Origin'] = origin;
-    } catch (e) {
-      // ignore browser restriction
-    }
-  }
-
-  return headers;
-}
-
-// ─── API call ────────────────────────────────────────────────────────────────
+// ─── API calls ────────────────────────────────────────────────────────────────
 
 /**
- * Fetches all interest groups (with their interests embedded as `tags[]`).
- * Throws an error if the request fails or the response shape is unexpected.
+ * Fetches all interest groups (with interests embedded).
  */
 export async function fetchInterestGroups(): Promise<InterestGroup[]> {
-  const res = await fetch(INTEREST_GROUPS_URL, {
-    headers: {
-      ...authHeaders()
+  try {
+    const res = await customAxios.get(INTEREST_GROUPS_URL);
+    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
+    if (!Array.isArray(data)) {
+      throw new Error('Unexpected response format from API');
     }
-  });
-
-  if (!res.ok) {
-    throw new Error(`Server responded with ${res.status}`);
+    return buildInterestGroups(data);
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
   }
-
-  const json = await res.json();
-
-  // Handle both formats: wrapped in result or direct top-level data
-  const data = json?.result?.data ?? json?.data ?? json;
-
-  if (!Array.isArray(data)) {
-    throw new Error('Unexpected response format from API');
-  }
-
-  return buildInterestGroups(data);
-}
-
-// ─── Create ──────────────────────────────────────────────────────────────────
-
-export interface CreateInterestGroupPayload {
-  name: string;
-  slug: string;
-  iconUrl: string;
-  s3ImageFileName: string;
-  tag: string[];
-  isActive: boolean;
 }
 
 /**
- * Creates a new interest group via POST.
- * Generates a slug and default icon/image from the group name.
+ * Creates a new interest group.
  */
 export async function createInterestGroup(name: string): Promise<void> {
   const slug = name
@@ -173,7 +112,7 @@ export async function createInterestGroup(name: string): Promise<void> {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-  const payload: CreateInterestGroupPayload = {
+  const payload = {
     name,
     slug,
     iconUrl: `https://cdn.circles.com/icons/${slug}.svg`,
@@ -182,51 +121,28 @@ export async function createInterestGroup(name: string): Promise<void> {
     isActive: true,
   };
 
-  const res = await fetch(INTEREST_GROUPS_URL, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      ...authHeaders()
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with ${res.status}`;
+  try {
+    await customAxios.post(INTEREST_GROUPS_URL, payload);
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
 }
 
 /**
- * Deletes an interest group via DELETE.
+ * Deletes an interest group.
  */
 export async function deleteInterestGroup(id: string): Promise<void> {
-  const res = await fetch(`${INTEREST_GROUPS_URL}/${id}`, {
-    method: 'DELETE',
-    headers: {
-      ...authHeaders()
-    }
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with ${res.status}`;
+  try {
+    await customAxios.delete(`${INTEREST_GROUPS_URL}/${id}`);
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
 }
 
-export interface CreateSubInterestPayload {
-  name: string;
-  slug: string;
-  iconUrl: string;
-  s3ImageFileName: string;
-  interestGroupId: string;
-  isActive: boolean;
-}
-
 /**
- * Creates a new sub-interest (tag) under a specific group via POST.
+ * Creates a new sub-interest (tag) under a specific group.
  */
 export async function createSubInterest(name: string, interestGroupId: string): Promise<void> {
   const slug = name
@@ -234,7 +150,7 @@ export async function createSubInterest(name: string, interestGroupId: string): 
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-  const payload: CreateSubInterestPayload = {
+  const payload = {
     name,
     slug,
     iconUrl: `https://cdn.circles.com/icons/${slug}.svg`,
@@ -243,75 +159,47 @@ export async function createSubInterest(name: string, interestGroupId: string): 
     isActive: true,
   };
 
-  const res = await fetch(INTERESTS_URL, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      ...authHeaders()
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with ${res.status}`;
+  try {
+    await customAxios.post(INTERESTS_URL, payload);
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
 }
 
 /**
- * Deletes a sub-interest (tag) via DELETE.
+ * Deletes a sub-interest (tag).
  */
 export async function deleteSubInterest(id: string): Promise<void> {
-  const res = await fetch(`${INTERESTS_URL}/${id}`, { 
-    method: 'DELETE',
-    headers: {
-      ...authHeaders()
-    }
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.result?.message || body?.message || `Server responded with ${res.status}`);
+  try {
+    await customAxios.delete(`${INTERESTS_URL}/${id}`);
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
   }
 }
 
-// ─── Update ──────────────────────────────────────────────────────────────────
-
 /**
- * Updates an interest group name (and optionally its tag IDs) via PUT.
+ * Updates an interest group name and tags.
  */
 export async function updateInterestGroup(id: string, name: string, tagIds: string[]): Promise<void> {
-  const res = await fetch(`${INTEREST_GROUPS_URL}/${id}`, {
-    method: 'PUT',
-    headers: { 
-      'Content-Type': 'application/json',
-      ...authHeaders()
-    },
-    body: JSON.stringify({ name, tags: tagIds }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.result?.message || body?.message || `Server responded with ${res.status}`);
+  try {
+    await customAxios.put(`${INTEREST_GROUPS_URL}/${id}`, { name, tags: tagIds });
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
   }
 }
 
 /**
- * Updates a sub-interest name via PUT.
+ * Updates a sub-interest name.
  */
 export async function updateSubInterest(id: string, name: string): Promise<void> {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const res = await fetch(`${INTERESTS_URL}/${id}`, {
-    method: 'PUT',
-    headers: { 
-      'Content-Type': 'application/json',
-      ...authHeaders()
-    },
-    body: JSON.stringify({ name, slug }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.result?.message || body?.message || `Server responded with ${res.status}`);
+  try {
+    await customAxios.put(`${INTERESTS_URL}/${id}`, { name, slug });
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
   }
 }
-
-
