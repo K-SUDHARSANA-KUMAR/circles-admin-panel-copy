@@ -1,4 +1,5 @@
 import { apiEndPoint } from '@/features/apiEndPoint';
+import customAxios from '@/lib/axios';
 
 export interface AdminUser {
   id: string;
@@ -23,30 +24,6 @@ export const ADMIN_USERS_URL = `${USER_SERVICE_URL}/admin/users`;
 export const ADMIN_BOOTSTRAP_URL = `${USER_SERVICE_URL}/admin/bootstrap`;
 
 /**
- * Generates custom authorization headers for admin endpoints,
- * including accessToken and idToken with default fallback tokens.
- */
-function getAdminHeaders(): HeadersInit {
-  if (typeof window === 'undefined') return {};
-  const origin = window.location.origin ? window.location.origin.replace(/\/$/, '') : '';
-
-  const headers: Record<string, string> = {
-    'X-Admin-Api-Key': 'local-admin-key-123',
-    'Content-Type': 'application/json',
-  };
-
-  if (origin) {
-    try {
-      headers['Origin'] = origin;
-    } catch (e) {
-      // ignore browser restriction
-    }
-  }
-
-  return headers;
-}
-
-/**
  * Fetches the list of admin users from the user-service endpoint.
  */
 export async function fetchAdminUsers(params?: {
@@ -66,49 +43,43 @@ export async function fetchAdminUsers(params?: {
     url.searchParams.append('search', params.search.trim());
   }
 
-  const res = await fetch(url.toString(), {
-    method: 'GET',
-    headers: getAdminHeaders(),
-  });
+  try {
+    const res = await customAxios.get(url.toString());
+    
+    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
-  if (!res.ok) {
-    throw new Error(`Server responded with status code ${res.status}`);
-  }
+    let usersList: AdminUser[] = [];
+    let totalCount = 0;
 
-  const json = await res.json();
-  
-  // Handle both formats: wrapped in result/data or direct top-level array
-  const data = json?.result?.data ?? json?.data ?? json;
-
-  let usersList: AdminUser[] = [];
-  let totalCount = 0;
-
-  if (Array.isArray(data)) {
-    usersList = data;
-    totalCount = data.length;
-  } else if (data && typeof data === 'object') {
-    const possibleArray = data.users ?? data.adminUsers ?? data.items ?? data.records;
-    if (Array.isArray(possibleArray)) {
-      usersList = possibleArray;
-      totalCount = data.total ?? data.totalItems ?? possibleArray.length;
-    } else {
-      // Fallback: look for any array in the keys
-      const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
-      if (arrayKey) {
-        usersList = (data as any)[arrayKey];
-        totalCount = data.total ?? usersList.length;
+    if (Array.isArray(data)) {
+      usersList = data;
+      totalCount = data.length;
+    } else if (data && typeof data === 'object') {
+      const possibleArray = data.users ?? data.adminUsers ?? data.items ?? data.records;
+      if (Array.isArray(possibleArray)) {
+        usersList = possibleArray;
+        totalCount = data.total ?? data.totalItems ?? possibleArray.length;
       } else {
-        throw new Error('Unexpected response format from admin users API');
+        const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
+        if (arrayKey) {
+          usersList = (data as any)[arrayKey];
+          totalCount = data.total ?? usersList.length;
+        } else {
+          throw new Error('Unexpected response format from admin users API');
+        }
       }
+    } else {
+      throw new Error('Unexpected response format from admin users API');
     }
-  } else {
-    throw new Error('Unexpected response format from admin users API');
-  }
 
-  return {
-    users: usersList,
-    total: totalCount,
-  };
+    return {
+      users: usersList,
+      total: totalCount,
+    };
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
 }
 
 /**
@@ -118,34 +89,23 @@ export async function updateAdminUser(
   userId: string,
   payload: Partial<Omit<AdminUser, 'id'>>
 ): Promise<AdminUser> {
-  const res = await fetch(`${ADMIN_USERS_URL}/${userId}`, {
-    method: 'PATCH',
-    headers: getAdminHeaders(),
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+  try {
+    const res = await customAxios.patch(`${ADMIN_USERS_URL}/${userId}`, payload);
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
-
-  const json = await res.json();
-  return json?.result?.data ?? json?.data ?? json;
 }
 
 /**
  * Deletes an admin user.
  */
 export async function deleteAdminUser(userId: string): Promise<void> {
-  const res = await fetch(`${ADMIN_USERS_URL}/${userId}`, {
-    method: 'DELETE',
-    headers: getAdminHeaders(),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+  try {
+    await customAxios.delete(`${ADMIN_USERS_URL}/${userId}`);
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
 }
@@ -160,26 +120,11 @@ export async function createAdminUser(payload: {
   password: string;
   cognitoUsername: string;
 }): Promise<any> {
-  const headers = {
-    ...getAdminHeaders(),
-    'X-Admin-Api-Key': 'local-admin-key-123',
-    'Content-Type': 'application/json',
-  };
-
-  const res = await fetch(ADMIN_BOOTSTRAP_URL, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+  try {
+    const res = await customAxios.post(ADMIN_BOOTSTRAP_URL, payload);
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
-
-  const json = await res.json();
-  return json?.result?.data ?? json?.data ?? json;
 }
-
-

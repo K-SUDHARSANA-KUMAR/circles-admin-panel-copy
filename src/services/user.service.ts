@@ -1,4 +1,5 @@
 import { apiEndPoint } from '@/features/apiEndPoint';
+import customAxios from '@/lib/axios';
 
 export interface Customer {
   id: string;
@@ -20,24 +21,17 @@ export interface CustomersResponse {
 const USER_SERVICE_URL = process.env.NEXT_PUBLIC_USER_SERVICE_URL || (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
 export const ADMIN_CUSTOMERS_URL = `${USER_SERVICE_URL}/admin/customers`;
 
-function getAdminHeaders(): HeadersInit {
-  if (typeof window === 'undefined') return {};
-  const origin = window.location.origin ? window.location.origin.replace(/\/$/, '') : '';
-
-  const headers: Record<string, string> = {
-    'X-Admin-Api-Key': 'local-admin-key-123',
-    'Content-Type': 'application/json',
-  };
-
-  if (origin) {
-    try {
-      headers['Origin'] = origin;
-    } catch (e) {
-      // ignore browser restriction
-    }
+/**
+ * Fetches a single customer/user by ID from the user-service.
+ */
+export async function fetchCustomerById(customerId: string): Promise<Customer> {
+  try {
+    const res = await customAxios.get(`${USER_SERVICE_URL}/users/${customerId}`);
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
   }
-
-  return headers;
 }
 
 /**
@@ -64,49 +58,41 @@ export async function fetchCustomers(params?: {
     url.searchParams.append('search', params.search.trim());
   }
 
-  const res = await fetch(url.toString(), {
-    method: 'GET',
-    headers: getAdminHeaders(),
-  });
+  try {
+    const res = await customAxios.get(url.toString());
+    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
-  if (!res.ok) {
-    throw new Error(`Server responded with status code ${res.status}`);
-  }
+    let customersList: Customer[] = [];
+    let totalCount = 0;
 
-  const json = await res.json();
-
-  // Handle response format variations
-  const data = json?.result?.data ?? json?.data ?? json;
-
-  let customersList: Customer[] = [];
-  let totalCount = 0;
-
-  if (Array.isArray(data)) {
-    customersList = data;
-    totalCount = data.length;
-  } else if (data && typeof data === 'object') {
-    const possibleArray = data.customers ?? data.items ?? data.records ?? data.users;
-    if (Array.isArray(possibleArray)) {
-      customersList = possibleArray;
-      totalCount = data.total ?? data.totalItems ?? possibleArray.length;
-    } else {
-      // Fallback: look for any array in the keys
-      const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
-      if (arrayKey) {
-        customersList = (data as any)[arrayKey];
-        totalCount = data.total ?? customersList.length;
+    if (Array.isArray(data)) {
+      customersList = data;
+      totalCount = data.length;
+    } else if (data && typeof data === 'object') {
+      const possibleArray = data.customers ?? data.items ?? data.records ?? data.users;
+      if (Array.isArray(possibleArray)) {
+        customersList = possibleArray;
+        totalCount = data.total ?? data.totalItems ?? possibleArray.length;
       } else {
-        // If it is just an empty result or single customer, format accordingly
-        customersList = [];
-        totalCount = 0;
+        const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
+        if (arrayKey) {
+          customersList = (data as any)[arrayKey];
+          totalCount = data.total ?? customersList.length;
+        } else {
+          customersList = [];
+          totalCount = 0;
+        }
       }
     }
-  }
 
-  return {
-    customers: customersList,
-    total: totalCount,
-  };
+    return {
+      customers: customersList,
+      total: totalCount,
+    };
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
 }
 
 export interface WaitlistUser {
@@ -151,48 +137,41 @@ export async function fetchWaitlist(params?: {
     url.searchParams.append('search', params.search.trim());
   }
 
-  const res = await fetch(url.toString(), {
-    method: 'GET',
-    headers: getAdminHeaders(),
-  });
+  try {
+    const res = await customAxios.get(url.toString());
+    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
-  if (!res.ok) {
-    throw new Error(`Server responded with status code ${res.status}`);
-  }
+    let waitlistList: WaitlistUser[] = [];
+    let totalCount = 0;
 
-  const json = await res.json();
-
-  // Handle response format variations
-  const data = json?.result?.data ?? json?.data ?? json;
-
-  let waitlistList: WaitlistUser[] = [];
-  let totalCount = 0;
-
-  if (Array.isArray(data)) {
-    waitlistList = data;
-    totalCount = data.length;
-  } else if (data && typeof data === 'object') {
-    const possibleArray = data.waitlist ?? data.items ?? data.records ?? data.users ?? data.customers;
-    if (Array.isArray(possibleArray)) {
-      waitlistList = possibleArray;
-      totalCount = data.total ?? data.totalItems ?? possibleArray.length;
-    } else {
-      // Fallback: look for any array in the keys
-      const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
-      if (arrayKey) {
-        waitlistList = (data as any)[arrayKey];
-        totalCount = data.total ?? waitlistList.length;
+    if (Array.isArray(data)) {
+      waitlistList = data;
+      totalCount = data.length;
+    } else if (data && typeof data === 'object') {
+      const possibleArray = data.waitlist ?? data.items ?? data.records ?? data.users ?? data.customers;
+      if (Array.isArray(possibleArray)) {
+        waitlistList = possibleArray;
+        totalCount = data.total ?? data.totalItems ?? possibleArray.length;
       } else {
-        waitlistList = [];
-        totalCount = 0;
+        const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
+        if (arrayKey) {
+          waitlistList = (data as any)[arrayKey];
+          totalCount = data.total ?? waitlistList.length;
+        } else {
+          waitlistList = [];
+          totalCount = 0;
+        }
       }
     }
-  }
 
-  return {
-    users: waitlistList,
-    total: totalCount,
-  };
+    return {
+      users: waitlistList,
+      total: totalCount,
+    };
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
 }
 
 /**
@@ -219,42 +198,31 @@ export async function fetchRejectedWaitlist(params?: {
     url.searchParams.append('search', params.search.trim());
   }
 
-  const res = await fetch(url.toString(), {
-    method: 'GET',
-    headers: getAdminHeaders(),
-  });
+  try {
+    const res = await customAxios.get(url.toString());
+    const data = res.data?.data;
 
-  if (!res.ok) {
-    throw new Error(`Server responded with status code ${res.status}`);
+    return {
+      users: data?.items || [],
+      total: data?.totalItems || 0,
+    };
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
   }
-
-  const json = await res.json();
-  const data = json?.data;
-
-  return {
-    users: data?.items || [],
-    total: data?.totalItems || 0,
-  };
 }
 
 /**
  * Updates a waitlist user's status.
  */
 export async function updateWaitlistStatus(waitlistId: string, status: 'active' | 'rejected'): Promise<any> {
-  const res = await fetch(`${ADMIN_WAITLIST_URL}/${waitlistId}`, {
-    method: 'PATCH',
-    headers: getAdminHeaders(),
-    body: JSON.stringify({ status }),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+  try {
+    const res = await customAxios.patch(`${ADMIN_WAITLIST_URL}/${waitlistId}`, { status });
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
-
-  const json = await res.json();
-  return json?.result?.data ?? json?.data ?? json;
 }
 
 /**
@@ -275,20 +243,13 @@ export async function rejectWaitlistUser(waitlistId: string): Promise<any> {
  * Updates a customer's status (active/inactive).
  */
 export async function updateCustomerStatus(customerId: string, status: 'active' | 'inactive'): Promise<any> {
-  const res = await fetch(`${ADMIN_CUSTOMERS_URL}/${customerId}`, {
-    method: 'PATCH',
-    headers: getAdminHeaders(),
-    body: JSON.stringify({ status }),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+  try {
+    const res = await customAxios.patch(`${ADMIN_CUSTOMERS_URL}/${customerId}`, { status });
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
-
-  const json = await res.json();
-  return json?.result?.data ?? json?.data ?? json;
 }
 
 export interface VerificationImage {
@@ -373,42 +334,38 @@ export async function fetchProfileUsersGetAll(params?: {
     url.searchParams.append('search', params.search.trim());
   }
 
-  const res = await fetch(url.toString(), {
-    method: 'GET',
-    headers: getAdminHeaders(),
-  });
+  try {
+    const res = await customAxios.get(url.toString());
+    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
-  if (!res.ok) {
-    throw new Error(`Server responded with status code ${res.status}`);
-  }
+    let usersList: ProfileVerificationUser[] = [];
+    let totalCount = 0;
 
-  const json = await res.json();
-  const data = json?.result?.data ?? json?.data ?? json;
-
-  let usersList: ProfileVerificationUser[] = [];
-  let totalCount = 0;
-
-  if (Array.isArray(data)) {
-    usersList = data;
-    totalCount = data.length;
-  } else if (data && typeof data === 'object') {
-    const possibleArray = data.items ?? data.users ?? data.records ?? data.data;
-    if (Array.isArray(possibleArray)) {
-      usersList = possibleArray;
-      totalCount = data.total ?? data.totalItems ?? possibleArray.length;
-    } else {
-      const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
-      if (arrayKey) {
-        usersList = (data as any)[arrayKey];
-        totalCount = data.totalItems ?? data.total ?? usersList.length;
+    if (Array.isArray(data)) {
+      usersList = data;
+      totalCount = data.length;
+    } else if (data && typeof data === 'object') {
+      const possibleArray = data.items ?? data.users ?? data.records ?? data.data;
+      if (Array.isArray(possibleArray)) {
+        usersList = possibleArray;
+        totalCount = data.total ?? data.totalItems ?? possibleArray.length;
+      } else {
+        const arrayKey = Object.keys(data).find(key => Array.isArray((data as any)[key]));
+        if (arrayKey) {
+          usersList = (data as any)[arrayKey];
+          totalCount = data.totalItems ?? data.total ?? usersList.length;
+        }
       }
     }
-  }
 
-  return {
-    users: usersList,
-    total: totalCount,
-  };
+    return {
+      users: usersList,
+      total: totalCount,
+    };
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
 }
 
 /**
@@ -421,18 +378,11 @@ export async function verifyProfileImage(
 ): Promise<any> {
   const url = `${USER_SERVICE_URL}/admin/customers/${userId}/profile-verification/images/${imageId}`;
   
-  const res = await fetch(url, {
-    method: 'PATCH',
-    headers: getAdminHeaders(),
-    body: JSON.stringify({ verified }),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    const msg = body?.result?.message || body?.message || `Server responded with status code ${res.status}`;
+  try {
+    const res = await customAxios.patch(url, { verified });
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
   }
-
-  const json = await res.json();
-  return json?.result?.data ?? json?.data ?? json;
 }
