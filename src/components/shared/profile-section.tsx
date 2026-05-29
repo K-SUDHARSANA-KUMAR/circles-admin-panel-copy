@@ -19,8 +19,8 @@ export function ProfileSection({ className }: ProfileSectionProps) {
 
   return (
     <div className={`flex flex-col gap-2 text-sm ${className || ''}`}>
-      <div className="font-semibold text-zinc-500 text-[10px] uppercase tracking-widest group-data-[collapsible=icon]:hidden">Profile</div>
-      <Link 
+      {/* <div className="font-semibold text-zinc-500 text-[10px] uppercase tracking-widest group-data-[collapsible=icon]:hidden">Profile</div> */}
+      {/* <Link 
         href="/dashboard/profile" 
         className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 p-0.5 rounded-lg transition-colors cursor-pointer group/profile"
       >
@@ -33,7 +33,7 @@ export function ProfileSection({ className }: ProfileSectionProps) {
           <div className="text-xs font-semibold text-foreground">{user?.name || 'User'}</div>
           <div className="text-[10px] text-zinc-500">{user?.roleName || 'Temporary'}</div>
         </div>
-      </Link>
+      </Link> */}
       {/* Expanded: full logout button */}
       <button
         onClick={handleLogout}
