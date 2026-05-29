@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchProfileUsersGetAll, verifyProfileImage, type ProfileVerificationUser, type VerificationImage } from '@/services/user.service';
+import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser, type VerificationImage } from '@/services/user.service';
 import { 
   IconSearch, 
   IconRefresh, 
@@ -89,7 +89,10 @@ export default function ProfileVerificationPage() {
   const handleVerifyAction = async (action: 'approve' | 'reject') => {
     if (!verifyingUser) return;
 
-    const imageId = verifyingUser.verificationImages?.[0]?.id;
+    const docImage = verifyingUser.verificationImages?.find(img => img.type === 'profile') || 
+                     verifyingUser.verificationImages?.find(img => img.type === 'selfie') || 
+                     verifyingUser.verificationImages?.[0];
+    const imageId = docImage?.id;
     if (!imageId) {
       toast.error('No verification image found for this user.');
       return;
@@ -338,43 +341,52 @@ export default function ProfileVerificationPage() {
                  </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#333333] pb-2">Selfie Image</h3>
-                  <div className="bg-[#171717] border border-[#333333] rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
-                    {verifyingUser.selfieImageUrl ? (
-                      <img 
-                        src={verifyingUser.selfieImageUrl} 
-                        alt="Selfie" 
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
-                        <IconUser size={32} className="opacity-20" />
-                        <span className="text-xs font-medium">No selfie provided</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              {(() => {
+                const selfieImg = verifyingUser.verificationImages?.find(img => img.type === 'selfie') || 
+                                  (verifyingUser.selfieImageUrl ? { url: verifyingUser.selfieImageUrl } : null);
+                const docImg = verifyingUser.verificationImages?.find(img => img.type === 'profile') || 
+                               verifyingUser.verificationImages?.[0];
 
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#333333] pb-2">Verification Document</h3>
-                  <div className="bg-[#171717] border border-[#333333] rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
-                    {verifyingUser.verificationImages && verifyingUser.verificationImages.length > 0 ? (
-                      <img 
-                        src={verifyingUser.verificationImages[0].url} 
-                        alt="Verification Document" 
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
-                        <IconAlertCircle size={32} className="opacity-20" />
-                        <span className="text-xs font-medium">No document provided</span>
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#333333] pb-2">Selfie Image</h3>
+                      <div className="bg-[#171717] border border-[#333333] rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
+                        {selfieImg?.url ? (
+                          <img 
+                            src={selfieImg.url} 
+                            alt="Selfie" 
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
+                            <IconUser size={32} className="opacity-20" />
+                            <span className="text-xs font-medium">No selfie provided</span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#333333] pb-2">Verification Document</h3>
+                      <div className="bg-[#171717] border border-[#333333] rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
+                        {docImg?.url ? (
+                          <img 
+                            src={docImg.url} 
+                            alt="Verification Document" 
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
+                            <IconAlertCircle size={32} className="opacity-20" />
+                            <span className="text-xs font-medium">No document provided</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
             </div>
 
             <div className="flex gap-3 justify-end pt-4 border-t border-[#333333] mt-2 shrink-0">
