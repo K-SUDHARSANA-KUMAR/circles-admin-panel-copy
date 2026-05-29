@@ -262,8 +262,8 @@ export default function RejectedWaitlistPage() {
             columns={columns}
             data={users}
             isLoading={loading}
-            isColumnDisplay={true}
-            isDownload={true}
+            isColumnDisplay={false}
+            isDownload={false}
             manualPagination={true}
             pageCount={Math.ceil(total / itemsPerPage)}
             totalItems={total}

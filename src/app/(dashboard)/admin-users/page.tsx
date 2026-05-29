@@ -447,8 +447,8 @@ export default function AdminUsersPage() {
             columns={columns}
             data={users}
             isLoading={loading}
-            isColumnDisplay={true}
-            isDownload={true}
+            isColumnDisplay={false}
+            isDownload={false}
             getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
           />
         </div>

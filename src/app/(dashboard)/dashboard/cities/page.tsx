@@ -300,8 +300,8 @@ export default function CitiesPage() {
             columns={columns}
             data={filteredCities}
             isLoading={loading}
-            isColumnDisplay={true}
-            isDownload={true}
+            isColumnDisplay={false}
+            isDownload={false}
             hidePagination={filteredCities.length <= 10}
             getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
           />
