@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCustomers, updateCustomerStatus, type Customer } from '@/services/user.service';
+import { fetchCities } from '@/services/cities.service';
 import { 
   IconSearch, 
   IconRefresh, 
@@ -13,7 +14,8 @@ import {
   IconAward,
   IconPencil,
   IconX,
-  IconLoader
+  IconLoader,
+  IconMapPin
 } from '@tabler/icons-react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { DataTable } from '@/components/ui/data-table';
 import { type ColumnDef } from '@tanstack/react-table';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 // Obsolete TableSkeleton removed
 
@@ -40,6 +43,26 @@ export default function UsersPage() {
     status: 'active'
   });
   const [saving, setSaving] = useState(false);
+  const [cityMap, setCityMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function loadCities() {
+      try {
+        const cities = await fetchCities();
+        const mapping: Record<string, string> = {};
+        cities.forEach(city => {
+          const id = city.city_id || city.id;
+          if (id) {
+            mapping[id] = city.name;
+          }
+        });
+        setCityMap(mapping);
+      } catch (err) {
+        console.error('Failed to load cities list:', err);
+      }
+    }
+    loadCities();
+  }, []);
 
   const getStatusStyle = (status: string) => {
     const s = status ? status.toLowerCase() : 'active';
@@ -83,10 +106,22 @@ export default function UsersPage() {
       header: 'Name',
       cell: ({ row }) => {
         const displayName = row.original.name ? `${row.original.name} ${row.original.lastName || ''}`.trim() : 'Unnamed User';
+        const profilePictureUrl = (row.original as any).profilePictureUrl;
         return (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105">
-              {row.original.name ? row.original.name.charAt(0).toUpperCase() : 'U'}
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105 overflow-hidden">
+              {profilePictureUrl ? (
+                <img 
+                  src={profilePictureUrl} 
+                  alt={displayName} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                row.original.name ? row.original.name.charAt(0).toUpperCase() : 'U'
+              )}
             </div>
             <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
               {displayName}
@@ -94,17 +129,6 @@ export default function UsersPage() {
           </div>
         );
       },
-    },
-    {
-      id: 'email',
-      accessorKey: 'email',
-      header: 'Email',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
-          <span className="truncate max-w-[240px]">{row.original.email}</span>
-        </div>
-      ),
     },
     {
       id: 'phone',
@@ -140,6 +164,50 @@ export default function UsersPage() {
       },
     },
     {
+      id: 'city',
+      header: 'City',
+      cell: ({ row }) => {
+        const cityId = (row.original as any).cityId || (row.original as any).city_id;
+        const cityName = (cityId && cityMap[cityId]) || (row.original as any).city?.name || (row.original as any).city || cityId;
+        return cityName ? (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <IconMapPin size={12} className="shrink-0 text-muted-foreground/60" />
+            <span>{cityName}</span>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground/40">—</span>
+        );
+      },
+    },
+    {
+      id: 'referralCode',
+      header: 'Referral Code',
+      cell: ({ row }) => {
+        const code = (row.original as any).referralCode;
+        return code ? (
+          <code className="text-xs font-mono font-bold text-white bg-[#171717] px-2 py-0.5 rounded border border-[#333333]">
+            {code}
+          </code>
+        ) : (
+          <span className="text-xs text-muted-foreground/40">—</span>
+        );
+      },
+    },
+    {
+      id: 'referralMedium',
+      header: 'Referral Medium',
+      cell: ({ row }) => {
+        const medium = (row.original as any).referralMedium;
+        return medium ? (
+          <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-white/5 border border-white/5 text-muted-foreground/90">
+            {medium}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground/40">—</span>
+        );
+      },
+    },
+    {
       id: 'reliabilityScore',
       accessorKey: 'reliabilityScore',
       header: 'Reliability Score',
@@ -160,19 +228,43 @@ export default function UsersPage() {
       header: () => <div className="text-right pr-6">Actions</div>,
       cell: ({ row }) => (
         <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="h-8 px-3 font-medium text-xs rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1.5"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenEdit(row.original);
-            }}
-            title="Edit User Status"
-          >
-            <IconPencil size={13} />
-            <span>Edit Status</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="h-8 w-8 p-0 font-medium rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center justify-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/user-management/users/${row.original.id}`);
+                }}
+              >
+                <IconUser size={14} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Verify User Details</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="h-8 w-8 p-0 font-medium rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center justify-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenEdit(row.original);
+                }}
+              >
+                <IconPencil size={13} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Edit User Status</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       ),
     },
