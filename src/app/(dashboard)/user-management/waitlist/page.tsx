@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { fetchWaitlist, approveWaitlistUser, rejectWaitlistUser, type WaitlistUser } from '@/services/user.service';
+import { fetchCities } from '@/services/cities.service';
 import {
   IconSearch,
   IconRefresh,
@@ -11,7 +13,10 @@ import {
   IconMail,
   IconCheck,
   IconX,
-  IconLoader
+  IconLoader,
+  IconMapPin,
+  IconAward,
+  IconShieldCheck
 } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +25,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { DataTable } from '@/components/ui/data-table';
 import { type ColumnDef } from '@tanstack/react-table';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 // Obsolete TableSkeleton removed
 
@@ -33,6 +39,27 @@ export default function WaitlistPage() {
   const [processing, setProcessing] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const router = useRouter();
+  const [cityMap, setCityMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function loadCities() {
+      try {
+        const cities = await fetchCities();
+        const mapping: Record<string, string> = {};
+        cities.forEach(city => {
+          const id = city.city_id || city.id;
+          if (id) {
+            mapping[id] = city.name;
+          }
+        });
+        setCityMap(mapping);
+      } catch (err) {
+        console.error('Failed to load cities list:', err);
+      }
+    }
+    loadCities();
+  }, []);
 
   // Debounce search query to prevent excessive API requests
   useEffect(() => {
@@ -125,52 +152,50 @@ export default function WaitlistPage() {
     };
   };
 
+  const getScoreStyle = (score: number) => {
+    if (score >= 80) {
+      return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+    } else if (score >= 50) {
+      return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+    }
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+  };
+
   // TanStack columns definition for generic DataTable
   const columns: ColumnDef<WaitlistUser>[] = [
     {
       id: 'sNo',
       header: 'S.No',
       cell: ({ row }) => (
-        <span className="text-xs font-extrabold text-white group-hover:text-primary transition-colors">
+        <span className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
           {(currentPage - 1) * itemsPerPage + row.index + 1}
         </span>
       ),
     },
     {
-      id: 'applicant',
+      id: 'name',
       accessorKey: 'name',
-      header: 'Applicant',
+      header: 'Name',
       cell: ({ row }) => {
         const displayName = row.original.name ? `${row.original.name} ${row.original.lastName || ''}`.trim() : 'Unnamed Applicant';
-        const profileImg = row.original.profilePictureUrl;
+        const profilePictureUrl = row.original.profilePictureUrl;
         return (
           <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 smooth-transition group-hover:scale-105"
-              style={{
-                background: "linear-gradient(135deg, #7C3AED, #06B6D4)",
-                boxShadow: "0 0 12px rgba(124, 58, 237, 0.3)",
-              }}
-            >
-              {profileImg ? (
-                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-muted shrink-0">
-                  <Image
-                    src={profileImg}
-                    alt="Profile"
-                    width={32}
-                    height={32}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105 overflow-hidden">
+              {profilePictureUrl ? (
+                <img 
+                  src={profilePictureUrl} 
+                  alt={displayName} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="text-sm font-bold text-foreground/90">
-                    {displayName.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                row.original.name ? row.original.name.charAt(0).toUpperCase() : 'U'
               )}
             </div>
-            <span className="text-sm font-bold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
+            <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
               {displayName}
             </span>
           </div>
@@ -178,20 +203,9 @@ export default function WaitlistPage() {
       },
     },
     {
-      id: 'email',
-      accessorKey: 'email',
-      header: 'Email',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
-          <span className="truncate max-w-[240px]">{row.original.email}</span>
-        </div>
-      ),
-    },
-    {
       id: 'phone',
       accessorKey: 'phone',
-      header: 'Phone',
+      header: 'Phone No',
       cell: ({ row }) => row.original.phone ? (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <IconPhone size={12} className="shrink-0 text-muted-foreground/60" />
@@ -209,7 +223,7 @@ export default function WaitlistPage() {
         const statusStyle = getStatusStyle(row.original.status);
         return (
           <span
-            className="inline-flex text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+            className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
             style={{
               background: statusStyle.bg,
               color: statusStyle.color,
@@ -222,57 +236,90 @@ export default function WaitlistPage() {
       },
     },
     {
-      id: 'actions',
-      header: () => <div className="text-right pr-6">Actions</div>,
+      id: 'city',
+      header: 'City',
       cell: ({ row }) => {
-        const displayName = row.original.name ? `${row.original.name} ${row.original.lastName || ''}`.trim() : 'Unnamed Applicant';
-        const isProcessingThis = processing?.id === row.original.id;
-        const isApproving = isProcessingThis && processing?.action === 'approve';
-        const isRejecting = isProcessingThis && processing?.action === 'reject';
-        const isAnyProcessing = processing !== null;
-
+        const cityId = (row.original as any).cityId || (row.original as any).city_id;
+        const cityName = (cityId && cityMap[cityId]) || (row.original as any).city?.name || (row.original as any).city || cityId;
+        return cityName ? (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <IconMapPin size={12} className="shrink-0 text-muted-foreground/60" />
+            <span>{cityName}</span>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground/40">—</span>
+        );
+      },
+    },
+    {
+      id: 'referralCode',
+      header: 'Referral Code',
+      cell: ({ row }) => {
+        const code = (row.original as any).referralCode;
+        return code ? (
+          <code className="text-xs font-mono font-bold text-white bg-[#171717] px-2 py-0.5 rounded border border-[#333333]">
+            {code}
+          </code>
+        ) : (
+          <span className="text-xs text-muted-foreground/40">—</span>
+        );
+      },
+    },
+    {
+      id: 'referralMedium',
+      header: 'Referral Medium',
+      cell: ({ row }) => {
+        const medium = (row.original as any).referralMedium;
+        return medium ? (
+          <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-white/5 border border-white/5 text-muted-foreground/90">
+            {medium}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground/40">—</span>
+        );
+      },
+    },
+    {
+      id: 'reliabilityScore',
+      accessorKey: 'reliabilityScore',
+      header: 'Reliability Score',
+      cell: ({ row }) => {
+        const score = (row.original as any).reliabilityScore !== undefined ? (row.original as any).reliabilityScore : 100;
         return (
-          <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
-            {/* Approve Tick Button */}
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={isAnyProcessing}
-              className="h-8 w-8 rounded-full bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 text-emerald-400 p-0 flex items-center justify-center smooth-transition hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleApprove(row.original.id, displayName);
-              }}
-              title="Approve User"
-            >
-              {isApproving ? (
-                <IconLoader size={15} className="animate-spin" />
-              ) : (
-                <IconCheck size={16} />
-              )}
-            </Button>
-
-            {/* Reject Cross Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={isAnyProcessing}
-              className="h-8 w-8 rounded-full bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 text-rose-400 p-0 flex items-center justify-center smooth-transition hover:shadow-lg hover:shadow-rose-500/20 disabled:opacity-50"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleReject(row.original.id, displayName);
-              }}
-              title="Reject User"
-            >
-              {isRejecting ? (
-                <IconLoader size={15} className="animate-spin" />
-              ) : (
-                <IconX size={16} />
-              )}
-            </Button>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)}`}>
+              <IconAward size={12} className="shrink-0" />
+              <span>{score}%</span>
+            </span>
           </div>
         );
       },
+    },
+    {
+      id: 'actions',
+      header: () => <div className="text-center">Actions</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-center gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="h-8 w-8 p-0 font-medium rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center justify-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/user-management/waitlist/${row.original.id}`);
+                }}
+              >
+                <IconShieldCheck size={14} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Review & Verify User</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      ),
     },
   ];
 
@@ -357,6 +404,7 @@ export default function WaitlistPage() {
               setCurrentPage(paginationState.pageIndex + 1);
             }}
             getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
+            onRowClick={(row) => router.push(`/user-management/waitlist/${row.id}`)}
           />
         </div>
       )}
