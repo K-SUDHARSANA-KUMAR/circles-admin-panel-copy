@@ -19,9 +19,9 @@ export interface AdminUsersResponse {
   total: number;
 }
 
-const USER_SERVICE_URL = process.env.NEXT_PUBLIC_USER_SERVICE_URL || (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
-export const ADMIN_USERS_URL = `${USER_SERVICE_URL}/user-service/admin/users`;
-export const ADMIN_BOOTSTRAP_URL = `${USER_SERVICE_URL}/user-service/admin/bootstrap`;
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
+export const ADMIN_USERS_URL = `${BASE_URL}/user-service/admin/users`;
+export const ADMIN_BOOTSTRAP_URL = `${BASE_URL}/user-service/admin/bootstrap`;
 
 /**
  * Fetches the list of admin users from the user-service endpoint.

@@ -1,8 +1,8 @@
 import { apiEndPoint } from '@/features/apiEndPoint';
 import customAxios from '@/lib/axios';
 
-const USER_SERVICE_URL = process.env.NEXT_PUBLIC_USER_SERVICE_URL || (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
-export const ADMIN_AUTH_URL = `${USER_SERVICE_URL}/user-service/admin-auth`;
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
+export const ADMIN_AUTH_URL = `${BASE_URL}/user-service/admin-auth`;
 
 /**
  * Authenticates an admin user with email and password.
