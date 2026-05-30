@@ -29,7 +29,7 @@ export const authApi = {
     };
   },
   signInJWT: async (data: ILoginCredentials): Promise<ILoginResponse> => {
-    const loginUrl = process.env.NEXT_PUBLIC_USER_SERVICE_URL + 'user-service/admin-auth/login';
+    const loginUrl = process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/user-service/admin-auth/login';
     const payload = { 
       email: (data.email || data.username || data.employeeCode || '').trim(),
       password: data.password ? data.password.trim() : '',
