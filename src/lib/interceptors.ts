@@ -78,7 +78,7 @@ const getRefreshUrl = () => {
   if (configuredUrl) return configuredUrl;
 
   const userServiceUrl =
-    process.env.NEXT_PUBLIC_USER_SERVICE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
     'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api/user-service';
 
   return `${userServiceUrl}/admin-auth/refresh-token`;

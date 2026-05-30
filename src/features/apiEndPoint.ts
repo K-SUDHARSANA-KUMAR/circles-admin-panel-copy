@@ -9,17 +9,17 @@ export const apiEndPoint = Object.freeze({
   //Circle-Services
 
   //Users Services
-  USERS_ENDPOINT: process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/user-service/users',
+  USERS_ENDPOINT: process.env.NEXT_PUBLIC_BASE_URL + '/user-service/users',
   INTERESTS_ENDPOINT:
-    process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/user-service/interests',
+    process.env.NEXT_PUBLIC_BASE_URL + '/user-service/interests',
   INTEREST_GROUPS_ENDPOINT:
-    process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/user-service/interest-groups',
+    process.env.NEXT_PUBLIC_BASE_URL + '/user-service/interest-groups',
   CITIES_ENDPOINT:
-    process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/user-service/cities',
+    process.env.NEXT_PUBLIC_BASE_URL + '/user-service/cities',
   ZING_ENDPOINT:
-    process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/user-service/zing/sync-employees',
+    process.env.NEXT_PUBLIC_BASE_URL + '/user-service/zing/sync-employees',
   PERMISSIONS_ENDPOINT:
-    process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/user-service/permissions',
+    process.env.NEXT_PUBLIC_BASE_URL + '/user-service/permissions',
   PERMISSION_GROUPS_ENDPOINT:
-    process.env.NEXT_PUBLIC_USER_SERVICE_URL + '/user-service/permissiongroup'
+    process.env.NEXT_PUBLIC_BASE_URL + '/user-service/permissiongroup'
 });
