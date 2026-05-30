@@ -5,7 +5,7 @@ export const authApi = {
   signInWithPassword: async (
     data: ILoginCredentials
   ): Promise<ILoginResponse> => {
-    const loginUrl = (process.env.NEXT_PUBLIC_USER_SERVICE_URL || 'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api/user-service') + '/admin-auth/login';
+    const loginUrl = process.env.NEXT_PUBLIC_USER_SERVICE_URL + 'user-service/admin-auth/login';
     const payload = {
       email: (data.email || data.username || data.employeeCode || '').trim(),
       password: data.password ? data.password.trim() : '',

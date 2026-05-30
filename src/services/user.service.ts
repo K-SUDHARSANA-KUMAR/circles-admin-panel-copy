@@ -19,14 +19,14 @@ export interface CustomersResponse {
 }
 
 const USER_SERVICE_URL = process.env.NEXT_PUBLIC_USER_SERVICE_URL || (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
-export const ADMIN_CUSTOMERS_URL = `${USER_SERVICE_URL}/admin/customers`;
+export const ADMIN_CUSTOMERS_URL = `${USER_SERVICE_URL}/user-service/admin/customers`;
 
 /**
  * Fetches a single customer/user by ID from the user-service.
  */
 export async function fetchCustomerById(customerId: string): Promise<Customer> {
   try {
-    const res = await customAxios.get(`${USER_SERVICE_URL}/users/${customerId}`);
+    const res = await customAxios.get(`${USER_SERVICE_URL}/user-service/users/${customerId}`);
     return res.data?.result?.data ?? res.data?.data ?? res.data;
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
@@ -112,7 +112,7 @@ export interface WaitlistResponse {
   total: number;
 }
 
-export const ADMIN_WAITLIST_URL = `${USER_SERVICE_URL}/admin/waitlist`;
+export const ADMIN_WAITLIST_URL = `${USER_SERVICE_URL}/user-service/admin/waitlist`;
 
 /**
  * Fetches the waitlist/verification users from the backend user-service.
@@ -309,7 +309,7 @@ export interface ProfileUsersResponse {
   total: number;
 }
 
-export const ADMIN_PROFILE_USERS_URL = `${USER_SERVICE_URL}/admin/customers/pending-verification`;
+export const ADMIN_PROFILE_USERS_URL = `${USER_SERVICE_URL}/user-service/admin/customers/pending-verification`;
 
 /**
  * Fetches the list of profile users for verification.
@@ -377,7 +377,7 @@ export async function verifyProfileImage(
   imageId: string,
   verified: boolean
 ): Promise<any> {
-  const url = `${USER_SERVICE_URL}/admin/customers/${userId}/profile-verification/images/${imageId}`;
+  const url = `${USER_SERVICE_URL}/user-service/admin/customers/${userId}/profile-verification/images/${imageId}`;
   
   try {
     const res = await customAxios.patch(url, { verified });

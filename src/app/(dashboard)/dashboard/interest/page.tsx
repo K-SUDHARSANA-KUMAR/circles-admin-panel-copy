@@ -20,7 +20,6 @@ import {
 import {
   type GroupColor,
   type InterestGroup,
-  type GroupStyle,
   COLOR_CYCLE,
   fetchInterestGroups,
   createInterestGroup,
@@ -30,6 +29,15 @@ import {
   updateInterestGroup,
   updateSubInterest,
 } from '@/services/interest.service';
+
+
+interface GroupStyle {
+  border: string;
+  text: string;
+  bg: string;
+  badge: GroupColor;
+  glow: string;
+}
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -294,45 +302,10 @@ export default function InterestsPage() {
                 onChange={(e) => setNewGroupName(e.target.value)}
                 className="h-9 text-xs"
               />
-              <Input
-                placeholder="Add sub-interest..."
-                value={newSubGroupName}
-                onChange={(e) => setNewSubGroupName(e.target.value)}
-                // onKeyDown={(e) => {
-                //   if (e.key === 'Enter') handleAddSubInterest();
-                // }}
-                className="h-8 text-xs bg-white/5 border-white/10"
-              />
+
             </div>
 
-            <div className="w-full md:w-56 space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Theme Color
-              </label>
-              <div className="flex gap-2 items-center h-9">
-                {COLOR_CYCLE.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setNewGroupColor(c)}
-                    className={`h-6 w-6 rounded-full border transition-all ${
-                      newGroupColor === c
-                        ? 'ring-2 ring-primary ring-offset-2 scale-110 border-white'
-                        : 'border-transparent'
-                    }`}
-                    style={{
-                      backgroundColor:
-                        c === 'blue' ? '#3b82f6' :
-                        c === 'emerald' ? '#10b981' :
-                        c === 'violet' ? '#8b5cf6' :
-                        c === 'warning' ? '#f59e0b' :
-                        c === 'success' ? '#22c55e' : '#ef4444',
-                    }}
-                  />
-                ))}
-              </div>
-              
-            </div>
+           
 
             <Button
               onClick={handleCreateGroup}
