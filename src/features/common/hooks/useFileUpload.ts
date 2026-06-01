@@ -4,8 +4,10 @@ import { generateUUID } from '@/utils/common-utils';
 
 export const useFileUpload = () => {
   const uploadFile = useMutation({
-    mutationFn: async (file: File, folder: string = 'outletimages') => {
+    mutationFn: async (variables: File | { file: File; folder?: string }) => {
       try {
+        const file = variables instanceof File ? variables : variables.file;
+        const folder = variables instanceof File ? 'outletimages' : (variables.folder || 'outletimages');
         // Validate file
         if (!file) {
           throw new Error('No file provided');

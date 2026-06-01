@@ -173,33 +173,33 @@ export default function WaitlistPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-[#18181b]">
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-6 select-none w-[20%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[20%]">
                     Name
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-6 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[15%]">
                     Phone No
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-6 select-none w-[12%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[12%]">
                     Status
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-6 select-none w-[13%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[13%]">
                     City
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-6 select-none w-[12%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[12%]">
                     Referral Code
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-6 select-none w-[13%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[13%]">
                     Medium
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-6 select-none w-[10%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[10%]">
                     Score
                   </th>
-                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-6 select-none w-[5%]">
+                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[5%]">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#18181b]/60">
+              <tbody className="divide-y divide-[#18181b]">
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="py-20 text-center">
@@ -234,9 +234,9 @@ export default function WaitlistPage() {
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
                       >
                         {/* Name */}
-                        <td className="py-4 px-6">
+                        <td className="py-5 px-8">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 transition-transform group-hover:scale-105 overflow-hidden">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 overflow-hidden">
                               {profilePictureUrl ? (
                                 <img 
                                   src={profilePictureUrl} 
@@ -257,7 +257,7 @@ export default function WaitlistPage() {
                         </td>
 
                         {/* Phone */}
-                        <td className="py-4 px-6 text-sm text-zinc-400 font-normal">
+                        <td className="py-5 px-8">
                           {user.phone ? (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                               <IconPhone size={12} className="shrink-0 text-zinc-600" />
@@ -269,19 +269,19 @@ export default function WaitlistPage() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4 px-6">
+                        <td className="py-5 px-8">
                           {status === 'approved' || status === 'verified' || status === 'active' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[10px] font-bold uppercase tracking-wider select-none">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
                               Approved
                             </span>
                           ) : status === 'rejected' || status === 'declined' || status === 'inactive' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[10px] font-bold uppercase tracking-wider select-none">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                               Rejected
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#2d1f10]/60 border border-[#5f3e15]/50 text-amber-400 text-[10px] font-bold uppercase tracking-wider select-none">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#2d1f10]/60 border border-[#5f3e15]/50 text-amber-400 text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                               Pending
                             </span>
@@ -289,7 +289,7 @@ export default function WaitlistPage() {
                         </td>
 
                         {/* City */}
-                        <td className="py-4 px-6">
+                        <td className="py-5 px-8">
                           {cityName ? (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                               <IconMapPin size={12} className="shrink-0 text-zinc-600" />
@@ -301,7 +301,7 @@ export default function WaitlistPage() {
                         </td>
 
                         {/* Referral Code */}
-                        <td className="py-4 px-6">
+                        <td className="py-5 px-8">
                           {code ? (
                             <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
                               {code}
@@ -312,7 +312,7 @@ export default function WaitlistPage() {
                         </td>
 
                         {/* Referral Medium */}
-                        <td className="py-4 px-6">
+                        <td className="py-5 px-8">
                           {medium ? (
                             <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 select-none">
                               {medium}
@@ -323,7 +323,7 @@ export default function WaitlistPage() {
                         </td>
 
                         {/* Reliability Score */}
-                        <td className="py-4 px-6">
+                        <td className="py-5 px-8">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}>
                             <IconAward size={12} className="shrink-0" />
                             <span>{score}%</span>
@@ -331,7 +331,7 @@ export default function WaitlistPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-5 px-8 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end">
                             <button
                               onClick={() => router.push(`/user-management/waitlist/${user.id}`)}
@@ -352,7 +352,7 @@ export default function WaitlistPage() {
 
           {/* Pagination Controls */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-[#18181b] px-6 py-4">
+            <div className="flex items-center justify-between border-t border-[#18181b] px-8 py-4">
               <div className="text-[11px] text-zinc-500 text-left">
                 Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, total)} of {total} entries
               </div>

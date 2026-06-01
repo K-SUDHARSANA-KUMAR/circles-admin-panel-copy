@@ -278,27 +278,27 @@ export default function AdminUsersPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-[#18181b]">
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[25%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[25%]">
                     Admin User
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[25%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[25%]">
                     Contact Info
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[15%]">
                     Role
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[10%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[10%]">
                     Gender
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[15%]">
                     Status
                   </th>
-                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[10%]">
+                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[10%]">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#18181b]/60">
+              <tbody className="divide-y divide-[#18181b]">
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="py-20 text-center">
@@ -328,7 +328,7 @@ export default function AdminUsersPage() {
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200"
                       >
                         {/* Admin User */}
-                        <td className="py-4 px-10">
+                        <td className="py-5 px-8">
                           <div className="flex items-center gap-3">
                             <div
                               className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-sm"
@@ -345,7 +345,7 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Contact Info */}
-                        <td className="py-4 px-10">
+                        <td className="py-5 px-8">
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                               <IconMail size={12} className="shrink-0 text-zinc-600" />
@@ -361,14 +361,14 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Role Badge */}
-                        <td className="py-4 px-10">
+                        <td className="py-5 px-8">
                           {isSuper ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#2c1225]/60 border border-[#601a4f]/50 text-pink-400 text-[10px] font-bold uppercase tracking-wider select-none">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#2c1225]/60 border border-[#601a4f]/50 text-pink-400 text-[11px] font-semibold select-none">
                               <IconShield size={10} className="shrink-0" />
                               <span>{user.role || 'Super Admin'}</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[10px] font-bold uppercase tracking-wider select-none">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[11px] font-semibold select-none">
                               <IconShield size={10} className="shrink-0" />
                               <span>{user.role || 'Admin'}</span>
                             </span>
@@ -376,7 +376,7 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Gender */}
-                        <td className="py-4 px-10">
+                        <td className="py-5 px-8">
                           {user.gender ? (
                             <div 
                               className="inline-flex items-center p-1 rounded-md bg-zinc-900/60 border border-zinc-800/80 text-zinc-400" 
@@ -394,14 +394,14 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4 px-10">
+                        <td className="py-5 px-8">
                           {status === 'active' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/20 border border-cyan-900/30 text-cyan-400 text-[10px] font-bold uppercase tracking-wider select-none">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-950/20 border border-cyan-900/30 text-cyan-400 text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                               Active
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[10px] font-bold uppercase tracking-wider select-none">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                               Inactive
                             </span>
@@ -409,7 +409,7 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-4 px-10 text-right">
+                        <td className="py-5 px-8 text-right">
                           <div className="flex items-center justify-end gap-3.5">
                             <button
                               onClick={() => handleOpenEdit(user)}
@@ -437,7 +437,7 @@ export default function AdminUsersPage() {
 
           {/* Pagination Controls */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-[#18181b] px-10 py-4">
+            <div className="flex items-center justify-between border-t border-[#18181b] px-8 py-4">
               <div className="text-[11px] text-zinc-500 text-left">
                 Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length} entries
               </div>
