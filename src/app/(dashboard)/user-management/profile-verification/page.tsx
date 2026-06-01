@@ -264,7 +264,7 @@ export default function ProfileVerificationPage() {
                     return (
                       <tr
                         key={user.id}
-                        onClick={() => router.push(`/user-management/users/${user.id}`)}
+                        onClick={() => router.push(`/user-management/users?id=${user.id}`)}
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
                       >
                         {/* Name */}

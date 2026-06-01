@@ -71,7 +71,8 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { uploadFile } = useFileUpload();
-  
+  const venueIdFromUrl = searchParams.get("id");
+
   // Determine if we are in edit mode based on URL or initial mode
   const isEditFromUrl = searchParams.get("edit") === "true";
   const currentMode = mode === "create" ? "create" : (isEditFromUrl ? "edit" : "view");
@@ -274,7 +275,11 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
           {isViewing ? (
             <Button 
               variant="outline"
-              onClick={() => router.push(`?edit=true`)}
+              onClick={() => {
+                const id = formData.id || venueIdFromUrl;
+                if (!id) return;
+                router.push(`/dashboard/venues?id=${id}&edit=true`);
+              }}
               className="gap-2 px-6 h-11 text-base font-semibold border-primary/20 hover:border-primary/50 hover:bg-primary/5"
             >
               <IconEdit size={20} className="text-primary" />
@@ -285,7 +290,14 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
               {currentMode === 'edit' && (
                 <Button 
                   variant="ghost"
-                  onClick={() => router.push('?')}
+                  onClick={() => {
+                    const id = formData.id || venueIdFromUrl;
+                    if (!id) {
+                      router.push('/dashboard/venues');
+                      return;
+                    }
+                    router.push(`/dashboard/venues?id=${id}`);
+                  }}
                   className="h-11 px-6 font-semibold"
                 >
                   Cancel

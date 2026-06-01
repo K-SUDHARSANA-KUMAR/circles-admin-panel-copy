@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import WaitlistDetailClient from './WaitlistDetailClient';
 import { fetchWaitlist, approveWaitlistUser, rejectWaitlistUser, type WaitlistUser } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import {
@@ -30,6 +31,8 @@ export default function WaitlistPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const detailUserId = searchParams.get('id');
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -85,8 +88,9 @@ export default function WaitlistPage() {
   }, [itemsPerPage]);
 
   useEffect(() => {
+    if (detailUserId) return;
     loadWaitlist(debouncedSearch, currentPage);
-  }, [debouncedSearch, currentPage, loadWaitlist]);
+  }, [debouncedSearch, currentPage, loadWaitlist, detailUserId]);
 
   const handleRefresh = () => {
     loadWaitlist(searchQuery, currentPage);
@@ -102,6 +106,10 @@ export default function WaitlistPage() {
   };
 
   const totalPages = Math.ceil(total / itemsPerPage);
+
+  if (detailUserId) {
+    return <WaitlistDetailClient />;
+  }
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700">
@@ -230,7 +238,7 @@ export default function WaitlistPage() {
                     return (
                       <tr
                         key={user.id}
-                        onClick={() => router.push(`/user-management/waitlist/${user.id}`)}
+                        onClick={() => router.push(`/user-management/waitlist?id=${user.id}`)}
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
                       >
                         {/* Name */}
@@ -334,7 +342,7 @@ export default function WaitlistPage() {
                         <td className="py-5 px-8 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end">
                             <button
-                              onClick={() => router.push(`/user-management/waitlist/${user.id}`)}
+                              onClick={() => router.push(`/user-management/waitlist?id=${user.id}`)}
                               className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
                               title="Review & Verify User"
                             >

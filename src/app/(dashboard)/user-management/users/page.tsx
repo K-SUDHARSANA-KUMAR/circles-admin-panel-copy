@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import UserDetailClient from './UserDetailClient';
 import { fetchCustomers, updateCustomerStatus, type Customer } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import { 
@@ -24,6 +25,9 @@ import { toast } from 'sonner';
 
 export default function UsersPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const detailUserId = searchParams.get('id');
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -104,8 +108,9 @@ export default function UsersPage() {
   }, [debouncedSearch]);
 
   useEffect(() => {
+    if (detailUserId) return;
     loadCustomers(debouncedSearch, currentPage, itemsPerPage);
-  }, [debouncedSearch, currentPage, itemsPerPage, loadCustomers]);
+  }, [debouncedSearch, currentPage, itemsPerPage, loadCustomers, detailUserId]);
 
   const handleRefresh = () => {
     loadCustomers(searchQuery, currentPage, itemsPerPage);
@@ -147,6 +152,10 @@ export default function UsersPage() {
   };
 
   const totalPages = Math.ceil(total / itemsPerPage);
+
+  if (detailUserId) {
+    return <UserDetailClient />;
+  }
 
   return (
     <div className="max-w-[1400px] mx-auto animate-in fade-in duration-700 space-y-6">
@@ -264,7 +273,7 @@ export default function UsersPage() {
                     return (
                       <tr
                         key={customer.id}
-                        onClick={() => router.push(`/user-management/users/${customer.id}`)}
+                        onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
                       >
                         {/* Name */}
@@ -363,7 +372,7 @@ export default function UsersPage() {
                         <td className="py-5 px-8 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-2.5">
                             <button
-                              onClick={() => router.push(`/user-management/users/${customer.id}`)}
+                              onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
                               className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
                               title="Verify Details"
                             >

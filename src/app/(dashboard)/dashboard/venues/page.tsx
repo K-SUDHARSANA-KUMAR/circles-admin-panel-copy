@@ -11,12 +11,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import VenueDetailClient from "./VenueDetailClient";
 import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
 import { toast } from "sonner";
 
 const VenuesPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const detailVenueId = searchParams.get("id");
+
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +47,13 @@ const VenuesPage = () => {
   }, [filterType]);
 
   useEffect(() => {
+    if (detailVenueId) return;
     loadVenues();
-  }, [loadVenues]);
+  }, [loadVenues, detailVenueId]);
 
+  if (detailVenueId) {
+    return <VenueDetailClient />;
+  }
 
   return (
     <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6">
@@ -169,7 +177,7 @@ const VenuesPage = () => {
                 <TableRow 
                   key={venue.id} 
                   className="group border-b border-[#18181b] hover:bg-[#0c0c0e] transition-colors font-sans cursor-pointer"
-                  onClick={() => router.push(`/dashboard/venues/${venue.id}`)}
+                  onClick={() => router.push(`/dashboard/venues?id=${venue.id}`)}
                 >
                   <TableCell className="py-5 px-8">
                     <div className="flex flex-col">
@@ -197,7 +205,7 @@ const VenuesPage = () => {
                         className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
                         onClick={(e) => {
                           e.stopPropagation();
-                          router.push(`/dashboard/venues/${venue.id}?edit=true`);
+                          router.push(`/dashboard/venues?id=${venue.id}&edit=true`);
                         }}
                         title="Edit Venue"
                       >
@@ -231,7 +239,7 @@ const VenuesPage = () => {
             return (
               <div
                 key={venue.id}
-                onClick={() => router.push(`/dashboard/venues/${venue.id}`)}
+                onClick={() => router.push(`/dashboard/venues?id=${venue.id}`)}
                 className="group relative flex flex-col bg-[#0c0c0e] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-black/60"
               >
                 {/* Image Cover with title overlay */}
@@ -279,7 +287,7 @@ const VenuesPage = () => {
                       className="flex-1 h-8 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all text-xs font-medium rounded-lg flex items-center justify-center gap-1.5"
                       onClick={(e) => {
                         e.stopPropagation();
-                        router.push(`/dashboard/venues/${venue.id}?edit=true`);
+                        router.push(`/dashboard/venues?id=${venue.id}&edit=true`);
                       }}
                     >
                       <IconPencil size={13} />

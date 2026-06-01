@@ -1,23 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
-import { VenueForm } from "../venue-form";
-import { fetchVenueById, type Venue } from "@/services/venue.service";
-import { IconRefresh, IconAlertCircle } from "@tabler/icons-react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { VenueForm } from './venue-form';
+import { fetchVenueById, type Venue } from '@/services/venue.service';
+import { IconRefresh, IconAlertCircle } from '@tabler/icons-react';
+import { Button } from '@/components/ui/button';
 
-interface VenueDetailClientProps {
-  venueId: string;
-}
+export default function VenueDetailClient() {
+  const searchParams = useSearchParams();
+  const venueId = searchParams.get('id');
 
-export default function VenueDetailClient({ venueId }: VenueDetailClientProps) {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadVenue = async () => {
-    if (!venueId || venueId === 'placeholder') {
+    if (!venueId) {
       setLoading(false);
+      setError('Venue ID is required.');
       return;
     }
     setLoading(true);
@@ -25,8 +26,9 @@ export default function VenueDetailClient({ venueId }: VenueDetailClientProps) {
     try {
       const data = await fetchVenueById(venueId);
       setVenue(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to load venue details");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load venue details';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -35,6 +37,10 @@ export default function VenueDetailClient({ venueId }: VenueDetailClientProps) {
   useEffect(() => {
     loadVenue();
   }, [venueId]);
+
+  if (!venueId) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -71,10 +77,7 @@ export default function VenueDetailClient({ venueId }: VenueDetailClientProps) {
 
   return (
     <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300">
-      <VenueForm 
-        initialData={venue} 
-        mode="view" 
-      />
+      <VenueForm initialData={venue} mode="view" />
     </div>
   );
 }
