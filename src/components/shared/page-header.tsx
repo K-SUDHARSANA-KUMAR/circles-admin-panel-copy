@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { SidebarTrigger } from '../ui/sidebar';
 import SpringBoard from '@/components/shared/spring-board';
@@ -69,10 +69,69 @@ const getHeaderInfo = (pathname: string) => {
   };
 };
 
+const segmentLabelMap: Record<string, string> = {
+  dashboard: 'Dashboard',
+  venues: 'Venues',
+  cities: 'Cities',
+  interest: 'Interests',
+  profile: 'Profile',
+  'user-management': 'User Management',
+  users: 'Users',
+  verification: 'Verification',
+  reviews: 'Reviews',
+  reports: 'Reports',
+  'admin-users': 'Admin Users',
+  create: 'Create',
+};
+
+const getSegmentLink = (segment: string, fullPath: string) => {
+  if (segment === 'dashboard') return '/dashboard/overview';
+  return fullPath;
+};
+
 const PageHeader = () => {
   const pathname = usePathname();
   const { user } = useAppSelector((state) => state.auth);
   const headerInfo = getHeaderInfo(pathname);
+  const [dynamicTitle, setDynamicTitle] = useState<string | null>(null);
+  const segments = pathname.split('/').filter(Boolean);
+
+  useEffect(() => {
+    const segments = pathname.split('/').filter(Boolean);
+    if (
+      segments.length === 3 &&
+      segments[0] === 'dashboard' &&
+      segments[1] === 'venues' &&
+      segments[2] !== 'create'
+    ) {
+      const venueId = segments[2];
+      import('@/services/venue.service').then(({ fetchVenueById }) => {
+        fetchVenueById(venueId)
+          .then((venue) => {
+            if (venue && venue.name) {
+              setDynamicTitle(venue.name);
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to fetch venue name for header:", err);
+          });
+      });
+    } else {
+      setDynamicTitle(null);
+    }
+  }, [pathname]);
+
+  let displayTitle = headerInfo.title;
+  let displaySubtitle = headerInfo.subtitle;
+
+  if (dynamicTitle) {
+    displayTitle = dynamicTitle;
+  }
+
+  // Globally remove any auto-generated breadcrumbs starting with "Circles Admin"
+  if (displaySubtitle && displaySubtitle.startsWith("Circles Admin")) {
+    displaySubtitle = undefined;
+  }
   
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[#333333] bg-[#171717]/80 backdrop-blur-md px-6 py-3.5 flex items-center justify-between">
@@ -81,13 +140,50 @@ const PageHeader = () => {
         <div className="md:hidden">
           <SidebarTrigger />
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1.5">
           <h1 className="text-xl font-bold tracking-tight text-white m-0 leading-none">
-            {headerInfo.title}
+            {displayTitle}
           </h1>
-          <p className="text-xs text-[#9CA3AF] mt-1.5 font-normal leading-none">
-            {headerInfo.subtitle}
-          </p>
+          {displaySubtitle && (
+            <p className="text-xs text-[#9CA3AF] mt-1 font-normal leading-none font-sans">
+              {displaySubtitle}
+            </p>
+          )}
+          {segments.length > 0 && (
+            <nav className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF] font-medium font-sans">
+              <Link href="/dashboard/overview" className="hover:text-white transition-colors">
+                Console
+              </Link>
+              {segments.map((segment, index) => {
+                const fullPath = '/' + segments.slice(0, index + 1).join('/');
+                const isLast = index === segments.length - 1;
+                
+                // Determine label
+                let label = segmentLabelMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
+                if (isLast && dynamicTitle) {
+                  label = dynamicTitle;
+                } else if (segment.length > 20 && !segmentLabelMap[segment]) {
+                  label = 'Details';
+                }
+
+                // Custom link for dashboard
+                const link = getSegmentLink(segment, fullPath);
+
+                return (
+                  <React.Fragment key={fullPath}>
+                    <span className="text-[#555555] select-none">&gt;</span>
+                    {isLast ? (
+                      <span className="text-[#BF6DFF] font-semibold">{label}</span>
+                    ) : (
+                      <Link href={link} className="hover:text-white transition-colors">
+                        {label}
+                      </Link>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </nav>
+          )}
         </div>
       </div>
 
