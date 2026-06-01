@@ -26,7 +26,6 @@ export default function UserDetailClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [copiedId, setCopiedId] = useState(false);
   const [interestMap, setInterestMap] = useState<Record<string, string>>({});
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
@@ -92,18 +91,12 @@ export default function UserDetailClient() {
     }
   }, [userId]);
 
-  const handleCopy = (text: string, isId = false) => {
+  const handleCopyCode = (text: string) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
-    if (isId) {
-      setCopiedId(true);
-      toast.success('User ID copied to clipboard');
-      setTimeout(() => setCopiedId(false), 2000);
-    } else {
-      setCopiedCode(true);
-      toast.success('Referral code copied');
-      setTimeout(() => setCopiedCode(false), 2000);
-    }
+    setCopiedCode(true);
+    toast.success('Referral code copied');
+    setTimeout(() => setCopiedCode(false), 2000);
   };
 
   const handleBack = () => router.push('/user-management/users');
@@ -147,21 +140,17 @@ export default function UserDetailClient() {
     );
   }
 
-  const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
-
   return (
     <UserDetailsView
       user={user}
-      copiedId={copiedId}
       copiedCode={copiedCode}
-      onCopyId={() => handleCopy(user.id, true)}
-      onCopyCode={() => handleCopy(user.referralCode || '', false)}
+      onCopyCode={() => handleCopyCode(user.referralCode || '')}
       interestMap={interestMap}
       cityMap={cityMap}
       onBack={handleBack}
       onReload={loadUserDetails}
-      pageTitle={displayName}
-      pageSubtitle={user.email}
+      pageTitle="User Details"
+      pageSubtitle="Registered customer profile"
     />
   );
 }

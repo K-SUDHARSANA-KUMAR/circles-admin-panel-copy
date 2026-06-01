@@ -136,7 +136,9 @@ export const LogDetailsModal = ({ open, onOpenChange, logData }: LogDetailsModal
           key === 'isDeleted' ||
           key === 'isActive' ||
           key === 'plantId' ||
-          key === 'userId')) {
+          key === 'userId' ||
+          key === 'createdAt' ||
+          key === 'updatedAt')) {
         return;
       }
 
@@ -169,7 +171,9 @@ export const LogDetailsModal = ({ open, onOpenChange, logData }: LogDetailsModal
               nestedKey !== 'isActive' &&
               nestedKey !== 'buffer' &&
               nestedKey !== 'type' &&
-              nestedKey !== 'data') {
+              nestedKey !== 'data' &&
+              nestedKey !== 'createdAt' &&
+              nestedKey !== 'updatedAt') {
             const prevVal = oldObj[nestedKey];
             const newVal = newObj[nestedKey];
             
@@ -192,29 +196,6 @@ export const LogDetailsModal = ({ open, onOpenChange, logData }: LogDetailsModal
         }
       }
     });
-
-    // If no meaningful changes found, show createdAt and updatedAt if they exist
-    // BUT skip this fallback for master records logs
-    const isMasterRecordLog = logData.entity === 'records' || 
-                             logData.metaTags?.schemaName || 
-                             logData.metaTags?.groupId;
-    
-    if (entries.length === 0 && !isMasterRecordLog) {
-      if (oldState.createdAt || newState.createdAt) {
-        entries.push({
-          fieldName: 'Created At',
-          previousValue: oldState.createdAt ? formatValue(oldState.createdAt) : '-',
-          updatedValue: newState.createdAt ? formatValue(newState.createdAt) : '-',
-        });
-      }
-      if (oldState.updatedAt || newState.updatedAt) {
-        entries.push({
-          fieldName: 'Updated At',
-          previousValue: oldState.updatedAt ? formatValue(oldState.updatedAt) : '-',
-          updatedValue: newState.updatedAt ? formatValue(newState.updatedAt) : '-',
-        });
-      }
-    }
 
     return entries;
   };

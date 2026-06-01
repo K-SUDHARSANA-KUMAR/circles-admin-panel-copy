@@ -42,7 +42,7 @@ export const listingStyles = {
 /** Detail / form pages — same typography & surfaces as listing pages */
 export const detailStyles = {
   card: 'bg-[#09090b] border border-[#18181b] rounded-xl shadow-2xl overflow-hidden',
-  cardHeader: 'border-b border-[#18181b] px-6 py-4',
+  cardHeader: 'border-b border-[#18181b] px-4 py-3',
   cardTitle: 'text-sm font-bold text-white flex items-center gap-2',
   cardTitleIcon: 'text-[#d8b4fe]',
   sectionLabel: 'text-[10px] font-bold uppercase tracking-widest text-zinc-500',
@@ -90,6 +90,53 @@ export const ListingSectionHeader = ({
       <p className={listingStyles.subtitle}>{subtitle}</p>
     </div>
     {trailing ? <div className="shrink-0">{trailing}</div> : null}
+  </div>
+);
+
+export type ListingSegmentedTab<T extends string = string> = {
+  id: T;
+  label: string;
+  icon?: TablerIcon;
+};
+
+type ListingSegmentedTabsProps<T extends string> = {
+  tabs: ListingSegmentedTab<T>[];
+  activeTab: T;
+  onTabChange: (tab: T) => void;
+  className?: string;
+};
+
+export const ListingSegmentedTabs = <T extends string>({
+  tabs,
+  activeTab,
+  onTabChange,
+  className = '',
+}: ListingSegmentedTabsProps<T>) => (
+  <div
+    className={`flex bg-[#09090b] border border-[#18181b] p-1 rounded-xl ${className}`.trim()}
+    role="tablist"
+  >
+    {tabs.map((tab) => {
+      const TabIcon = tab.icon;
+      const isActive = activeTab === tab.id;
+      return (
+        <button
+          key={tab.id}
+          type="button"
+          role="tab"
+          aria-selected={isActive}
+          onClick={() => onTabChange(tab.id)}
+          className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            isActive
+              ? 'bg-zinc-900 text-white shadow-lg border border-zinc-800'
+              : 'text-zinc-500 hover:text-zinc-300'
+          }`}
+        >
+          {TabIcon ? <TabIcon size={14} aria-hidden /> : null}
+          <span>{tab.label}</span>
+        </button>
+      );
+    })}
   </div>
 );
 

@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import {
   ListingPageContainer,
   ListingSectionHeader,
+  ListingSegmentedTabs,
   ListingToolbar,
   listingStyles,
 } from '@/components/shared/listing-page';
@@ -339,30 +340,14 @@ export default function CitiesPage() {
         title="City Management"
         subtitle={`${cities.length} cities registered`}
         trailing={
-        <div className="flex bg-[#09090b] border border-[#18181b] p-1 rounded-xl">
-          <button
-            onClick={() => setActiveTab('cities')}
-            className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
-              activeTab === 'cities'
-                ? 'bg-zinc-900 text-white shadow-lg border border-zinc-800'
-                : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <IconBuildingCommunity size={14} />
-            Cities
-          </button>
-          <button
-            onClick={() => setActiveTab('countries')}
-            className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
-              activeTab === 'countries'
-                ? 'bg-zinc-900 text-white shadow-lg border border-zinc-800'
-                : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <IconWorld size={14} />
-            Countries
-          </button>
-        </div>
+          <ListingSegmentedTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={[
+              { id: 'cities', label: 'Cities', icon: IconBuildingCommunity },
+              { id: 'countries', label: 'Countries', icon: IconWorld },
+            ]}
+          />
         }
       />
 

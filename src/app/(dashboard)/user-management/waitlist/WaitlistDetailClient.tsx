@@ -26,7 +26,6 @@ export default function WaitlistDetailClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [copiedId, setCopiedId] = useState(false);
   const [interestMap, setInterestMap] = useState<Record<string, string>>({});
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
   const [processing, setProcessing] = useState<'approve' | 'reject' | null>(null);
@@ -93,18 +92,12 @@ export default function WaitlistDetailClient() {
     }
   }, [userId]);
 
-  const handleCopy = (text: string, isId = false) => {
+  const handleCopyCode = (text: string) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
-    if (isId) {
-      setCopiedId(true);
-      toast.success('User ID copied to clipboard');
-      setTimeout(() => setCopiedId(false), 2000);
-    } else {
-      setCopiedCode(true);
-      toast.success('Referral code copied');
-      setTimeout(() => setCopiedCode(false), 2000);
-    }
+    setCopiedCode(true);
+    toast.success('Referral code copied');
+    setTimeout(() => setCopiedCode(false), 2000);
   };
 
   const handleApprove = async () => {
@@ -139,7 +132,14 @@ export default function WaitlistDetailClient() {
     }
   };
 
-  const handleBack = () => router.push('/user-management/waitlist');
+  const handleBack = () => {
+    const params = new URLSearchParams();
+    if (searchParams.get('tab') === 'rejected') {
+      params.set('tab', 'rejected');
+    }
+    const query = params.toString();
+    router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
+  };
 
   const headerActions = user ? (
     <div className="flex gap-3 shrink-0 flex-wrap">
@@ -211,21 +211,17 @@ export default function WaitlistDetailClient() {
     );
   }
 
-  const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Unnamed Applicant';
-
   return (
     <UserDetailsView
       user={user}
-      copiedId={copiedId}
       copiedCode={copiedCode}
-      onCopyId={() => handleCopy(user.id, true)}
-      onCopyCode={() => handleCopy(user.referralCode || '', false)}
+      onCopyCode={() => handleCopyCode(user.referralCode || '')}
       interestMap={interestMap}
       cityMap={cityMap}
       headerActions={headerActions}
       onBack={handleBack}
       onReload={loadUserDetails}
-      pageTitle={displayName}
+      pageTitle="Waitlist Applicant"
       pageSubtitle="Review and verify waitlist applicant"
       backLabel="Back to Waitlist"
     />

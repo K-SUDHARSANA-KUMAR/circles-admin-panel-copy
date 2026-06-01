@@ -3,50 +3,85 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import WaitlistDetailClient from './WaitlistDetailClient';
-import { fetchWaitlist, approveWaitlistUser, rejectWaitlistUser, type WaitlistUser } from '@/services/user.service';
+import {
+  fetchWaitlist,
+  fetchRejectedWaitlist,
+  type WaitlistUser,
+} from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import {
-  IconRefresh,
   IconUser,
   IconPhone,
   IconMapPin,
   IconAward,
   IconShieldCheck,
+  IconUserX,
 } from '@tabler/icons-react';
 import {
   ListingPageContainer,
   ListingSectionHeader,
+  ListingSegmentedTabs,
   ListingToolbar,
   ListingErrorPanel,
   ListingPagination,
   listingStyles,
 } from '@/components/shared/listing-page';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import Link from 'next/link';
+
+type WaitlistTab = 'pending' | 'rejected';
+
+const WAITLIST_TABLE_HEADERS = (
+  <tr className="border-b border-[#18181b]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[20%]">
+      Name
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[15%]">
+      Phone No
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[12%]">
+      Status
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[13%]">
+      City
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[12%]">
+      Referral Code
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[13%]">
+      Medium
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[10%]">
+      Score
+    </th>
+    <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[5%]">
+      Actions
+    </th>
+  </tr>
+);
 
 export default function WaitlistPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const detailUserId = searchParams.get('id');
+  const activeTab: WaitlistTab =
+    searchParams.get('tab') === 'rejected' ? 'rejected' : 'pending';
+
   const [users, setUsers] = useState<WaitlistUser[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [processing, setProcessing] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const detailUserId = searchParams.get('id');
+  const itemsPerPage = 10;
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    async function loadCities() {
+    const loadCities = async () => {
       try {
         const cities = await fetchCities();
         const mapping: Record<string, string> = {};
-        cities.forEach(city => {
+        cities.forEach((city) => {
           const id = city.cityId || city.city_id || city.id;
           if (id) {
             mapping[id] = city.name;
@@ -56,62 +91,99 @@ export default function WaitlistPage() {
       } catch (err) {
         console.error('Failed to load cities list:', err);
       }
-    }
+    };
     loadCities();
   }, []);
 
-  // Debounce search query to prevent excessive API requests
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
     }, 400);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Reset page when search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, activeTab]);
 
-  const loadWaitlist = useCallback(async (searchVal = '', page = 1) => {
+  const handleTabChange = (tab: WaitlistTab) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === 'rejected') {
+      params.set('tab', 'rejected');
+    } else {
+      params.delete('tab');
+    }
+    const query = params.toString();
+    router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
+  };
+
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const skip = (page - 1) * itemsPerPage;
-      const response = await fetchWaitlist({ search: searchVal, limit: itemsPerPage, skip });
+      const skip = (currentPage - 1) * itemsPerPage;
+      const response =
+        activeTab === 'rejected'
+          ? await fetchRejectedWaitlist({
+              search: debouncedSearch,
+              limit: itemsPerPage,
+              skip,
+            })
+          : await fetchWaitlist({
+              search: debouncedSearch,
+              limit: itemsPerPage,
+              skip,
+            });
       setUsers(response.users);
       setTotal(response.total);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to fetch waitlist users. Please try again.';
+      const msg =
+        err instanceof Error
+          ? err.message
+          : activeTab === 'rejected'
+            ? 'Failed to fetch rejected users. Please try again.'
+            : 'Failed to fetch waitlist users. Please try again.';
       setError(msg);
-      toast.error('Failed to load waitlist users');
+      toast.error(
+        activeTab === 'rejected'
+          ? 'Failed to load rejected users'
+          : 'Failed to load waitlist users',
+      );
     } finally {
       setLoading(false);
     }
-  }, [itemsPerPage]);
+  }, [activeTab, currentPage, debouncedSearch, itemsPerPage]);
 
   useEffect(() => {
     if (detailUserId) return;
-    loadWaitlist(debouncedSearch, currentPage);
-  }, [debouncedSearch, currentPage, loadWaitlist, detailUserId]);
+    loadUsers();
+  }, [loadUsers, detailUserId]);
 
   const handleRefresh = () => {
-    loadWaitlist(searchQuery, currentPage);
+    loadUsers();
   };
 
   const getScoreStyle = (score: number) => {
     if (score >= 80) {
       return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-    } else if (score >= 50) {
+    }
+    if (score >= 50) {
       return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
     }
     return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
   };
 
+  const getDetailUrl = (userId: string) => {
+    const params = new URLSearchParams();
+    params.set('id', userId);
+    if (activeTab === 'rejected') {
+      params.set('tab', 'rejected');
+    }
+    return `/user-management/waitlist?${params.toString()}`;
+  };
+
   const totalPages = Math.ceil(total / itemsPerPage);
+  const isRejectedTab = activeTab === 'rejected';
 
   if (detailUserId) {
     return <WaitlistDetailClient />;
@@ -121,12 +193,30 @@ export default function WaitlistPage() {
     <ListingPageContainer>
       <ListingSectionHeader
         icon={IconShieldCheck}
-        title="Waitlist Verification"
-        subtitle={`${total} applicants pending review`}
+        title="Waitlist Management"
+        subtitle={
+          isRejectedTab
+            ? `${total} rejected applicants`
+            : `${total} applicants pending review`
+        }
+        trailing={
+          <ListingSegmentedTabs
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            tabs={[
+              { id: 'pending', label: 'Pending', icon: IconShieldCheck },
+              { id: 'rejected', label: 'Rejected', icon: IconUserX },
+            ]}
+          />
+        }
       />
 
       <ListingToolbar
-        countLabel={`${total} Pending Verification`}
+        countLabel={
+          isRejectedTab
+            ? `${total} Rejected Users`
+            : `${total} Pending Verification`
+        }
         showCount={!loading && !error}
         searchPlaceholder="Search by name or email..."
         searchValue={searchQuery}
@@ -134,21 +224,15 @@ export default function WaitlistPage() {
         onRefresh={handleRefresh}
         refreshDisabled={loading}
         refreshLoading={loading}
-        leadingActions={
-          <Link href="/user-management/waitlist/rejected">
-            <Button
-              variant="outline"
-              className="h-8 text-xs border-[#18181b] bg-[#09090b] hover:bg-[#18181b] text-rose-400 hover:text-rose-300 rounded-lg transition-colors"
-            >
-              View Rejected Users
-            </Button>
-          </Link>
-        }
       />
 
       {error ? (
         <ListingErrorPanel
-          title="Failed to load verification queue"
+          title={
+            isRejectedTab
+              ? 'Failed to load rejected users'
+              : 'Failed to load verification queue'
+          }
           message={error}
           onRetry={handleRefresh}
         />
@@ -156,40 +240,17 @@ export default function WaitlistPage() {
         <div className={listingStyles.tableWrapper}>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-[#18181b]">
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[20%]">
-                    Name
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[15%]">
-                    Phone No
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[12%]">
-                    Status
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[13%]">
-                    City
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[12%]">
-                    Referral Code
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[13%]">
-                    Medium
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[10%]">
-                    Score
-                  </th>
-                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[5%]">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+              <thead>{WAITLIST_TABLE_HEADERS}</thead>
               <tbody className="divide-y divide-[#18181b]">
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="py-20 text-center">
                       <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
-                      <p className="text-xs text-zinc-500 mt-2 font-medium">Loading waitlist users...</p>
+                      <p className="text-xs text-zinc-500 mt-2 font-medium">
+                        {isRejectedTab
+                          ? 'Loading rejected users...'
+                          : 'Loading waitlist users...'}
+                      </p>
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
@@ -197,42 +258,56 @@ export default function WaitlistPage() {
                     <td colSpan={8} className="py-20 text-center">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <IconUser size={32} className="text-zinc-600" />
-                        <p className="text-xs font-semibold text-zinc-400">No waitlisted users found</p>
+                        <p className="text-xs font-semibold text-zinc-400">
+                          {isRejectedTab
+                            ? 'No rejected users found'
+                            : 'No waitlisted users found'}
+                        </p>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   users.map((user) => {
-                    const displayName = user.name ? `${user.name} ${user.lastName || ''}`.trim() : 'Unnamed Applicant';
+                    const displayName = user.name
+                      ? `${user.name} ${user.lastName || ''}`.trim()
+                      : 'Unnamed Applicant';
                     const profilePictureUrl = user.profilePictureUrl;
-                    const cityId = (user as any).cityId || (user as any).city_id;
-                    const cityName = (cityId && cityMap[cityId]) || (user as any).city?.name || (user as any).city || cityId;
-                    const code = (user as any).referralCode;
-                    const medium = (user as any).referralMedium;
-                    const score = (user as any).reliabilityScore !== undefined ? (user as any).reliabilityScore : 100;
+                    const cityId =
+                      (user as { cityId?: string; city_id?: string }).cityId ||
+                      (user as { cityId?: string; city_id?: string }).city_id;
+                    const cityName =
+                      (cityId && cityMap[cityId]) ||
+                      (user as { city?: { name?: string } }).city?.name ||
+                      (user as { city?: string }).city ||
+                      cityId;
+                    const code = (user as { referralCode?: string }).referralCode;
+                    const medium = (user as { referralMedium?: string }).referralMedium;
+                    const score =
+                      (user as { reliabilityScore?: number }).reliabilityScore !== undefined
+                        ? (user as { reliabilityScore?: number }).reliabilityScore!
+                        : 100;
                     const status = (user.status || 'pending').toLowerCase();
 
                     return (
                       <tr
                         key={user.id}
-                        onClick={() => router.push(`/user-management/waitlist?id=${user.id}`)}
+                        onClick={() => router.push(getDetailUrl(user.id))}
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
                       >
-                        {/* Name */}
                         <td className="py-5 px-12">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 overflow-hidden">
                               {profilePictureUrl ? (
-                                <img 
-                                  src={profilePictureUrl} 
-                                  alt={displayName} 
+                                <img
+                                  src={profilePictureUrl}
+                                  alt={displayName}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
                                     e.currentTarget.style.display = 'none';
                                   }}
                                 />
                               ) : (
-                                user.name ? user.name.charAt(0).toUpperCase() : 'U'
+                                (user.name ? user.name.charAt(0).toUpperCase() : 'U')
                               )}
                             </div>
                             <span className="text-sm font-semibold text-white truncate max-w-[160px]">
@@ -241,7 +316,6 @@ export default function WaitlistPage() {
                           </div>
                         </td>
 
-                        {/* Phone */}
                         <td className="py-5 px-12">
                           {user.phone ? (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
@@ -253,7 +327,6 @@ export default function WaitlistPage() {
                           )}
                         </td>
 
-                        {/* Status Badge */}
                         <td className="py-5 px-12">
                           {status === 'approved' || status === 'verified' || status === 'active' ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[11px] font-semibold select-none">
@@ -273,7 +346,6 @@ export default function WaitlistPage() {
                           )}
                         </td>
 
-                        {/* City */}
                         <td className="py-5 px-12">
                           {cityName ? (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
@@ -285,7 +357,6 @@ export default function WaitlistPage() {
                           )}
                         </td>
 
-                        {/* Referral Code */}
                         <td className="py-5 px-12">
                           {code ? (
                             <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
@@ -296,7 +367,6 @@ export default function WaitlistPage() {
                           )}
                         </td>
 
-                        {/* Referral Medium */}
                         <td className="py-5 px-12">
                           {medium ? (
                             <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 select-none">
@@ -307,21 +377,23 @@ export default function WaitlistPage() {
                           )}
                         </td>
 
-                        {/* Reliability Score */}
                         <td className="py-5 px-12">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}
+                          >
                             <IconAward size={12} className="shrink-0" />
                             <span>{score}%</span>
                           </span>
                         </td>
 
-                        {/* Actions */}
                         <td className="py-5 px-12 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end">
                             <button
-                              onClick={() => router.push(`/user-management/waitlist?id=${user.id}`)}
+                              type="button"
+                              onClick={() => router.push(getDetailUrl(user.id))}
                               className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
-                              title="Review & Verify User"
+                              title={isRejectedTab ? 'View Applicant' : 'Review & Verify User'}
+                              aria-label={isRejectedTab ? 'View applicant' : 'Review and verify user'}
                             >
                               <IconShieldCheck size={16} />
                             </button>

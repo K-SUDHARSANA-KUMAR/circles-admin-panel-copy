@@ -12,11 +12,8 @@ import {
   IconCopy,
   IconWorld,
   IconHeart,
-  IconLanguage,
   IconEye,
-  IconCalendarTime,
-  IconInfoCircle,
-  IconMapPin
+  IconMapPin,
 } from '@tabler/icons-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,9 +46,7 @@ export interface DetailedUser extends Customer {
 
 interface UserDetailsViewProps {
   user: DetailedUser;
-  copiedId: boolean;
   copiedCode: boolean;
-  onCopyId: () => void;
   onCopyCode: () => void;
   interestMap: Record<string, string>;
   cityMap?: Record<string, string>;
@@ -65,9 +60,7 @@ interface UserDetailsViewProps {
 
 export default function UserDetailsView({
   user,
-  copiedId,
   copiedCode,
-  onCopyId,
   onCopyCode,
   interestMap,
   cityMap = {},
@@ -75,7 +68,7 @@ export default function UserDetailsView({
   onBack,
   onReload,
   pageTitle = 'User Details',
-  pageSubtitle,
+  pageSubtitle = 'View complete profile and verification data',
   backLabel = 'Back to List',
 }: UserDetailsViewProps) {
   const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
@@ -126,19 +119,15 @@ export default function UserDetailsView({
   };
 
   const interestsList = parseArrayField(user.interests);
-  const languagesList = parseArrayField(user.languages);
 
   const cityValue = cityMap[user.cityId || ''] || user.location || '—';
-
-  const resolvedSubtitle =
-    pageSubtitle ?? user.email ?? 'View complete profile and verification data';
 
   return (
     <DetailPageContainer className="pb-12">
       <DetailPageHeader
         icon={IconUser}
         title={pageTitle}
-        subtitle={resolvedSubtitle}
+        subtitle={pageSubtitle}
         onBack={onBack}
         backLabel={backLabel}
         trailing={
@@ -156,12 +145,10 @@ export default function UserDetailsView({
         }
       />
 
-      {/* Profile summary */}
+      {/* Profile summary — name & photo live here, not in page header */}
       <div className={detailStyles.card}>
-        {/* Profile Details Block */}
-        <div className="px-6 pb-6 pt-6 flex flex-col md:flex-row md:items-end gap-6 relative">
-          {/* Avatar Container */}
-          <div className="w-28 h-28 rounded-full border-4 border-[#09090b] bg-zinc-900 overflow-hidden z-10 shrink-0 shadow-xl flex items-center justify-center font-bold text-3xl text-[#d8b4fe] select-none">
+        <div className="px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="w-20 h-20 rounded-full border-2 border-[#18181b] bg-zinc-900 overflow-hidden shrink-0 shadow-lg flex items-center justify-center font-bold text-2xl text-[#d8b4fe] select-none">
             {user.profilePictureUrl ? (
               <img 
                 src={user.profilePictureUrl} 
@@ -176,35 +163,23 @@ export default function UserDetailsView({
             )}
           </div>
 
-          {/* User Primary Meta Info */}
-          <div className="flex-1 space-y-2.5">
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-xl font-bold text-white tracking-tight">{displayName}</h2>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-zinc-400">
-              <span className="flex items-center gap-1">
-                <IconMail size={13} className="text-zinc-600" />
-                <span>{user.email}</span>
-              </span>
-              {user.phone && (
-                <span className="flex items-center gap-1">
-                  <IconPhone size={13} className="text-zinc-600" />
+          <div className="flex-1 min-w-0 space-y-2">
+            <h2 className="text-xl font-bold text-white tracking-tight truncate">{displayName}</h2>
+            <div className="flex flex-col gap-1.5 text-xs text-zinc-400">
+              {user.email ? (
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <IconMail size={13} className="text-zinc-600 shrink-0" />
+                  <span className="truncate">{user.email}</span>
+                </span>
+              ) : null}
+              {user.phone ? (
+                <span className="flex items-center gap-1.5">
+                  <IconPhone size={13} className="text-zinc-600 shrink-0" />
                   <span>{user.phone}</span>
                 </span>
-              )}
-              <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors" onClick={onCopyId}>
-                <IconInfoCircle size={13} className="text-zinc-600" />
-                <span>ID: {user.id}</span>
-                {copiedId ? (
-                  <IconCheck size={11} className="text-emerald-400" />
-                ) : (
-                  <IconCopy size={11} className="text-zinc-600" />
-                )}
-              </span>
+              ) : null}
             </div>
           </div>
-
         </div>
       </div>
 
@@ -299,158 +274,84 @@ export default function UserDetailsView({
 
       </div>
 
-      {/* Main Profile Info Details Grid (2 Columns) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Personal & account details */}
+      <Card className="border-[#18181b] bg-[#09090b] shadow-md">
+        <CardHeader className={detailStyles.cardHeader}>
+          <CardTitle className={detailStyles.cardTitle}>
+            <IconUser size={16} className={detailStyles.cardTitleIcon} />
+            <span>Personal Details</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 py-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Date of Birth</label>
+              <div className="flex items-center gap-1.5 text-xs text-white">
+                <IconCalendar size={13} className="text-muted-foreground/60" />
+                <span>{formatDate(user.dob, false)}</span>
+              </div>
+            </div>
 
-        {/* Column 1: Personal & General Details */}
-        <Card className="border-[#18181b] bg-[#09090b] shadow-md">
-          <CardHeader className="border-b border-[#18181b]/60 px-5 py-4">
-            <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-              <IconUser size={16} className={detailStyles.cardTitleIcon} />
-              <span>Personal Details</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5 space-y-5">
-            
-            {/* Bio Block */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">City</label>
+              <div className="flex items-center gap-1.5 text-xs text-white">
+                <IconMapPin size={13} className="text-muted-foreground/60" />
+                <span>{cityValue}</span>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Location</label>
+              <div className="text-xs text-white">
+                <span>{user.location || '—'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-3 border-t border-[#18181b]/50">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Biography</label>
-              <div className="bg-zinc-900/60 border border-[#18181b] p-3.5 rounded-lg">
-                {user.bio ? (
-                  <p className="text-xs text-foreground/90 leading-relaxed italic">"{user.bio}"</p>
+              <label className={`${detailStyles.fieldLabel} flex items-center gap-1`}>
+                <IconHeart size={11} />
+                <span>User Interests</span>
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {interestsList.length > 0 ? (
+                  interestsList
+                    .map((interestId) => interestMap[interestId])
+                    .filter((name): name is string => Boolean(name))
+                    .map((name, i) => (
+                      <span
+                        key={i}
+                        className="text-[10px] font-bold bg-zinc-900/60 border border-[#18181b] text-foreground/80 px-2 py-0.5 rounded capitalize"
+                      >
+                        {name}
+                      </span>
+                    ))
                 ) : (
-                  <p className="text-xs text-muted-foreground/50 italic">No biographical information provided.</p>
+                  <span className="text-xs text-muted-foreground/40 italic">None listed</span>
                 )}
               </div>
             </div>
 
-            {/* Structured details list */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Date of Birth</label>
-                <div className="flex items-center gap-1.5 text-xs text-white">
-                  <IconCalendar size={13} className="text-muted-foreground/60" />
-                  <span>{formatDate(user.dob, false)}</span>
-                </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Social Links</label>
+              <div className="text-xs text-muted-foreground/60">
+                {user.socialLinks && Object.keys(user.socialLinks).length > 0 ? (
+                  <div className="space-y-1">
+                    {Object.entries(user.socialLinks).map(([platform, handle]) => (
+                      <div key={platform} className="text-white font-medium">
+                        <span className="capitalize text-muted-foreground font-normal">{platform}:</span> {handle}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="italic">No linked social profiles</span>
+                )}
               </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Gender</label>
-                <div className="flex items-center gap-1.5 text-xs text-white capitalize">
-                  <IconHeart size={13} className="text-muted-foreground/60" />
-                  <span>{user.gender || 'Not Specified'}</span>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">City</label>
-                <div className="flex items-center gap-1.5 text-xs text-white">
-                  <IconMapPin size={13} className="text-muted-foreground/60" />
-                  <span>{cityValue}</span>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Location</label>
-                <div className="text-xs text-white">
-                  <span>{user.location || '—'}</span>
-                </div>
-              </div>
-
             </div>
-
-            {/* Taxonomy / Arrays Row (Interests & Languages) */}
-            <div className="space-y-4 pt-2 border-t border-[#18181b]/50">
-              
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1">
-                  <IconLanguage size={11} />
-                  <span>Spoken Languages</span>
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {languagesList.length > 0 ? (
-                    languagesList.map((lang, i) => (
-                      <span key={i} className="text-[10px] font-bold bg-zinc-900/60 border border-[#18181b] text-foreground/80 px-2 py-0.5 rounded uppercase tracking-wider">
-                        {lang}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-muted-foreground/40 italic">None listed</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1">
-                  <IconHeart size={11} />
-                  <span>User Interests</span>
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {interestsList.length > 0 ? (
-                    interestsList.map((interestId, i) => {
-                      const name = interestMap[interestId] || interestId;
-                      return (
-                        <span key={i} className="text-[10px] font-bold bg-zinc-900/60 border border-[#18181b] text-foreground/80 px-2 py-0.5 rounded capitalize">
-                          {name}
-                        </span>
-                      );
-                    })
-                  ) : (
-                    <span className="text-xs text-muted-foreground/40 italic">None listed</span>
-                  )}
-                </div>
-              </div>
-
-            </div>
-
-          </CardContent>
-        </Card>
-
-        {/* Column 2: Account Preferences & Dates */}
-        <Card className="border-[#18181b] bg-[#09090b] shadow-md">
-          <CardHeader className="border-b border-[#18181b]/60 px-5 py-4">
-            <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-              <IconCalendarTime size={16} className={detailStyles.cardTitleIcon} />
-              <span>System & Security Meta</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5 space-y-5">
-            
-            {/* Visibility & Security */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Account Visibility</label>
-                <div className="flex items-center gap-1.5 text-xs text-white capitalize">
-                  <IconEye size={13} className="text-muted-foreground/60" />
-                  <span>{user.visibility || 'Public'}</span>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Social Links</label>
-                <div className="text-xs text-muted-foreground/60">
-                  {user.socialLinks && Object.keys(user.socialLinks).length > 0 ? (
-                    <div className="space-y-1">
-                      {Object.entries(user.socialLinks).map(([platform, handle]) => (
-                        <div key={platform} className="text-white font-medium">
-                          <span className="capitalize text-muted-foreground font-normal">{platform}:</span> {handle}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="italic">No linked social profiles</span>
-                  )}
-                </div>
-              </div>
-
-            </div>
-
-          </CardContent>
-        </Card>
-
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
     </DetailPageContainer>
   );

@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconCheck, IconEdit, IconCalendarEvent, IconBuilding } from "@tabler/icons-react";
+import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconCheck, IconEdit, IconBuilding } from "@tabler/icons-react";
 import { DetailPageContainer, DetailPageHeader, detailStyles, listingStyles } from "@/components/shared/listing-page";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
@@ -57,8 +57,6 @@ export interface Venue {
   isFeature?: boolean;
   isPartner?: boolean;
   isVisible?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
   coverImageS3FileName?: string;
   popularityScore?: number;
 }
@@ -106,8 +104,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     isFeature: initialData?.isFeature || false,
     isPartner: initialData?.isPartner || false,
     isVisible: initialData?.isVisible !== undefined ? initialData.isVisible : true,
-    createdAt: initialData?.createdAt,
-    updatedAt: initialData?.updatedAt,
     coverImageS3FileName: initialData?.coverImageS3FileName || "",
   });
 
@@ -683,34 +679,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
               </div>
             </div>
           </div>
-          {(formData.createdAt || formData.updatedAt) && (
-            <div className="glass-card p-6 flex flex-col gap-6">
-              <Label className="text-base font-bold flex items-center gap-2">
-                <IconCalendarEvent size={18} className="text-primary" />
-                Record Timeline
-              </Label>
-              
-              <div className="flex flex-col gap-4">
-                {formData.createdAt && (
-                  <div className="flex flex-col gap-1 p-4 rounded-xl border border-border/50 bg-muted/20 shadow-inner">
-                    <span className="text-sm text-muted-foreground font-medium">Created On</span>
-                    <span className="font-semibold text-base">
-                      {new Date(formData.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                )}
-                
-                {formData.updatedAt && (
-                  <div className="flex flex-col gap-1 p-4 rounded-xl border border-border/50 bg-muted/20 shadow-inner">
-                    <span className="text-sm text-muted-foreground font-medium">Last Updated</span>
-                    <span className="font-semibold text-base">
-                      {new Date(formData.updatedAt).toLocaleString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
