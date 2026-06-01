@@ -10,9 +10,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, Search } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useReverseGeocoding } from '@/features/common/hooks/useReverseGeocoding';
 import { toast } from 'sonner';
 
 const MapComponent = dynamic(() => import('@/components/modals/map-component'), {
@@ -27,7 +26,7 @@ const MapComponent = dynamic(() => import('@/components/modals/map-component'), 
 interface LocationPickerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLocationSelect: (coordinates: { lat: number; lng: number }, address?: string, pincode?: string) => void;
+  onLocationSelect: (coordinates: { lat: number; lng: number }) => void;
   initialCoordinates?: { lat: number; lng: number };
 }
 
@@ -41,12 +40,10 @@ export function LocationPickerModal({
     lat: number;
     lng: number;
   } | null>(initialCoordinates || null);
-  const [coordinatesInput, setCoordinatesInput] = useState<string>('');
-  const [googleMapsLink, setGoogleMapsLink] = useState<string>('');
-
-  const { address, pincode, isLoading: isAddressLoading, error: addressError } = useReverseGeocoding(
-    selectedCoordinates
-  );
+  // Nominatim Search States
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [searchResults, setSearchResults] = useState<{ display_name: string; lat: string; lon: string }[]>([]);
 
   useEffect(() => {
     if (initialCoordinates) {
@@ -57,94 +54,68 @@ export function LocationPickerModal({
   const handleLocationSelect = (coordinates: { lat: number; lng: number }) => {
     console.log('LocationPickerModal: Location selected:', coordinates);
     setSelectedCoordinates(coordinates);
-    // Update coordinates input field
-    setCoordinatesInput(`${coordinates.lat}, ${coordinates.lng}`);
-    // Generate Google Maps link when location is selected
-    const mapsLink = `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`;
-    setGoogleMapsLink(mapsLink);
   };
 
-  const handleCoordinatesInput = (value: string) => {
-    setCoordinatesInput(value);
-    
-    // Try to parse coordinates from input
-    // Supports formats: "lat,lng", "lat, lng", "lat lng"
-    const cleaned = value.trim();
-    const patterns = [
-      /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/, // "lat,lng" or "lat, lng"
-      /^(-?\d+\.?\d*)\s+(-?\d+\.?\d*)$/, // "lat lng"
-    ];
-    
-    for (const pattern of patterns) {
-      const match = cleaned.match(pattern);
-      if (match) {
-        const lat = parseFloat(match[1]);
-        const lng = parseFloat(match[2]);
-        
-        // Validate coordinates
-        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-          setSelectedCoordinates({ lat, lng });
-          // Update coordinates input with proper format
-          setCoordinatesInput(`${lat}, ${lng}`);
-          // Generate Google Maps link
-          const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
-          setGoogleMapsLink(mapsLink);
-          toast.success('Coordinates applied to map');
-          return;
-        } else {
-          toast.error('Invalid coordinates. Lat: -90 to 90, Lng: -180 to 180');
-          return;
-        }
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [selectedPlaceName, setSelectedPlaceName] = useState<string>('');
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Execute place search automatically when debounced search query changes
+  useEffect(() => {
+    const searchPlaces = async () => {
+      const query = debouncedSearch.trim();
+      if (!query || query === selectedPlaceName) {
+        if (!query) setSearchResults([]);
+        return;
       }
-    }
-    
-    // If no pattern matched and input is not empty, show error
-    if (cleaned) {
-      toast.error('Invalid format. Use: "lat, lng" (e.g., "10.3659, 78.0196")');
-    }
+      setIsSearching(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+        );
+        if (!response.ok) throw new Error('Search failed');
+        const data = await response.json();
+        setSearchResults(data);
+      } catch (err: any) {
+        console.error('Failed to fetch place results from Nominatim:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+    searchPlaces();
+  }, [debouncedSearch, selectedPlaceName]);
+
+  const handleSearchPlaces = async () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+    setSelectedPlaceName(''); // Reset selected flag to force immediate query execution
+    setDebouncedSearch(query);
   };
 
-  const handleGoogleMapsLinkInput = (value: string) => {
-    setGoogleMapsLink(value);
-    
-    // Try to extract coordinates from Google Maps link
-    const cleaned = value.trim();
-    if (!cleaned) return;
-    
-    // Pattern for Google Maps links with coordinates
-    const patterns = [
-      /@(-?\d+\.?\d*),(-?\d+\.?\d*)/, // @lat,lng format
-      /q=(-?\d+\.?\d*),(-?\d+\.?\d*)/, // q=lat,lng format
-      /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/, // !3dlat!4dlng format
-    ];
-    
-    for (const pattern of patterns) {
-      const match = cleaned.match(pattern);
-      if (match) {
-        const lat = parseFloat(match[1]);
-        const lng = parseFloat(match[2]);
-        
-        // Validate coordinates
-        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-          setSelectedCoordinates({ lat, lng });
-          // Update coordinates input with proper format
-          setCoordinatesInput(`${lat}, ${lng}`);
-          toast.success('Google Maps link applied to map');
-          return;
-        }
-      }
-    }
-    
-    // If no pattern matched and input is not empty, show error
-    if (cleaned && !cleaned.includes('google.com/maps')) {
-      toast.error('Invalid Google Maps link format');
+  const handleSelectSearchResult = (result: { lat: string; lon: string; display_name: string }) => {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      handleLocationSelect({ lat, lng });
+      setSelectedPlaceName(result.display_name);
+      setSearchQuery(result.display_name);
+      setSearchResults([]);
     }
   };
 
   const handleCancel = () => {
     setSelectedCoordinates(initialCoordinates || null);
-    setCoordinatesInput('');
-    setGoogleMapsLink('');
+    setSearchQuery('');
+    setDebouncedSearch('');
+    setSelectedPlaceName('');
+    setSearchResults([]);
     onOpenChange(false);
   };
 
@@ -159,28 +130,19 @@ export function LocationPickerModal({
     }
   };
 
-  const handleConfirmAll = () => {
-    if (selectedCoordinates) {
-      // Update both coordinates and address in parent and close modal
-      onLocationSelect(selectedCoordinates, address, pincode);
-      onOpenChange(false);
-      toast.success('Pin and address updated');
-    } else {
-      toast.error('Please select a location first');
-    }
-  };
-
   // Clear input when modal opens
   useEffect(() => {
     if (open) {
-      setCoordinatesInput('');
-      setGoogleMapsLink('');
+      setSearchQuery('');
+      setDebouncedSearch('');
+      setSelectedPlaceName('');
+      setSearchResults([]);
     }
   }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             <div className="flex flex-col gap-1">
@@ -189,74 +151,63 @@ export function LocationPickerModal({
               </div>
               <div className="text-lg font-medium">Pin Location</div>
               <div className="text-sm font-normal text-zinc-500">
-                Click on the map to select the warehouse location
+                Search place name or pinpoint directly on the map
               </div>
             </div>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 w-full h-full">
-          {/* Input Fields Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Location Link Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">
-                Location Link
-              </label>
+        <div className="space-y-4 w-full h-full relative">
+          {/* Place Search Bar */}
+          <div className="space-y-2 relative">
+            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Search className="h-4 w-4 text-primary" />
+              Search Place or Address
+            </label>
+            <div className="flex items-center gap-2">
               <Input
                 type="text"
-                placeholder="Paste location link here..."
-                value={googleMapsLink}
-                onChange={(e) => setGoogleMapsLink(e.target.value)}
+                placeholder="Search for a city, landmark, or address (e.g. Mumbai, Maharashtra)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    handleGoogleMapsLinkInput(googleMapsLink);
+                    e.preventDefault();
+                    handleSearchPlaces();
                   }
                 }}
-                onBlur={() => handleGoogleMapsLinkInput(googleMapsLink)}
-                className="w-full"
+                className="w-full h-11"
               />
-              <p className="text-xs text-gray-500">
-                Paste a location link to automatically set the location
-              </p>
+              <Button
+                type="button"
+                onClick={handleSearchPlaces}
+                disabled={isSearching || !searchQuery.trim()}
+                className="flex items-center gap-1.5 h-11 px-6 shrink-0"
+              >
+                {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                Search
+              </Button>
             </div>
-
-            {/* Coordinates Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">
-                Enter Coordinates
-              </label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="text"
-                  placeholder="e.g., 10.3659, 78.0196"
-                  value={coordinatesInput}
-                  onChange={(e) => setCoordinatesInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleCoordinatesInput(coordinatesInput);
-                    }
-                  }}
-                  className="w-full"
-                />
-                <Button
-                  type="button"
-                  onClick={() => handleCoordinatesInput(coordinatesInput)}
-                  disabled={!coordinatesInput.trim()}
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <MapPin className="h-4 w-4" />
-                  Apply
-                </Button>
+            
+            {/* Search Results Dropdown */}
+            {searchResults.length > 0 && (
+              <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-[1000] border border-border/80 rounded-xl bg-[#171717] shadow-2xl max-h-60 overflow-y-auto p-2 divide-y divide-zinc-800">
+                {searchResults.map((result, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectSearchResult(result)}
+                    className="w-full text-left px-4 py-3 hover:bg-primary/10 text-sm transition-colors rounded-lg flex items-start gap-2.5 text-foreground hover:text-primary"
+                  >
+                    <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span className="truncate">{result.display_name}</span>
+                  </button>
+                ))}
               </div>
-              <p className="text-xs text-gray-500">
-                Format: latitude, longitude (e.g., 10.3659, 78.0196)
-              </p>
-            </div>
+            )}
           </div>
 
-          <div className="h-[35vh] w-full rounded-lg overflow-hidden border relative">
+          <div className="h-[45vh] w-full rounded-2xl overflow-hidden border border-border/50 relative z-10 shadow-lg">
             <MapComponent
               onLocationSelect={handleLocationSelect}
               initialCoordinates={initialCoordinates}
@@ -265,57 +216,33 @@ export function LocationPickerModal({
             />
           </div>
 
-          {selectedCoordinates && (
-            <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-              <div className="space-y-2">
-                <div className="text-sm text-primary">
-                  <span className="font-medium">Coordinates:</span> {selectedCoordinates.lat.toFixed(6)}, {selectedCoordinates.lng.toFixed(6)}
-                </div>
-                {isAddressLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-primary">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>Loading address...</span>
-                  </div>
-                ) : addressError ? (
-                  <div className="text-sm text-red-600">
-                    <span className="font-medium">Address:</span> Unable to fetch address
-                  </div>
-                ) : address ? (
-                  <div className="text-sm text-primary">
-                    <div>
-                      <span className="font-medium">Address:</span> {address}
-                    </div>
-                  </div>
-                ) : null}
+          <DialogFooter className="flex justify-between items-center flex-wrap gap-4 pt-4 pb-2 z-10 relative border-t border-border/50">
+            {selectedCoordinates ? (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+                <MapPin className="h-3.5 w-3.5" />
+                Lat: {selectedCoordinates.lat.toFixed(6)}, Lng: {selectedCoordinates.lng.toFixed(6)}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="text-xs text-zinc-500 font-medium">Click anywhere on the map to place a pin</div>
+            )}
 
-          <DialogFooter className="flex justify-end flex-wrap gap-2 pt-4 pb-2">
-            <Button variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleConfirmPin}
-              disabled={!selectedCoordinates}
-              className="flex items-center gap-2 border-primary text-primary hover:bg-primary/10"
-            >
-              <MapPin className="h-4 w-4" />
-              Confirm Pin
-            </Button>
-            <Button 
-              variant="default" 
-              onClick={handleConfirmAll}
-              disabled={!selectedCoordinates || isAddressLoading}
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90"
-            >
-              {isAddressLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-              Confirm Pin with Address
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button 
+                variant="default" 
+                onClick={handleConfirmPin}
+                disabled={!selectedCoordinates}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+              >
+                <MapPin className="h-4 w-4" />
+                Confirm Pin
+              </Button>
+            </div>
           </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
   );
-} 
+}

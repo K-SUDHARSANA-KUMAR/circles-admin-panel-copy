@@ -11,6 +11,28 @@ import { fetchCities, type City } from "@/services/cities.service";
 import { createVenue, updateVenue } from "@/services/venue.service";
 import { toast } from "sonner";
 import { useFileUpload } from "@/features/common/hooks/useFileUpload";
+import dynamic from "next/dynamic";
+
+// Dynamically import map components to avoid SSR/window undefined issues
+const LocationPickerModal = dynamic(
+  () => import("@/components/modals/location-picker-modal").then((m) => m.LocationPickerModal),
+  { ssr: false }
+);
+
+const MapComponent = dynamic(
+  () => import("@/components/modals/map-component"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 w-full flex items-center justify-center bg-muted/20 rounded-xl border border-border/50">
+        <span className="text-sm text-muted-foreground flex items-center gap-2">
+          <span className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+          Loading map preview...
+        </span>
+      </div>
+    ),
+  }
+);
 
 export interface Venue {
   id?: string;
@@ -61,6 +83,9 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   const [loadingCities, setLoadingCities] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Map state
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
   const [formData, setFormData] = useState<Venue>({
     id: initialData?.id || "",
     name: initialData?.name || "",
@@ -85,6 +110,20 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   });
 
   const [interestInput, setInterestInput] = useState("");
+
+  // Check if coordinates are valid numbers and not zero
+  const latNum = parseFloat(formData.latitude);
+  const lngNum = parseFloat(formData.longitude);
+  const hasValidCoordinates = !isNaN(latNum) && !isNaN(lngNum) && latNum !== 0 && lngNum !== 0;
+  const mapCoords = hasValidCoordinates ? { lat: latNum, lng: lngNum } : undefined;
+
+  const handleLocationSelect = (coordinates: { lat: number; lng: number }) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: String(coordinates.lat),
+      longitude: String(coordinates.lng),
+    }));
+  };
 
   useEffect(() => {
     const loadCitiesList = async () => {
@@ -576,6 +615,60 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                   />
                 </div>
               </div>
+
+              {/* Map Preview and Location Picker Trigger */}
+              <div className="space-y-3 mt-2">
+                <div className="flex items-center justify-between">
+                  <Label className="font-bold flex items-center gap-1.5">
+                    <IconMapPin size={18} className="text-primary" />
+                    Map Location
+                  </Label>
+                  {!isViewing && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsMapModalOpen(true)}
+                      className="gap-1.5 text-xs border-primary/20 hover:border-primary/50 text-primary hover:bg-primary/5 rounded-xl px-4 py-2"
+                    >
+                      <IconMapPin size={14} />
+                      Pin on Map
+                    </Button>
+                  )}
+                </div>
+
+                {hasValidCoordinates ? (
+                  <div className="h-64 w-full rounded-2xl overflow-hidden border border-border/50 relative z-0 shadow-inner">
+                    <MapComponent
+                      initialCoordinates={mapCoords}
+                      selectedCoordinates={mapCoords}
+                      readOnly={true}
+                      onLocationSelect={() => {}}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-64 w-full rounded-2xl border-2 border-dashed border-border/50 flex flex-col items-center justify-center gap-2.5 bg-muted/10 text-muted-foreground p-6 text-center">
+                    <div className="bg-primary/10 p-3 rounded-full text-primary">
+                      <IconMapPin size={24} />
+                    </div>
+                    <div className="max-w-xs">
+                      <p className="font-semibold text-foreground text-sm">No Map Pin Set</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Define coordinates above or click below to search and pinpoint this venue on OpenStreetMap.</p>
+                    </div>
+                    {!isViewing && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setIsMapModalOpen(true)}
+                        className="mt-1.5 rounded-xl px-4"
+                      >
+                        Set Location Pin
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {(formData.createdAt || formData.updatedAt) && (
@@ -608,6 +701,16 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
           )}
         </div>
       </div>
+
+      {/* Location Picker Modal */}
+      {!isViewing && (
+        <LocationPickerModal
+          open={isMapModalOpen}
+          onOpenChange={setIsMapModalOpen}
+          onLocationSelect={handleLocationSelect}
+          initialCoordinates={mapCoords}
+        />
+      )}
     </div>
   );
 };
