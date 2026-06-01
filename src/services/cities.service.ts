@@ -2,11 +2,16 @@ import { apiEndPoint } from '@/features/apiEndPoint';
 import customAxios from '@/lib/axios';
 
 export interface City {
+  cityId?: string;
   city_id?: string;
   id?: string;
   name: string;
   country_code: string;
   is_active: boolean;
+  country?: {
+    code: string;
+    name: string;
+  };
   createdAt?: string;
   updatedAt?: string;
 }
