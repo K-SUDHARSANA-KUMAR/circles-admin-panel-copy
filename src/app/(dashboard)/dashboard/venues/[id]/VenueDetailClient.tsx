@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 
 interface VenueDetailClientProps {
   venueId: string;
+  editMode?: boolean;
 }
 
-export default function VenueDetailClient({ venueId }: VenueDetailClientProps) {
+export default function VenueDetailClient({ venueId, editMode }: VenueDetailClientProps) {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +74,7 @@ export default function VenueDetailClient({ venueId }: VenueDetailClientProps) {
     <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300">
       <VenueForm 
         initialData={venue} 
-        mode="view" 
+        mode={editMode ? "edit" : "view"} 
       />
     </div>
   );

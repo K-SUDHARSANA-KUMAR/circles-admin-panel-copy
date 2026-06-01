@@ -66,8 +66,7 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif);
-    @apply tracking-tight font-normal text-foreground;
+    @apply tracking-tight font-bold text-foreground;
   }
 
   /* Override hardcoded dark tailwind utility colors globally */

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconArrowLeft, IconCheck, IconEdit, IconCalendarEvent } from "@tabler/icons-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
 import { fetchCities, type City } from "@/services/cities.service";
 import { createVenue, updateVenue } from "@/services/venue.service";
@@ -47,12 +47,10 @@ interface VenueFormProps {
 
 export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { uploadFile } = useFileUpload();
   
-  // Determine if we are in edit mode based on URL or initial mode
-  const isEditFromUrl = searchParams.get("edit") === "true";
-  const currentMode = mode === "create" ? "create" : (isEditFromUrl ? "edit" : "view");
+  // Determine if we are in edit mode based on the passed prop mode
+  const currentMode = mode;
   const isViewing = currentMode === "view";
   
   const fileInputRef = useRef<HTMLInputElement>(null);

@@ -214,16 +214,6 @@ const VenuesPage = () => {
                       >
                         <IconPencil size={15} />
                       </button>
-                      <button
-                        className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (venue.id) handleDelete(venue.id);
-                        }}
-                        title="Delete Venue"
-                      >
-                        <IconTrash size={15} />
-                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -304,18 +294,7 @@ const VenuesPage = () => {
                       }}
                     >
                       <IconPencil size={13} />
-                      <span>Edit</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 bg-transparent border border-zinc-800 text-red-400 hover:text-red-300 hover:border-red-900/50 rounded-lg flex items-center justify-center transition-all shrink-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (venue.id) handleDelete(venue.id);
-                      }}
-                    >
-                      <IconTrash size={13} />
+                      <span>Edit Venue</span>
                     </Button>
                   </div>
                 </div>
