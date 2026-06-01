@@ -24,7 +24,7 @@ const chartData = [
 const chartConfig = {
   sales: {
     label: 'Sales Amount',
-    color: 'var(--primary)',
+    color: 'var(--color-primary)',
   },
 } satisfies ChartConfig;
 
@@ -89,11 +89,11 @@ const DashboardPage = () => {
             <AreaChart accessibilityLayer data={chartData} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.25}/>
-                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.35}/>
+                  <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
               <XAxis
                 dataKey="date"
                 tickLine={false}
@@ -112,14 +112,14 @@ const DashboardPage = () => {
                 tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }}
                 tickFormatter={(value: number) => `${value.toLocaleString()}`}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent className="bg-[#222222] border border-[#333333] p-3 rounded-lg text-xs" />} />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent className="bg-card border border-border p-3 rounded-lg text-xs" />} />
               <Area
                 dataKey="sales"
                 type="monotone"
                 fill="url(#colorSales)"
-                stroke="var(--primary)"
-                strokeWidth={2}
-                dot={{ fill: 'var(--primary)', strokeWidth: 1, r: 3, strokeOpacity: 0.8 }}
+                stroke="var(--color-primary)"
+                strokeWidth={3}
+                dot={{ fill: 'var(--color-primary)', strokeWidth: 1, r: 3, strokeOpacity: 0.8 }}
                 activeDot={{ r: 5, strokeWidth: 0, fill: '#fff' }}
               />
             </AreaChart>

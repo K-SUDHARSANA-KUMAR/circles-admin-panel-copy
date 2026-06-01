@@ -235,28 +235,29 @@ export default function InterestsPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  return (
-    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700">
+  const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
 
-      {/* Actions / Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
+  return (
+    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-700 space-y-5">
+
+      {/* ── Top bar ────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
         <div className="flex items-center gap-3">
+          <h2 className="text-sm font-normal text-white">Interest Management</h2>
           {!loading && (
-            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
-              {groups.length} Interest Groups
+            <span className="text-[10px] font-bold text-[#d8b4fe] bg-[#1c122c] px-2.5 py-1 rounded-md border border-[#3b1a60] tracking-wider uppercase">
+              {groups.length} Groups
             </span>
           )}
         </div>
-
-        {/* Actions & Search */}
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-initial sm:w-64">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
             <Input
-              placeholder="Search interests..."
+              placeholder="Search groups..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs"
+              className="pl-8 h-8 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 w-48 rounded-lg"
             />
           </div>
           <Button
@@ -264,308 +265,296 @@ export default function InterestsPage() {
             size="icon"
             onClick={loadGroups}
             disabled={loading}
-            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
+            className="h-8 w-8 shrink-0 border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-400"
             title="Refresh"
           >
-            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
+            <IconRefresh size={13} className={loading ? 'animate-spin' : ''} />
           </Button>
           <Button
             onClick={() => setIsCreating(!isCreating)}
-            className="flex items-center gap-2 h-9 px-4 text-xs font-bold uppercase tracking-wider shrink-0"
+            className="flex items-center gap-1.5 h-8 px-3 text-xs font-bold bg-[#d8b4fe] hover:bg-[#c084fc] text-[#3b0764] rounded-lg border-none"
           >
-            {isCreating ? <IconX size={16} /> : <IconPlus size={16} />}
+            {isCreating ? <IconX size={14} /> : <IconFolderPlus size={14} />}
             <span>{isCreating ? 'Cancel' : 'New Group'}</span>
           </Button>
         </div>
       </div>
 
-      {/* Creation Panel */}
+      {/* ── Create panel ───────────────────────────────────────────────── */}
       {isCreating && (
-        <Card className="border-primary/20 bg-primary/5 shadow-2xl p-5 animate-in slide-in-from-top-4 duration-300">
-          <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <IconFolderPlus size={18} className="text-primary" />
-              <span>Create New Interest Group</span>
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Groups categorize and organize individual sub-interests.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 flex flex-col md:flex-row gap-4 items-end">
-            <div className="flex-1 w-full space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Group Name
-              </label>
-              <Input
-                placeholder="e.g. Sports & Outdoors, Music & Beats..."
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                className="h-9 text-xs"
-              />
-
-            </div>
-
-           
-
-            <Button
-              onClick={handleCreateGroup}
-              disabled={!newGroupName.trim() || creating}
-              className="h-9 w-full md:w-auto px-6 font-bold text-xs uppercase tracking-wider"
-            >
-              {creating ? 'Creating...' : 'Create Group'}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Loading */}
-      {loading && <GroupSkeleton />}
-
-      {/* Error */}
-      {!loading && error && (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center animate-in fade-in duration-300">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
-            <IconAlertCircle size={28} className="text-destructive" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-foreground">Failed to load interests</p>
-            <p className="text-xs text-muted-foreground max-w-xs">{error}</p>
+        <div className="flex items-end gap-3 bg-[#09090b] border border-primary/20 p-4 rounded-xl animate-in slide-in-from-top-4 duration-300">
+          <div className="flex-1 space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Group Name</label>
+            <Input
+              placeholder="e.g. Sports & Outdoors, Music & Beats..."
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleCreateGroup(); }}
+              className="h-9 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-200 placeholder:text-zinc-600 rounded-lg"
+              autoFocus
+            />
           </div>
           <Button
-            onClick={loadGroups}
-            variant="outline"
-            className="gap-2 text-xs font-bold uppercase tracking-wider"
+            onClick={handleCreateGroup}
+            disabled={!newGroupName.trim() || creating}
+            className="h-9 px-5 text-xs font-bold uppercase tracking-wider bg-primary hover:bg-primary/90"
           >
-            <IconRefresh size={14} />
-            Try Again
+            {creating ? 'Creating...' : 'Create'}
           </Button>
         </div>
       )}
 
-      {/* Empty */}
+      {/* ── Loading ────────────────────────────────────────────────────── */}
+      {loading && <GroupSkeleton />}
+
+      {/* ── Error ─────────────────────────────────────────────────────── */}
+      {!loading && error && (
+        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
+            <IconAlertCircle size={28} className="text-destructive" />
+          </div>
+          <p className="text-sm font-semibold text-foreground">Failed to load interests</p>
+          <p className="text-xs text-muted-foreground max-w-xs">{error}</p>
+          <Button onClick={loadGroups} variant="outline" className="gap-2 text-xs font-bold uppercase tracking-wider">
+            <IconRefresh size={14} /> Try Again
+          </Button>
+        </div>
+      )}
+
+      {/* ── Empty ─────────────────────────────────────────────────────── */}
       {!loading && !error && filteredGroups.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center animate-in fade-in duration-300">
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10">
             <IconTags size={24} className="text-muted-foreground" />
           </div>
-          <p className="text-sm font-semibold text-foreground">
-            {searchQuery ? 'No matching interests found' : 'No interest groups yet'}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {searchQuery ? 'Try a different search term.' : 'Create a new group to get started.'}
-          </p>
+          <p className="text-sm font-semibold">{searchQuery ? 'No matching interests found' : 'No interest groups yet'}</p>
+          <p className="text-xs text-muted-foreground">{searchQuery ? 'Try a different search term.' : 'Create a new group to get started.'}</p>
         </div>
       )}
 
-      {/* Accordion List */}
+      {/* ── Two-column layout ─────────────────────────────────────────── */}
       {!loading && !error && filteredGroups.length > 0 && (
-        <div className="flex flex-col gap-3.5 w-full">
-          {filteredGroups.map((group) => {
-            const isOpen = activeGroupId === group.id;
-            const style = getStyle(group.color, isOpen);
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
 
-            return (
-              <div
-                key={group.id}
-                className="overflow-hidden bg-transparent rounded-lg transition-all duration-300"
-              >
-                {/* Clickable Header Row */}
+          {/* ── LEFT: Group list ──────────────────────────────────────── */}
+          <div className="flex flex-col gap-2">
+            {/* Search inside list */}
+            <Button
+              onClick={() => setIsCreating(!isCreating)}
+              className="w-full flex items-center justify-center gap-2 h-9 text-xs font-bold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl mb-1"
+            >
+              <IconFolderPlus size={14} />
+              New Group
+            </Button>
+
+            {filteredGroups.map((group) => {
+              const isActive = activeGroupId === group.id;
+              const style = getStyle(group.color, isActive);
+              return (
                 <div
-                  onClick={() => setActiveGroupId(isOpen ? null : group.id)}
-                  className="flex flex-row items-center justify-between p-4 cursor-pointer bg-[#222222] border border-[#333333] hover:border-primary/40 rounded-lg transition-all select-none"
+                  key={group.id}
+                  onClick={() => setActiveGroupId(isActive ? null : group.id)}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 border select-none ${
+                    isActive
+                      ? 'bg-primary/10 border-primary/30 shadow-sm shadow-primary/10'
+                      : 'bg-[#09090b] border-[#18181b] hover:border-zinc-700 hover:bg-zinc-900/30'
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <IconChevronRight
-                      size={16}
-                      className={`text-muted-foreground transition-transform duration-300 ${
-                        isOpen ? 'rotate-90 text-white' : 'text-muted-foreground/60'
-                      }`}
-                    />
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 ${style.bg} ${style.text}`}
-                    >
-                      <IconTags size={16} />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${style.bg} ${style.text}`}>
+                      <IconTags size={14} />
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
-                      <span className="text-sm font-bold text-white tracking-tight">
-                        {group.name}
-                      </span>
-                      <span className="inline-flex text-[9px] font-extrabold text-muted-foreground/70 bg-white/5 px-2 py-0.5 rounded-full border border-white/10 tracking-wider uppercase w-fit">
-                        {group.subInterests.length} Sub-Interests
-                      </span>
-                    </div>
+                    <span className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-zinc-300'}`}>
+                      {group.name}
+                    </span>
                   </div>
-
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditTarget({ type: 'group', id: group.id, name: group.name, tagIds: group.subInterests.map(s => s.id) });
-                        setEditName(group.name);
-                      }}
-                      className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                    >
-                      <IconPencil size={14} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteTarget({ type: 'group', id: group.id, name: group.name });
-                      }}
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                    >
-                      <IconTrash size={14} />
-                    </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
+                      {group.subInterests.length}
+                    </span>
+                    <IconChevronRight
+                      size={14}
+                      className={`transition-transform duration-200 ${isActive ? 'rotate-90 text-primary' : 'text-zinc-600'}`}
+                    />
                   </div>
                 </div>
+              );
+            })}
+          </div>
 
-                {/* Collapsible Content */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateRows: isOpen ? '1fr' : '0fr',
-                    transition:
-                      'grid-template-rows 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease-in-out',
-                    opacity: isOpen ? 1 : 0,
-                  }}
-                  className={isOpen ? 'mt-2' : 'pointer-events-none'}
-                >
-                  <div className="min-h-0 overflow-hidden">
-                    <div className="p-4 flex flex-col gap-4 bg-[#222222] border border-[#333333] rounded-lg">
-                      {/* Sub-Interests */}
-                      <div className="flex flex-wrap gap-2 min-h-[36px]">
-                        {group.subInterests.length > 0 ? (
-                          group.subInterests.map((sub) => (
-                            <Badge
-                              key={sub.id}
-                              variant={style.badge}
-                              className="group/badge flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border-white/5 transition-all hover:scale-105 duration-200"
-                            >
-                              <span>{sub.name}</span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditTarget({ type: 'subInterest', id: sub.id, name: sub.name });
-                                  setEditName(sub.name);
-                                }}
-                                className="opacity-40 hover:opacity-100 transition-opacity rounded-full hover:bg-white/10 p-0.5"
-                              >
-                                <IconPencil size={9} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteTarget({ type: 'subInterest', id: sub.id, name: sub.name });
-                                }}
-                                className="opacity-40 hover:opacity-100 transition-opacity rounded-full hover:bg-white/10 p-0.5"
-                              >
-                                <IconX size={10} />
-                              </button>
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-xs text-muted-foreground/60 italic font-medium py-1.5">
-                            No sub-interests added yet.
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Add Sub-Interest Input */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                        <Input
-                          placeholder="Add sub-interest..."
-                          value={subInputs[group.id] || ''}
-                          onChange={(e) => handleSubInputChange(group.id, e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleAddSubInterest(group.id);
-                          }}
-                          className="h-8 text-xs bg-white/5 border-white/10"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={() => handleAddSubInterest(group.id)}
-                          className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                    </div>
+          {/* ── RIGHT: Detail panel ───────────────────────────────────── */}
+          {activeGroup ? (
+            <div className="bg-[#09090b] border border-[#18181b] rounded-xl p-6 space-y-6 animate-in fade-in duration-300">
+              {/* Group Header */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 ${getStyle(activeGroup.color, true).bg} ${getStyle(activeGroup.color, true).text}`}>
+                    <IconTags size={22} />
                   </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{activeGroup.name}</h3>
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      Manage interests shown to users who identify with the {activeGroup.name} persona.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditTarget({ type: 'group', id: activeGroup.id, name: activeGroup.name, tagIds: activeGroup.subInterests.map(s => s.id) });
+                      setEditName(activeGroup.name);
+                    }}
+                    className="h-8 px-3 text-xs font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg gap-1.5"
+                  >
+                    <IconPencil size={13} /> Edit Group
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteTarget({ type: 'group', id: activeGroup.id, name: activeGroup.name })}
+                    className="h-8 w-8 border border-zinc-800 bg-zinc-900/60 text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded-lg"
+                  >
+                    <IconTrash size={14} />
+                  </Button>
                 </div>
               </div>
-            );
-          })}
+
+              {/* Add Interest Input */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Add Interest</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add interest (e.g., Naruto, Fitness...)"
+                    value={subInputs[activeGroup.id] || ''}
+                    onChange={(e) => handleSubInputChange(activeGroup.id, e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleAddSubInterest(activeGroup.id); }}
+                    className="flex-1 h-9 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-200 placeholder:text-zinc-600 rounded-lg"
+                  />
+                  <Button
+                    onClick={() => handleAddSubInterest(activeGroup.id)}
+                    className="h-9 px-4 text-xs font-bold bg-primary hover:bg-primary/90 gap-1.5 rounded-lg"
+                  >
+                    <IconPlus size={14} /> Add
+                  </Button>
+                </div>
+              </div>
+
+              {/* Active Interests Tags */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Active Interests</span>
+                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                    {activeGroup.subInterests.length} Total
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 min-h-[48px]">
+                  {activeGroup.subInterests.length > 0 ? (
+                    activeGroup.subInterests.map((sub) => (
+                      <span
+                        key={sub.id}
+                        className="group/tag inline-flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium px-3 py-1.5 rounded-lg hover:border-zinc-700 transition-all"
+                      >
+                        {sub.name}
+                        <button
+                          type="button"
+                          onClick={() => { setEditTarget({ type: 'subInterest', id: sub.id, name: sub.name }); setEditName(sub.name); }}
+                          className="opacity-0 group-hover/tag:opacity-60 hover:!opacity-100 transition-opacity text-zinc-400 hover:text-primary"
+                        >
+                          <IconPencil size={10} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget({ type: 'subInterest', id: sub.id, name: sub.name })}
+                          className="opacity-0 group-hover/tag:opacity-60 hover:!opacity-100 transition-opacity text-zinc-400 hover:text-red-400"
+                        >
+                          <IconX size={11} />
+                        </button>
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-zinc-600 italic py-2">No sub-interests added yet. Add one above.</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer metadata */}
+              <div className="flex items-center gap-8 pt-4 border-t border-[#18181b]">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Created By</p>
+                  <p className="text-xs text-zinc-300 font-medium flex items-center gap-1.5">
+                    <span className="h-5 w-5 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[9px] font-bold text-primary">
+                      {activeGroup.name[0]}
+                    </span>
+                    Admin
+                  </p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Last Updated</p>
+                  <p className="text-xs text-zinc-300 font-medium">
+                    {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-3 bg-[#09090b] border border-[#18181b] rounded-xl py-20 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 border border-white/10">
+                <IconTags size={22} className="text-zinc-600" />
+              </div>
+              <p className="text-sm font-semibold text-zinc-400">Select a group</p>
+              <p className="text-xs text-zinc-600">Click any group on the left to manage its interests.</p>
+            </div>
+          )}
         </div>
       )}
+
+      {/* ── Delete Modal ──────────────────────────────────────────────── */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <Card className="w-full max-w-sm border-white/10 bg-zinc-950/95 p-5 shadow-2xl space-y-4">
-            <CardHeader className="p-0">
-              <CardTitle className="text-sm font-bold flex items-center gap-2 text-destructive">
-                <IconAlertCircle size={18} />
-                <span>Confirm Deletion</span>
-              </CardTitle>
-              <CardDescription className="text-xs pt-1">
-                Are you sure you want to delete {deleteTarget.type === 'group' ? 'interest group' : 'sub-interest'}{' '}
-                <strong className="text-white font-semibold">"{deleteTarget.name}"</strong>? This action cannot be undone.
-              </CardDescription>
-            </CardHeader>
-            <div className="flex gap-3 justify-end pt-2">
-              <Button
-                variant="ghost"
-                onClick={() => setDeleteTarget(null)}
-                className="h-8 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleConfirmDelete}
-                className="h-8 text-xs font-bold uppercase tracking-wider px-4"
-              >
-                Confirm
-              </Button>
+          <div className="w-full max-w-sm bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-2 text-destructive">
+              <IconAlertCircle size={18} />
+              <span className="text-sm font-bold">Confirm Deletion</span>
             </div>
-          </Card>
+            <p className="text-xs text-zinc-400">
+              Are you sure you want to delete {deleteTarget.type === 'group' ? 'interest group' : 'sub-interest'}{' '}
+              <strong className="text-white">"{deleteTarget.name}"</strong>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end pt-1">
+              <Button variant="ghost" onClick={() => setDeleteTarget(null)} className="h-8 text-xs font-bold text-zinc-400 hover:text-white">Cancel</Button>
+              <Button variant="destructive" onClick={handleConfirmDelete} className="h-8 text-xs font-bold px-4">Confirm</Button>
+            </div>
+          </div>
         </div>
       )}
+
+      {/* ── Edit Modal ────────────────────────────────────────────────── */}
       {editTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <Card className="w-full max-w-sm border-white/10 bg-zinc-950/95 p-5 shadow-2xl space-y-4">
-            <CardHeader className="p-0">
-              <CardTitle className="text-sm font-bold flex items-center gap-2 text-primary">
-                <IconPencil size={18} />
-                <span>Edit {editTarget.type === 'group' ? 'Interest Group' : 'Sub-Interest'}</span>
-              </CardTitle>
-              <CardDescription className="text-xs pt-1">
-                Editing <strong className="text-white font-semibold">"{editTarget.name}"</strong>
-              </CardDescription>
-            </CardHeader>
+          <div className="w-full max-w-sm bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-2 text-primary">
+              <IconPencil size={18} />
+              <span className="text-sm font-bold">Edit {editTarget.type === 'group' ? 'Interest Group' : 'Sub-Interest'}</span>
+            </div>
+            <p className="text-xs text-zinc-400">Editing <strong className="text-white">"{editTarget.name}"</strong></p>
             <Input
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmEdit(); }}
-              className="h-9 text-xs"
+              className="h-9 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-200"
               placeholder="New name..."
               autoFocus
             />
             <div className="flex gap-3 justify-end">
-              <Button variant="ghost" onClick={() => setEditTarget(null)} className="h-8 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white">
-                Cancel
-              </Button>
-              <Button onClick={handleConfirmEdit} disabled={!editName.trim()} className="h-8 text-xs font-bold uppercase tracking-wider px-4">
-                Save
-              </Button>
+              <Button variant="ghost" onClick={() => setEditTarget(null)} className="h-8 text-xs font-bold text-zinc-400 hover:text-white">Cancel</Button>
+              <Button onClick={handleConfirmEdit} disabled={!editName.trim()} className="h-8 text-xs font-bold px-4">Save</Button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>
   );
 }
+

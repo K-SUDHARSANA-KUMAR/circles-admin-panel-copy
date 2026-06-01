@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser, type VerificationImage } from '@/services/user.service';
+import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import { 
   IconSearch, 
   IconRefresh, 
   IconAlertCircle, 
   IconUser, 
-  IconMail, 
   IconShieldCheck,
   IconX,
   IconLoader,
@@ -17,18 +16,12 @@ import {
   IconBan,
   IconPhone,
   IconMapPin,
-  IconAward,
-  IconPencil
+  IconAward
 } from '@tabler/icons-react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { DataTable } from '@/components/ui/data-table';
-import { type ColumnDef } from '@tanstack/react-table';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-
-// Obsolete TableSkeleton removed
 
 export default function ProfileVerificationPage() {
   const [users, setUsers] = useState<ProfileVerificationUser[]>([]);
@@ -144,17 +137,6 @@ export default function ProfileVerificationPage() {
     }
   };
 
-  const getStatusStyle = (status: string) => {
-    const s = status ? status.toLowerCase() : 'pending';
-    if (s === 'verified') {
-      return { bg: 'rgba(16, 185, 129, 0.1)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.2)' };
-    }
-    if (s === 'rejected') {
-      return { bg: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.2)' };
-    }
-    return { bg: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', border: '1px solid rgba(245, 158, 11, 0.2)' };
-  };
-
   const getScoreStyle = (score: number) => {
     if (score >= 80) {
       return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
@@ -164,186 +146,27 @@ export default function ProfileVerificationPage() {
     return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
   };
 
-  // TanStack columns definition for generic DataTable
-  const columns: ColumnDef<ProfileVerificationUser>[] = [
-    {
-      id: 'sNo',
-      header: 'S.No',
-      cell: ({ row }) => (
-        <span className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
-          {(page - 1) * limit + row.index + 1}
-        </span>
-      ),
-    },
-    {
-      id: 'name',
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }) => {
-        const displayName = row.original.name ? `${row.original.name} ${row.original.lastName || ''}`.trim() : 'Unnamed User';
-        const profilePictureUrl = row.original.profilePictureUrl;
-        return (
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105 overflow-hidden">
-              {profilePictureUrl ? (
-                <img 
-                  src={profilePictureUrl} 
-                  alt={displayName} 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              ) : (
-                row.original.name ? row.original.name.charAt(0).toUpperCase() : 'U'
-              )}
-            </div>
-            <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[200px]">
-              {displayName}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: 'phone',
-      accessorKey: 'phone',
-      header: 'Phone No',
-      cell: ({ row }) => row.original.phone ? (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <IconPhone size={12} className="shrink-0 text-muted-foreground/60" />
-          <span>{row.original.phone}</span>
-        </div>
-      ) : (
-        <span className="text-xs text-muted-foreground/40">—</span>
-      ),
-    },
-    {
-      id: 'status',
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => {
-        const statusStyle = getStatusStyle(row.original.status);
-        return (
-          <span
-            className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-            style={{
-              background: statusStyle.bg,
-              color: statusStyle.color,
-              border: statusStyle.border,
-            }}
-          >
-            {row.original.status || 'Active'}
-          </span>
-        );
-      },
-    },
-    {
-      id: 'city',
-      header: 'City',
-      cell: ({ row }) => {
-        const cityId = (row.original as any).cityId || (row.original as any).city_id;
-        const cityName = (cityId && cityMap[cityId]) || (row.original as any).city?.name || (row.original as any).city || cityId;
-        return cityName ? (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <IconMapPin size={12} className="shrink-0 text-muted-foreground/60" />
-            <span>{cityName}</span>
-          </div>
-        ) : (
-          <span className="text-xs text-muted-foreground/40">—</span>
-        );
-      },
-    },
-    {
-      id: 'referralCode',
-      header: 'Referral Code',
-      cell: ({ row }) => {
-        const code = (row.original as any).referralCode;
-        return code ? (
-          <code className="text-xs font-mono font-bold text-white bg-[#171717] px-2 py-0.5 rounded border border-[#333333]">
-            {code}
-          </code>
-        ) : (
-          <span className="text-xs text-muted-foreground/40">—</span>
-        );
-      },
-    },
-    {
-      id: 'referralMedium',
-      header: 'Referral Medium',
-      cell: ({ row }) => {
-        const medium = (row.original as any).referralMedium;
-        return medium ? (
-          <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-white/5 border border-white/5 text-muted-foreground/90">
-            {medium}
-          </span>
-        ) : (
-          <span className="text-xs text-muted-foreground/40">—</span>
-        );
-      },
-    },
-    {
-      id: 'reliabilityScore',
-      accessorKey: 'reliabilityScore',
-      header: 'Reliability Score',
-      cell: ({ row }) => {
-        const score = (row.original as any).reliabilityScore !== undefined ? (row.original as any).reliabilityScore : 100;
-        return (
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)}`}>
-              <IconAward size={12} className="shrink-0" />
-              <span>{score}%</span>
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: 'actions',
-      header: () => <div className="text-center">Actions</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-center gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-300">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                className="h-8 w-8 p-0 font-medium rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center justify-center"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenVerify(row.original);
-                }}
-              >
-                <IconShieldCheck size={14} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Profile Verify</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      ),
-    },
-  ];
+  const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6 p-6">
+    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-700 space-y-6">
       
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
+      {/* Actions / Filter bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
+          <span className="text-[10px] font-bold text-[#d8b4fe] bg-[#1c122c] px-2.5 py-1 rounded-md border border-[#3b1a60] tracking-wider uppercase select-none">
             {total} Pending Approvals
           </span>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:flex-initial sm:w-64">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
             <Input
               placeholder="Search by name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs"
+              className="pl-8 h-8 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 rounded-lg"
             />
           </div>
           <Button
@@ -351,75 +174,265 @@ export default function ProfileVerificationPage() {
             size="icon"
             onClick={handleRefresh}
             disabled={loading}
-            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
+            className="h-8 w-8 shrink-0 border-[#18181b] bg-[#09090b] hover:bg-[#18181b] rounded-lg"
             title="Refresh List"
           >
-            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
+            <IconRefresh size={12} className={loading ? 'animate-spin' : ''} />
           </Button>
         </div>
       </div>
 
       {/* Main Table Layout */}
       {error ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#222222] border border-[#333333] rounded-lg">
+        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#09090b] border border-[#18181b] rounded-xl">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10 border border-destructive/20">
             <IconAlertCircle size={24} className="text-destructive" />
           </div>
           <div className="space-y-1 text-center">
-            <p className="text-sm font-semibold text-foreground">Failed to load profiles</p>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
+            <p className="text-sm font-semibold text-white">Failed to load profiles</p>
+            <p className="text-xs text-zinc-500 max-w-sm mx-auto">{error}</p>
           </div>
           <Button
             onClick={handleRefresh}
             variant="outline"
-            className="gap-2 text-xs font-bold uppercase tracking-wider border-[#333333] hover:bg-[#333333]"
+            className="gap-2 text-xs font-bold uppercase tracking-wider border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800 h-8"
           >
             <IconRefresh size={12} />
             Try Again
           </Button>
         </div>
       ) : (
-        <div className="glass-card overflow-hidden shadow-2xl border-[#333333] p-4 bg-[#222222]">
-          <DataTable
-            tableId="pending_verifications_table"
-            columns={columns}
-            data={users}
-            isLoading={loading}
-            isColumnDisplay={false}
-            isDownload={false}
-            manualPagination={true}
-            pageCount={Math.ceil(total / limit)}
-            totalItems={total}
-            initialPagination={{ pageIndex: page - 1, pageSize: limit }}
-            onPaginationChange={(paginationState) => {
-              if (paginationState.pageSize !== limit) {
-                setLimit(paginationState.pageSize);
-                setPage(1);
-              } else {
-                setPage(paginationState.pageIndex + 1);
-              }
-            }}
-            getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
-            onRowClick={(row) => router.push(`/user-management/users/${row.id}`)}
-          />
+        <div className="bg-[#09090b] border border-[#18181b] rounded-xl shadow-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-[#18181b]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[20%]">
+                    Name
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[15%]">
+                    Phone No
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[12%]">
+                    Status
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[13%]">
+                    City
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[12%]">
+                    Referral Code
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[13%]">
+                    Medium
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[10%]">
+                    Score
+                  </th>
+                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[5%]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#18181b]">
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="py-20 text-center">
+                      <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
+                      <p className="text-xs text-zinc-500 mt-2 font-medium">Loading profile approvals...</p>
+                    </td>
+                  </tr>
+                ) : users.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-20 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <IconUser size={32} className="text-zinc-600" />
+                        <p className="text-xs font-semibold text-zinc-400">No pending profile verification requests</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((user) => {
+                    const displayName = user.name ? `${user.name} ${user.lastName || ''}`.trim() : 'Unnamed User';
+                    const profilePictureUrl = user.profilePictureUrl;
+                    const cityId = (user as any).cityId || (user as any).city_id;
+                    const cityName = (cityId && cityMap[cityId]) || (user as any).city?.name || (user as any).city || cityId;
+                    const code = (user as any).referralCode;
+                    const medium = (user as any).referralMedium;
+                    const score = (user as any).reliabilityScore !== undefined ? (user as any).reliabilityScore : 100;
+                    const status = (user.status || 'pending').toLowerCase();
+
+                    return (
+                      <tr
+                        key={user.id}
+                        onClick={() => router.push(`/user-management/users/${user.id}`)}
+                        className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
+                      >
+                        {/* Name */}
+                        <td className="py-5 px-8">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 overflow-hidden">
+                              {profilePictureUrl ? (
+                                <img 
+                                  src={profilePictureUrl} 
+                                  alt={displayName} 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                user.name ? user.name.charAt(0).toUpperCase() : 'U'
+                              )}
+                            </div>
+                            <span className="text-sm font-semibold text-white truncate max-w-[160px]">
+                              {displayName}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Phone */}
+                        <td className="py-5 px-8">
+                          {user.phone ? (
+                            <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                              <IconPhone size={12} className="shrink-0 text-zinc-600" />
+                              <span>{user.phone}</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* Status Badge */}
+                        <td className="py-5 px-8">
+                          {status === 'verified' || status === 'approved' || status === 'active' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[11px] font-semibold select-none">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
+                              Verified
+                            </span>
+                          ) : status === 'rejected' || status === 'declined' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[11px] font-semibold select-none">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                              Rejected
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#2d1f10]/60 border border-[#5f3e15]/50 text-amber-400 text-[11px] font-semibold select-none">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                              Pending
+                            </span>
+                          )}
+                        </td>
+
+                        {/* City */}
+                        <td className="py-5 px-8">
+                          {cityName ? (
+                            <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                              <IconMapPin size={12} className="shrink-0 text-zinc-600" />
+                              <span className="truncate max-w-[120px]">{cityName}</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* Referral Code */}
+                        <td className="py-5 px-8">
+                          {code ? (
+                            <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
+                              {code}
+                            </code>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* Referral Medium */}
+                        <td className="py-5 px-8">
+                          {medium ? (
+                            <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 select-none">
+                              {medium}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* Reliability Score */}
+                        <td className="py-5 px-8">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}>
+                            <IconAward size={12} className="shrink-0" />
+                            <span>{score}%</span>
+                          </span>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-5 px-8 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end">
+                            <button
+                              onClick={() => handleOpenVerify(user)}
+                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
+                              title="Review Verification"
+                            >
+                              <IconShieldCheck size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-[#18181b] px-8 py-4">
+              <div className="text-[11px] text-zinc-500 text-left">
+                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} entries
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={page === 1}
+                  onClick={() => setPage(prev => prev - 1)}
+                  className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
+                >
+                  Previous
+                </Button>
+                <div className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
+                  Page {page} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={page === totalPages}
+                  onClick={() => setPage(prev => prev + 1)}
+                  className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Verification Modal */}
       {isModalOpen && verifyingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 p-4">
-          <Card className="w-full max-w-4xl border-[#333333] bg-[#222222] p-6 shadow-2xl rounded-lg animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300 p-4">
+          <Card className="w-full max-w-4xl border-white/10 bg-zinc-950/95 p-6 shadow-2xl rounded-xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
             
-            <div className="flex items-center justify-between border-b border-[#333333] pb-4 mb-4 shrink-0">
+            <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
                   <IconShieldCheck size={20} />
                 </div>
                 <div>
-                  <CardTitle className="text-lg font-bold text-white">
+                  <CardTitle className="text-sm font-bold text-white">
                     Identity Verification
                   </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-1">
+                  <CardDescription className="text-[10px] text-zinc-500 mt-1">
                     Compare the selfie and submitted verification documents
                   </CardDescription>
                 </div>
@@ -428,22 +441,22 @@ export default function ProfileVerificationPage() {
                 variant="ghost"
                 size="icon"
                 onClick={handleCloseModal}
-                className="h-8 w-8 text-muted-foreground hover:text-white rounded-lg"
+                className="h-8 w-8 text-zinc-500 hover:text-white rounded-lg hover:bg-zinc-900"
               >
-                <IconX size={20} />
+                <IconX size={16} />
               </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6 pb-4">
-              <div className="bg-[#171717] border border-[#333333] rounded-lg p-4 flex items-center gap-4">
+              <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-4 flex items-center gap-4">
                  {verifyingUser.profilePictureUrl ? (
                     <img 
                       src={verifyingUser.profilePictureUrl} 
                       alt="Profile"
-                      className="w-12 h-12 rounded-full object-cover border-2 border-primary/30"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-purple-900/40"
                     />
                  ) : (
-                   <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-primary/20 text-primary border-2 border-primary/30">
+                   <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-purple-950/20 text-[#d8b4fe] border-2 border-purple-900/40">
                      {verifyingUser.name ? verifyingUser.name.charAt(0).toUpperCase() : 'U'}
                    </div>
                  )}
@@ -451,7 +464,7 @@ export default function ProfileVerificationPage() {
                    <h4 className="text-sm font-bold text-white">
                      {verifyingUser.name ? `${verifyingUser.name} ${verifyingUser.lastName || ''}`.trim() : 'Unnamed User'}
                    </h4>
-                   <p className="text-xs text-muted-foreground">{verifyingUser.email}</p>
+                   <p className="text-xs text-zinc-500">{verifyingUser.email}</p>
                  </div>
               </div>
 
@@ -464,8 +477,8 @@ export default function ProfileVerificationPage() {
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#333333] pb-2">Selfie Image</h3>
-                      <div className="bg-[#171717] border border-[#333333] rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
+                      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">Selfie Image</h3>
+                      <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
                         {selfieImg?.url ? (
                           <img 
                             src={selfieImg.url} 
@@ -473,7 +486,7 @@ export default function ProfileVerificationPage() {
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
-                          <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
+                          <div className="text-center text-zinc-600 flex flex-col items-center gap-2">
                             <IconUser size={32} className="opacity-20" />
                             <span className="text-xs font-medium">No selfie provided</span>
                           </div>
@@ -482,8 +495,8 @@ export default function ProfileVerificationPage() {
                     </div>
 
                     <div className="space-y-3">
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#333333] pb-2">Verification Document</h3>
-                      <div className="bg-[#171717] border border-[#333333] rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
+                      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">Verification Document</h3>
+                      <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
                         {docImg?.url ? (
                           <img 
                             src={docImg.url} 
@@ -491,7 +504,7 @@ export default function ProfileVerificationPage() {
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
-                          <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
+                          <div className="text-center text-zinc-600 flex flex-col items-center gap-2">
                             <IconAlertCircle size={32} className="opacity-20" />
                             <span className="text-xs font-medium">No document provided</span>
                           </div>
@@ -503,12 +516,12 @@ export default function ProfileVerificationPage() {
               })()}
             </div>
 
-            <div className="flex gap-3 justify-end pt-4 border-t border-[#333333] mt-2 shrink-0">
+            <div className="flex gap-3 justify-end pt-4 border-t border-white/5 mt-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCloseModal}
-                className="h-10 text-xs font-bold uppercase tracking-wider border-[#333333] text-foreground hover:bg-[#333333]"
+                className="h-9 text-xs font-semibold uppercase tracking-wider border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg"
               >
                 Cancel
               </Button>
@@ -516,7 +529,7 @@ export default function ProfileVerificationPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => handleVerifyAction('reject')}
-                className="h-10 text-xs font-bold uppercase tracking-wider px-6 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/30 transition-colors flex items-center gap-2"
+                className="h-9 text-xs font-semibold uppercase tracking-wider px-6 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/30 transition-colors flex items-center gap-2 rounded-lg"
               >
                 {saving ? <IconLoader size={14} className="animate-spin" /> : <IconBan size={14} />}
                 <span>Reject</span>
@@ -525,7 +538,7 @@ export default function ProfileVerificationPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => handleVerifyAction('approve')}
-                className="h-10 text-xs font-bold uppercase tracking-wider px-6 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 transition-colors flex items-center gap-2"
+                className="h-9 text-xs font-semibold uppercase tracking-wider px-6 bg-[#d8b4fe]/20 text-[#d8b4fe] hover:bg-[#c084fc] hover:text-[#3b0764] border border-[#3b1a60]/30 transition-colors flex items-center gap-2 rounded-lg"
               >
                 {saving ? <IconLoader size={14} className="animate-spin" /> : <IconCheck size={14} />}
                 <span>Approve</span>

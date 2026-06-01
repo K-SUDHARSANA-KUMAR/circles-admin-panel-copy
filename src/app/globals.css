@@ -1,49 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
 @theme {
-  --color-background: #171717;
+  --color-background: #000000;
   --color-foreground: #FFFFFF;
   
-  --color-card: #222222;
+  --color-card: #09090b;
   --color-card-foreground: #FFFFFF;
   
-  --color-popover: #222222;
+  --color-popover: #09090b;
   --color-popover-foreground: #FFFFFF;
   
-  --color-primary: #BF6DFF;
+  --color-primary: #8b5cf6;
   --color-primary-foreground: #FFFFFF;
   
-  --color-secondary: #BF6DFF;
-  --color-secondary-foreground: #171717;
+  --color-secondary: #8b5cf6;
+  --color-secondary-foreground: #000000;
   
-  --color-muted: #222222;
-  --color-muted-foreground: #9CA3AF;
+  --color-muted: #18181b;
+  --color-muted-foreground: #a1a1aa;
   
-  --color-accent: rgba(191, 109, 255, 0.08);
+  --color-accent: rgba(139, 92, 246, 0.08);
   --color-accent-foreground: #FFFFFF;
   
-  --color-destructive: #EF4444;
+  --color-destructive: #ef4444;
   
-  --color-border: #333333;
-  --color-input: #222222;
-  --color-ring: #BF6DFF;
+  --color-border: #18181b;
+  --color-input: #09090b;
+  --color-ring: #8b5cf6;
   
-  --color-sidebar: #171717;
-  --color-sidebar-foreground: #9CA3AF;
-  --color-sidebar-primary: #BF6DFF;
+  --color-sidebar: #000000;
+  --color-sidebar-foreground: #a1a1aa;
+  --color-sidebar-primary: #8b5cf6;
   --color-sidebar-primary-foreground: #FFFFFF;
-  --color-sidebar-accent: rgba(191, 109, 255, 0.08);
+  --color-sidebar-accent: rgba(139, 92, 246, 0.06);
   --color-sidebar-accent-foreground: #FFFFFF;
-  --color-sidebar-border: #333333;
-  --color-sidebar-ring: #BF6DFF;
-
+  --color-sidebar-border: #18181b;
+  --color-sidebar-ring: #8b5cf6;
+ 
   --radius-xl: 8px;
   --radius-2xl: 12px;
   
   --animate-glow: none;
-
+ 
   --font-sans: var(--font-dm-sans);
+  --font-serif: "Instrument Serif", serif;
   --font-figtree: var(--font-dm-sans);
   --font-montserrat: var(--font-dm-sans);
   --font-inter: var(--font-dm-sans);
@@ -54,18 +56,86 @@
   * {
     @apply border-border outline-ring/50;
     scrollbar-width: thin;
-    scrollbar-color: #333333 transparent;
+    scrollbar-color: var(--color-border) transparent;
   }
   
   body {
     @apply bg-background text-foreground selection:bg-primary/30;
     font-family: var(--font-sans);
-    background-color: #171717;
+    background-color: var(--color-background);
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-sans);
-    @apply tracking-tight font-bold text-foreground;
+    font-family: var(--font-serif);
+    @apply tracking-tight font-normal text-foreground;
+  }
+
+  /* Override hardcoded dark tailwind utility colors globally */
+  .bg-\[\#171717\] {
+    background-color: var(--color-background) !important;
+  }
+  .bg-\[\#222222\] {
+    background-color: var(--color-card) !important;
+  }
+  .bg-\[\#222222\]\/50 {
+    background-color: color-mix(in srgb, var(--color-card) 50%, transparent) !important;
+  }
+  .border-\[\#333333\] {
+    border-color: var(--color-border) !important;
+  }
+  .border-b-\[\#333333\] {
+    border-bottom-color: var(--color-border) !important;
+  }
+  .border-t-\[\#333333\] {
+    border-top-color: var(--color-border) !important;
+  }
+  .border-r-\[\#333333\] {
+    border-right-color: var(--color-border) !important;
+  }
+  .border-l-\[\#333333\] {
+    border-left-color: var(--color-border) !important;
+  }
+  .bg-\[\#333333\] {
+    background-color: var(--color-border) !important;
+  }
+  .bg-\[\#333333\]\/50 {
+    background-color: color-mix(in srgb, var(--color-border) 50%, transparent) !important;
+  }
+  .hover\:bg-\[\#333333\]:hover {
+    background-color: var(--color-border) !important;
+  }
+  .hover\:bg-\[\#333333\/50\]:hover {
+    background-color: color-mix(in srgb, var(--color-border) 50%, transparent) !important;
+  }
+  .hover\:bg-\[\#282828\]:hover {
+    background-color: color-mix(in srgb, var(--color-card) 90%, #ffffff) !important;
+  }
+
+  /* Target active sidebar menu item button layout specifically */
+  [data-sidebar="menu-button"][data-active="true"] {
+    background-color: rgba(139, 92, 246, 0.12) !important;
+    color: #c084fc !important;
+    border: none !important;
+    font-weight: 500 !important;
+    position: relative !important;
+  }
+  
+  [data-sidebar="menu-button"][data-active="true"] svg {
+    color: #c084fc !important;
+  }
+
+  /* Right vertical line indicator for active sidebar item */
+  [data-sidebar="menu-button"][data-active="true"]::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    right: 0 !important;
+    left: auto !important;
+    top: 6px !important;
+    bottom: 6px !important;
+    width: 3px !important;
+    background-color: #c084fc !important;
+    border-radius: 2px 0 0 2px !important;
   }
 }
 
@@ -79,7 +149,7 @@
   }
   
   .glass-morphism {
-    background: #222222;
+    background: var(--color-card);
     border: 1px solid var(--color-border);
   }
 

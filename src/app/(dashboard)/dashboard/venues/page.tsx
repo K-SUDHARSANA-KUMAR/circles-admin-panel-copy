@@ -2,13 +2,18 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { IconPlus, IconTrash, IconLayoutGrid, IconList, IconBuilding, IconRefresh, IconAlertCircle } from "@tabler/icons-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { IconPlus, IconTrash, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { fetchVenues, deleteVenue, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
-import PageHeader from "@/components/shared/page-header";
 import { toast } from "sonner";
-import { DataTable } from "@/components/ui/data-table";
-import { type ColumnDef } from "@tanstack/react-table";
 
 const VenuesPage = () => {
   const router = useRouter();
@@ -17,79 +22,6 @@ const VenuesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'partner'>('all');
-
-  const columns: ColumnDef<Venue>[] = [
-    {
-      id: "sNo",
-      header: "S.no",
-      cell: ({ row }) => (
-        <span className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
-          {row.index + 1}
-        </span>
-      ),
-    },
-    {
-      id: "name",
-      accessorKey: "name",
-      header: "Name",
-      cell: ({ row }) => (
-        <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors">
-          {row.original.name}
-        </span>
-      ),
-    },
-    {
-      id: "addressLine1",
-      accessorKey: "addressLine1",
-      header: "Address",
-      cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground font-normal">
-          {row.original.addressLine1 || "N/A"}
-        </span>
-      ),
-    },
-    {
-      id: "city",
-      accessorKey: "city",
-      header: "City name",
-      cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground font-normal">
-          {row.original.city || "N/A"}
-        </span>
-      ),
-    },
-    {
-      id: "popularityScore",
-      accessorKey: "popularityScore",
-      header: "Popularity Score",
-      cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground font-normal">
-          {row.original.popularityScore !== undefined && row.original.popularityScore !== null
-            ? row.original.popularityScore
-            : "N/A"}
-        </span>
-      ),
-    },
-    {
-      id: "actions",
-      header: () => <div className="text-right pr-6">Action</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-200 pr-2">
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="h-8 px-4 font-semibold text-xs rounded-md bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors"
-            onClick={(e) => {
-               e.stopPropagation();
-               router.push(`/dashboard/venues/${row.original.id}?edit=true`);
-            }}
-          >
-            Edit
-          </Button>
-        </div>
-      ),
-    },
-  ];
 
   const loadVenues = useCallback(async () => {
     setLoading(true);
@@ -130,20 +62,11 @@ const VenuesPage = () => {
     <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6">
       
       {/* Actions / Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
         <div className="flex items-center gap-3">
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value as any)}
-            className="flex h-9 w-[130px] rounded-lg border border-[#333333] bg-[#171717] px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-primary transition-colors cursor-pointer"
-          >
-            <option value="all">All Venues</option>
-            <option value="featured">Featured</option>
-            {/* <option value="partner">Partner</option> */}
-          </select>
-
           {!loading && (
-            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase shrink-0">
+            <span className="text-xs font-bold text-[#d8b4fe] bg-[#1c122c] px-3 py-1.5 rounded-md border border-[#3b1a60] tracking-wider uppercase flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d8b4fe] inline-block"></span>
               {venues.length} Total Spaces
             </span>
           )}
@@ -151,13 +74,13 @@ const VenuesPage = () => {
 
         <div className="flex items-center gap-3 ml-auto sm:ml-0">
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-[#171717] border border-[#333333] rounded-lg p-0.5 mr-1">
+          <div className="flex items-center bg-[#030303] border border-[#18181b] rounded-lg p-0.5 mr-1">
             <button
               type="button"
               onClick={() => setViewMode('table')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
                 viewMode === 'table'
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                  ? 'bg-zinc-800 text-white shadow-md'
                   : 'text-muted-foreground hover:text-white'
               }`}
             >
@@ -168,7 +91,7 @@ const VenuesPage = () => {
               onClick={() => setViewMode('cards')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
                 viewMode === 'cards'
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                  ? 'bg-zinc-800 text-white shadow-md'
                   : 'text-muted-foreground hover:text-white'
               }`}
             >
@@ -188,164 +111,248 @@ const VenuesPage = () => {
           </Button>
           <Button 
             variant="default" 
-            className="flex items-center gap-2 h-9 px-4 text-xs font-bold uppercase tracking-wider"
+            className="flex items-center gap-2 h-9 px-4 text-xs font-bold uppercase tracking-wider bg-[#d8b4fe] hover:bg-[#c084fc] text-[#3b0764] transition-all rounded-lg border-none shadow-lg shadow-purple-500/10"
             onClick={() => router.push("/dashboard/venues/create")}
           >
-            <IconPlus size={16} />
+            <IconPlus size={16} className="text-[#3b0764]" />
             <span>Add New Venue</span>
           </Button>
         </div>
       </div>
 
+      {/* Main Content */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center gap-3 bg-[#222222] border border-[#333333] p-12 rounded-lg min-h-[300px]">
-          <IconRefresh size={32} className="animate-spin text-primary" />
-          <p className="text-xs text-muted-foreground">Loading operational spaces and destinations...</p>
+        <div className="flex flex-col items-center justify-center gap-3 bg-[#09090b] border border-[#18181b] p-12 rounded-xl min-h-[300px]">
+          <IconRefresh size={32} className="animate-spin text-[#d8b4fe]" />
+          <p className="text-xs text-zinc-500">Loading operational spaces...</p>
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center justify-center gap-3 bg-[#222222] border border-[#333333] p-12 rounded-lg min-h-[300px]">
+        <div className="flex flex-col items-center justify-center gap-3 bg-[#09090b] border border-[#18181b] p-12 rounded-xl min-h-[300px]">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
             <IconAlertCircle size={24} className="text-destructive" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground text-center">Failed to load venues</p>
-            <p className="text-xs text-muted-foreground/80 max-w-xs mx-auto mt-0.5 text-center">{error}</p>
+            <p className="text-sm font-semibold text-white text-center">Failed to load venues</p>
+            <p className="text-xs text-zinc-500 max-w-xs mx-auto mt-0.5 text-center">{error}</p>
           </div>
           <Button
             onClick={loadVenues}
             variant="outline"
             size="sm"
-            className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-[#333333]"
+            className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-[#18181b] bg-zinc-900 text-white hover:bg-zinc-800"
           >
             <IconRefresh size={12} />
             Try Again
           </Button>
         </div>
       ) : venues.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4 bg-[#222222] border border-[#333333] p-12 rounded-lg min-h-[300px]">
-          <div className="bg-primary/10 p-4 rounded-full text-primary">
-            <IconBuilding size={32} />
+        <div className="flex flex-col items-center justify-center gap-4 bg-[#09090b] border border-[#18181b] p-12 rounded-xl min-h-[300px]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-950/20 border border-purple-900/30 text-[#d8b4fe]">
+            <IconBuilding size={24} />
           </div>
           <div className="text-center">
-            <p className="text-sm font-bold text-foreground">No Venues Found</p>
-            <p className="text-xs text-muted-foreground mt-1 max-w-xs">There are no venues registered under your account yet.</p>
+            <p className="text-sm font-bold text-white">No Venues Found</p>
+            <p className="text-xs text-zinc-500 mt-1 max-w-xs">There are no venues registered under your account yet.</p>
           </div>
           <Button
             onClick={() => router.push("/dashboard/venues/create")}
             size="sm"
-            className="h-8 text-xs font-bold uppercase tracking-wider px-4"
+            className="h-8 text-xs font-bold uppercase tracking-wider px-4 bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc]"
           >
             Create Your First Venue
           </Button>
         </div>
       ) : viewMode === 'table' ? (
-        <div className="glass-card overflow-hidden shadow-2xl border-[#333333] p-4 bg-[#222222]">
-          <DataTable
-            tableId="venues_table"
-            columns={columns}
-            data={venues}
-            isLoading={loading}
-            isColumnDisplay={false}
-            isDownload={false}
-            hidePagination={venues.length <= 10}
-            getRowClassName={() => "group border-b border-[#333333] hover:bg-white/5 transition-colors font-sans cursor-pointer relative"}
-            onRowClick={(row) => router.push(`/dashboard/venues/${row.id}`)}
-          />
+        /* Main Table Layout */
+        <div className="bg-[#09090b] border border-[#18181b] rounded-xl overflow-hidden shadow-xl">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-b border-[#18181b] bg-transparent font-sans">
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[30%]">Venue Information</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[20%]">Location</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[15%]">City</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[15%]">Manager</TableHead>
+                <TableHead className="text-right bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[20%]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-[#18181b]">
+              {venues.map((venue) => (
+                <TableRow 
+                  key={venue.id} 
+                  className="group border-b border-[#18181b] hover:bg-[#0c0c0e] transition-colors font-sans cursor-pointer"
+                  onClick={() => router.push(`/dashboard/venues/${venue.id}`)}
+                >
+                  <TableCell className="py-5 px-8">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-white">{venue.name}</span>
+                      {venue.addressLine1 && (
+                        <span className="text-xs text-zinc-500 mt-0.5 font-normal">{venue.addressLine1}</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-5 px-8 text-sm text-zinc-400 font-normal">{venue.location || '—'}</TableCell>
+                  <TableCell className="py-5 px-8 text-sm text-zinc-400 font-normal">{venue.city || '—'}</TableCell>
+                  <TableCell className="py-5 px-8">
+                    {venue.manager ? (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                        <IconUser size={12} className="text-zinc-600 shrink-0" />
+                        <span>{venue.manager}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-zinc-600">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right py-5 px-8">
+                    <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-200">
+                      <button
+                        className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/dashboard/venues/${venue.id}?edit=true`);
+                        }}
+                        title="Edit Venue"
+                      >
+                        <IconPencil size={15} />
+                      </button>
+                      <button
+                        className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (venue.id) handleDelete(venue.id);
+                        }}
+                        title="Delete Venue"
+                      >
+                        <IconTrash size={15} />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       ) : (
         /* Premium Cards Layout */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {venues.map((venue) => (
-            <div
-              key={venue.id}
-              onClick={() => router.push(`/dashboard/venues/${venue.id}`)}
-              className="group relative flex flex-col bg-[#222222] hover:bg-[#282828] border border-[#333333] hover:border-primary/40 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden"
-            >
-              {/* Image Cover */}
-              <div className="relative h-44 w-full bg-[#171717] overflow-hidden border-b border-[#333333]">
-                {venue.image ? (
-                  <img
-                    src={venue.image}
-                    alt={venue.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-[#1e1e1e] relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
-                    <IconBuilding className="h-8 w-8 text-primary/40 mb-2 relative z-10" />
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest relative z-10">No Image</span>
-                  </div>
-                )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {venues.map((venue) => {
+            const category = venue.interests && venue.interests[0] ? venue.interests[0] : "Venue";
+            const city = venue.city || "Location";
 
-                {/* ID badge overlay */}
-                {/* <span className="absolute top-3 right-3 text-[10px] font-extrabold text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded border border-white/10 uppercase tracking-widest font-mono z-20">
-                  {venue.name}
-                </span> */}
+            // Badge mapping
+            let badgeText = "Active";
+            let badgeClass = "bg-[#2d1657]/80 text-[#d8b4fe] border border-[#6d28d9]/30 backdrop-blur-sm";
+            if (venue.status === 'Occupied') {
+              badgeText = "Partner";
+              badgeClass = "bg-black/50 text-zinc-300 border border-zinc-700/50 backdrop-blur-sm";
+            } else if (venue.status === 'Maintenance') {
+              badgeText = "Featured";
+              badgeClass = "bg-[#2d1657]/80 text-[#d8b4fe] border border-[#6d28d9]/30 backdrop-blur-sm";
+            }
 
-                {/* Status badge top left overlay */}
-                <div className={`absolute top-3 left-3 px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider border backdrop-blur-md z-20 ${
-                  venue.status === 'Available'
-                    ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/80'
-                    : venue.status === 'Occupied'
-                    ? 'bg-amber-950/80 text-amber-400 border-amber-800/80'
-                    : 'bg-zinc-900/80 text-zinc-400 border-zinc-700/80'
-                }`}>
-                  {venue.status}
-                </div>
-              </div>
+            return (
+              <div
+                key={venue.id}
+                onClick={() => router.push(`/dashboard/venues/${venue.id}`)}
+                className="group relative flex flex-col bg-[#0c0c0e] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-black/60"
+              >
+                {/* Image Cover with title overlay */}
+                <div className="relative w-full overflow-hidden" style={{height: '260px'}}>
+                  {venue.image ? (
+                    <img
+                      src={venue.image}
+                      alt={venue.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-950/20 to-transparent" />
+                      <IconBuilding className="h-8 w-8 text-purple-400/40 mb-2 relative z-10" />
+                      <span className="text-[10px] uppercase font-bold text-zinc-600 tracking-widest relative z-10">No Image</span>
+                    </div>
+                  )}
 
-              {/* Card Body */}
-              <div className="p-5 flex-1 flex flex-col justify-between">
-                <div className="space-y-4">
-                  {/* Title & Manager */}
-                  <div className="space-y-1">
-                    <h3 className="text-base font-bold text-white group-hover:text-primary transition-colors truncate">
+                  {/* Deep fade-to-card gradient at bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0e] via-[#0c0c0e]/30 to-transparent" />
+
+                  {/* Title + Badge overlaid on image bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 flex items-end justify-between gap-2">
+                    <h3 className="text-sm font-bold text-white leading-snug line-clamp-2 drop-shadow-md">
                       {venue.name}
                     </h3>
-                  </div>
-
-                  {/* Location Info */}
-                  <div className="bg-[#171717] border border-[#2a2a2a] p-3 rounded-lg flex items-center gap-4">
-                    <span className="text-xs text-muted-foreground/85 leading-relaxed truncate block">
-                      {venue.location}
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${badgeClass}`}>
+                      {badgeText}
                     </span>
                   </div>
                 </div>
 
-                {/* Actions Footer */}
-                <div className="flex items-center justify-between border-t border-[#333333] pt-4 mt-5">
-                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                    Venue Details
-                  </span>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="h-8 px-3 font-semibold text-xs rounded-lg bg-[#171717] hover:bg-[#333333] border border-[#333333] hover:border-primary/50 text-primary transition-colors flex items-center gap-1"
+                {/* Card Body */}
+                <div className="px-4 pt-3 pb-4 flex flex-col gap-3">
+                  {/* Category & City */}
+                  <p className="text-xs text-zinc-500 font-medium">
+                    {category} · {city}
+                  </p>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1 h-8 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all text-xs font-medium rounded-lg flex items-center justify-center gap-1.5"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/dashboard/venues/${venue.id}?edit=true`);
                       }}
                     >
-                      Edit
+                      <IconPencil size={13} />
+                      <span>Edit</span>
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors flex items-center justify-center"
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 bg-transparent border border-zinc-800 text-red-400 hover:text-red-300 hover:border-red-900/50 rounded-lg flex items-center justify-center transition-all shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (venue.id) handleDelete(venue.id);
                       }}
                     >
-                      <IconTrash size={14} />
+                      <IconTrash size={13} />
                     </Button>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+      )}
+
+      {/* Pagination footer */}
+      {!loading && !error && venues.length > 0 && (
+        <div className="flex items-center justify-between pt-4 px-1 text-xs">
+          <span className="text-zinc-500">
+            Showing 1 to {venues.length} of {venues.length} entries
+          </span>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button"
+              className="flex items-center justify-center h-8 w-8 rounded-lg border border-[#18181b] bg-zinc-950 text-zinc-400 hover:bg-zinc-900 transition-all font-semibold"
+              disabled
+            >
+              &lt;
+            </button>
+            <button 
+              type="button"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#8b5cf6] text-white font-bold transition-all shadow-md shadow-purple-500/20"
+            >
+              1
+            </button>
+            <button 
+              type="button"
+              className="flex items-center justify-center h-8 w-8 rounded-lg border border-[#18181b] bg-zinc-950 text-zinc-400 hover:bg-zinc-900 transition-all font-semibold"
+              disabled
+            >
+              &gt;
+            </button>
+          </div>
         </div>
       )}
     </div>

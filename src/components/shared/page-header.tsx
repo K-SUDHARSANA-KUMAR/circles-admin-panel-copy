@@ -51,22 +51,38 @@ const routeMap: Record<string, { title: string; subtitle?: string }> = {
 };
 
 const getHeaderInfo = (pathname: string) => {
-  if (routeMap[pathname]) return routeMap[pathname];
-
-  // Dynamic segments fallback
   const segments = pathname.split('/').filter(Boolean);
-  if (segments.length === 0) return { title: 'Admin Console' };
-
-  const lastSegment = segments[segments.length - 1];
-  let title = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
-  if (title.length <= 4 && /\d/.test(title)) {
-    title = `Details: ${title}`;
-  }
   
-  return {
-    title: title.replace(/-/g, ' '),
-    subtitle: `Circles Admin / ${segments.map(s => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ')).join(' / ')}`,
-  };
+  // Custom title override
+  let title = '';
+  const normalizedPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  
+  if (normalizedPath === '/dashboard/overview') {
+    title = 'Overview';
+  } else if (routeMap[normalizedPath]) {
+    title = routeMap[normalizedPath].title;
+  } else if (segments.length > 0) {
+    const lastSegment = segments[segments.length - 1];
+    title = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ');
+    if (title.length <= 4 && /\d/.test(title)) {
+      title = `Details: ${title}`;
+    }
+  } else {
+    title = 'Admin Console';
+  }
+
+  // Format breadcrumbs dynamically: Circles Admin > Dashboard > Overview
+  const formattedSegments = segments.map(segment => {
+    if (segment.toLowerCase() === 'user-management') return 'User Management';
+    return segment
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  });
+
+  const subtitle = ['Circles Admin', ...formattedSegments].join(' > ');
+  
+  return { title, subtitle };
 };
 
 const segmentLabelMap: Record<string, string> = {
@@ -134,7 +150,7 @@ const PageHeader = () => {
   }
   
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#333333] bg-[#171717]/80 backdrop-blur-md px-6 py-3.5 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md px-6 flex items-center justify-between h-20">
       {/* Left: title & subtitle */}
       <div className="flex items-center gap-3">
         <div className="md:hidden">
@@ -193,18 +209,24 @@ const PageHeader = () => {
         <div className="flex items-center gap-3">
           <SpringBoard />
 
+          {/* Vertical Separator */}
+          <div className="w-px h-6 bg-border mx-1" />
+
           {/* User profile chip */}
           <Link
             href="/dashboard/profile"
-            className="flex items-center gap-2 bg-[#222222] border border-[#333333] hover:border-[#BF6DFF]/50 p-1 pr-3 rounded-full transition-all cursor-pointer h-[36px]"
+            className="flex items-center gap-3 bg-transparent hover:opacity-85 transition-opacity cursor-pointer py-1"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#BF6DFF]/20 text-[#BF6DFF] font-semibold text-xs shrink-0">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-            </div>
-            <div className="flex flex-col text-left justify-center pr-1">
-              <span className="text-[11px] font-medium text-white leading-none">
-                {user?.name || 'Admin'}
+            <div className="flex flex-col text-right justify-center">
+              <span className="text-xs font-semibold text-white leading-none">
+                {user?.name || 'Irfans'}
               </span>
+              <span className="text-[10px] text-muted-foreground font-medium leading-none mt-1">
+                {user?.roleName || 'Super Admin'}
+              </span>
+            </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-xs shrink-0 border border-primary/30">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'I'}
             </div>
           </Link>
         </div>
