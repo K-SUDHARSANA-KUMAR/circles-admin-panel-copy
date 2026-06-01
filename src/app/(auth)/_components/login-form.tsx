@@ -97,7 +97,7 @@ export const LoginForm = ({
       <div className="mx-auto w-[90%] space-y-6 md:w-[60%] animate-in fade-in duration-300">
         <div className="flex flex-col items-center justify-center gap-2 pb-2">
           <div>
-            <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-25" />
+            <img src="/circles_icon_white.svg" alt="logo" className="h-16 w-16" />
           </div>
           <div className="space-y-1 text-center">
             <h3 className="font-montserrat text-3xl font-bold">Forgot Password</h3>
@@ -152,7 +152,7 @@ export const LoginForm = ({
       <div className="mx-auto w-[90%] space-y-6 md:w-[60%] animate-in fade-in duration-300">
         <div className="flex flex-col items-center justify-center gap-2 pb-2">
           <div>
-            <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-25" />
+            <img src="/circles_icon_white.svg" alt="logo" className="h-16 w-16" />
           </div>
           <div className="space-y-1 text-center">
             <h3 className="font-montserrat text-3xl font-bold">Reset Password</h3>
@@ -250,7 +250,7 @@ export const LoginForm = ({
       >
         <div className="flex flex-col items-center justify-center gap-2 pb-6">
           <div>
-            <img src="/Circles_logo1.svg" alt="logo" className="h-auto w-25" />
+            <img src="/circles_icon_white.svg" alt="logo" className="h-16 w-16" />
           </div>
           <div className="space-y-1 text-center">
             <h3 className="font-montserrat text-3xl font-bold">Log In</h3>

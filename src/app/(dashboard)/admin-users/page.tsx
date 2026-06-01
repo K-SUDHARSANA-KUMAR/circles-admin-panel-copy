@@ -21,12 +21,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { DataTable } from '@/components/ui/data-table';
-import { type ColumnDef } from '@tanstack/react-table';
-
-// Obsolete TableSkeleton removed
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -56,152 +50,9 @@ export default function AdminUsersPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  // TanStack columns definition for generic DataTable
-  const columns: ColumnDef<AdminUser>[] = [
-    {
-      id: 'sNo',
-      header: 'S.No',
-      cell: ({ row }) => (
-        <span className="text-xs font-extrabold text-white group-hover:text-primary transition-colors">
-          {row.index + 1}
-        </span>
-      ),
-    },
-    {
-      id: 'name',
-      accessorKey: 'name',
-      header: 'Admin User',
-      cell: ({ row }) => {
-        const displayName = row.original.name ? `${row.original.name} ${row.original.lastName || ''}`.trim() : 'Unnamed Admin';
-        return (
-          <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 smooth-transition group-hover:scale-105"
-              style={{
-                background: "linear-gradient(135deg, #7C3AED, #06B6D4)",
-                boxShadow: "0 0 12px rgba(124, 58, 237, 0.3)",
-              }}
-            >
-              {row.original.name ? row.original.name.charAt(0).toUpperCase() : 'A'}
-            </div>
-            <span className="text-sm font-bold text-foreground/90 group-hover:text-primary transition-colors truncate max-w-[180px]">
-              {displayName}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: 'email',
-      accessorKey: 'email',
-      header: 'Contact Info',
-      cell: ({ row }) => (
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <IconMail size={12} className="shrink-0 text-muted-foreground/60" />
-            <span className="truncate max-w-[200px]">{row.original.email}</span>
-          </div>
-          {row.original.phone && (
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
-              <IconPhone size={11} className="shrink-0 text-muted-foreground/50" />
-              <span className="truncate">{row.original.phone}</span>
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      id: 'role',
-      accessorKey: 'role',
-      header: 'Role',
-      cell: ({ row }) => {
-        const roleStyle = getRoleStyle(row.original.role);
-        return (
-          <span
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full"
-            style={{
-              background: roleStyle.bg,
-              color: roleStyle.color,
-              border: roleStyle.border,
-            }}
-          >
-            <IconShield size={9} className="shrink-0" />
-            <span>{row.original.role || 'Admin'}</span>
-          </span>
-        );
-      },
-    },
-    {
-      id: 'gender',
-      accessorKey: 'gender',
-      header: 'Gender',
-      cell: ({ row }) => row.original.gender ? (
-        <div 
-          className="inline-flex items-center p-1 rounded bg-white/5 text-muted-foreground/85 border border-white/5" 
-          title={`Gender: ${row.original.gender}`}
-        >
-          {row.original.gender.toLowerCase() === 'male' ? (
-            <IconGenderMale size={13} className="text-cyan-400" />
-          ) : (
-            <IconGenderFemale size={13} className="text-pink-400" />
-          )}
-        </div>
-      ) : (
-        <span className="text-xs text-muted-foreground/40">—</span>
-      ),
-    },
-    {
-      id: 'status',
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => {
-        const statusStyle = getStatusStyle(row.original.status);
-        return (
-          <span
-            className="inline-flex text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-            style={{
-              background: statusStyle.bg,
-              color: statusStyle.color,
-              border: statusStyle.border,
-            }}
-          >
-            {row.original.status || 'Active'}
-          </span>
-        );
-      },
-    },
-    {
-      id: 'actions',
-      header: () => <div className="text-right pr-6">Actions</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 pr-4">
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="h-7 px-3 font-bold text-[10px] uppercase tracking-wider rounded-full hover:bg-primary hover:text-white transition-all flex items-center gap-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenEdit(row.original);
-            }}
-          >
-            <IconPencil size={12} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground/50 transition-colors flex items-center justify-center"
-            onClick={(e) => {
-              e.stopPropagation();
-              setDeleteTarget(row.original);
-            }}
-            title="Delete Admin"
-          >
-            <IconTrash size={13} />
-          </Button>
-        </div>
-      ),
-    }
-  ];
+  // Pagination state (client-side)
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Debounce search query to prevent excessive API requests
   useEffect(() => {
@@ -237,6 +88,11 @@ export default function AdminUsersPage() {
   const handleRefresh = () => {
     loadAdminUsers(searchQuery);
   };
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   // ─── Create Admin User (Bootstrap) ──────────────────────────────────────────
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -345,46 +201,22 @@ export default function AdminUsersPage() {
     setIsModalOpen(true);
   };
 
-  const getStatusStyle = (status: string) => {
-    const s = status ? status.toLowerCase() : 'active';
-    if (s === 'active') {
-      return {
-        bg: 'rgba(6, 182, 212, 0.1)',
-        color: '#06B6D4',
-        border: '1px solid rgba(6, 182, 212, 0.2)',
-      };
-    }
-    return {
-      bg: 'rgba(239, 68, 68, 0.1)',
-      color: '#EF4444',
-      border: '1px solid rgba(239, 68, 68, 0.2)',
-    };
-  };
-
-  const getRoleStyle = (role: string) => {
-    const r = role ? role.toLowerCase() : 'admin';
-    if (r === 'superadmin' || r === 'super_admin' || r === 'owner') {
-      return {
-        bg: 'rgba(236, 72, 153, 0.15)',
-        color: '#ec4899',
-        border: '1px solid rgba(236, 72, 153, 0.3)',
-      };
-    }
-    return {
-      bg: 'rgba(124, 58, 237, 0.15)',
-      color: '#a78bfa',
-      border: '1px solid rgba(124, 58, 237, 0.3)',
-    };
-  };
+  // Slice paginated items
+  const filteredUsers = users;
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700">
       
       {/* Actions / Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
         <div className="flex items-center gap-3">
           {!loading && !error && (
-            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider uppercase">
+            <span className="text-[10px] font-bold text-[#d8b4fe] bg-[#1c122c] px-2.5 py-1 rounded-md border border-[#3b1a60] tracking-wider uppercase select-none">
               {total} Admin Users
             </span>
           )}
@@ -393,12 +225,12 @@ export default function AdminUsersPage() {
         {/* Actions */}
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:flex-initial sm:w-64">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
             <Input
               placeholder="Search by name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs"
+              className="pl-8 h-8 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 rounded-lg"
             />
           </div>
           <Button
@@ -406,16 +238,16 @@ export default function AdminUsersPage() {
             size="icon"
             onClick={handleRefresh}
             disabled={loading}
-            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
+            className="h-8 w-8 shrink-0 border-[#18181b] bg-[#09090b] hover:bg-[#18181b] rounded-lg"
             title="Refresh"
           >
-            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
+            <IconRefresh size={12} className={loading ? 'animate-spin' : ''} />
           </Button>
           <Button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 h-9 px-4 text-xs font-bold uppercase tracking-wider shrink-0"
+            className="flex items-center gap-2 h-8 px-4 text-xs font-bold uppercase tracking-wider bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] shrink-0 rounded-lg transition-colors duration-200"
           >
-            <IconPlus size={16} />
+            <IconPlus size={14} />
             <span>Add Admin</span>
           </Button>
         </div>
@@ -423,52 +255,235 @@ export default function AdminUsersPage() {
 
       {/* Main Table Layout */}
       {error ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#222222] border border-[#333333] rounded-lg">
+        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#09090b] border border-[#18181b] rounded-xl">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
             <IconAlertCircle size={28} className="text-destructive" />
           </div>
           <div className="space-y-1 text-center">
-            <p className="text-sm font-semibold text-foreground">Failed to load admin users</p>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
+            <p className="text-sm font-semibold text-white">Failed to load admin users</p>
+            <p className="text-xs text-zinc-500 max-w-sm mx-auto">{error}</p>
           </div>
           <Button
             onClick={handleRefresh}
             variant="outline"
-            className="gap-2 text-xs font-bold uppercase tracking-wider border-white/10 hover:bg-white/5"
+            className="gap-2 text-xs font-bold uppercase tracking-wider border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800 h-8"
           >
-            <IconRefresh size={14} />
+            <IconRefresh size={12} />
             Try Again
           </Button>
         </div>
       ) : (
-        <div className="glass-card overflow-hidden shadow-2xl border-[#333333] p-4 bg-[#222222]">
-          <DataTable
-            tableId="admin_users_table"
-            columns={columns}
-            data={users}
-            isLoading={loading}
-            isColumnDisplay={false}
-            isDownload={false}
-            getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
-          />
+        <div className="bg-[#09090b] border border-[#18181b] rounded-xl shadow-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-[#18181b]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[25%]">
+                    Admin User
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[25%]">
+                    Contact Info
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[15%]">
+                    Role
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[10%]">
+                    Gender
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[15%]">
+                    Status
+                  </th>
+                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-10 select-none w-[10%]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#18181b]/60">
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="py-20 text-center">
+                      <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
+                      <p className="text-xs text-zinc-500 mt-2 font-medium">Loading admin users...</p>
+                    </td>
+                  </tr>
+                ) : paginatedUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-20 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <IconUser size={32} className="text-zinc-600" />
+                        <p className="text-xs font-semibold text-zinc-400">No administrators found</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedUsers.map((user) => {
+                    const displayName = user.name ? `${user.name} ${user.lastName || ''}`.trim() : 'Unnamed Admin';
+                    const role = (user.role || 'admin').toLowerCase();
+                    const isSuper = role === 'superadmin' || role === 'super_admin' || role === 'owner';
+                    const status = (user.status || 'active').toLowerCase();
+
+                    return (
+                      <tr
+                        key={user.id}
+                        className="group hover:bg-[#0c0c0e] transition-colors duration-200"
+                      >
+                        {/* Admin User */}
+                        <td className="py-4 px-10">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-sm"
+                              style={{
+                                background: "linear-gradient(135deg, #7C3AED, #06B6D4)",
+                              }}
+                            >
+                              {user.name ? user.name.charAt(0).toUpperCase() : 'A'}
+                            </div>
+                            <span className="text-sm font-semibold text-white truncate max-w-[180px]">
+                              {displayName}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Contact Info */}
+                        <td className="py-4 px-10">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                              <IconMail size={12} className="shrink-0 text-zinc-600" />
+                              <span className="truncate max-w-[200px]">{user.email}</span>
+                            </div>
+                            {user.phone && (
+                              <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
+                                <IconPhone size={11} className="shrink-0 text-zinc-600" />
+                                <span className="truncate">{user.phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Role Badge */}
+                        <td className="py-4 px-10">
+                          {isSuper ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#2c1225]/60 border border-[#601a4f]/50 text-pink-400 text-[10px] font-bold uppercase tracking-wider select-none">
+                              <IconShield size={10} className="shrink-0" />
+                              <span>{user.role || 'Super Admin'}</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[10px] font-bold uppercase tracking-wider select-none">
+                              <IconShield size={10} className="shrink-0" />
+                              <span>{user.role || 'Admin'}</span>
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Gender */}
+                        <td className="py-4 px-10">
+                          {user.gender ? (
+                            <div 
+                              className="inline-flex items-center p-1 rounded-md bg-zinc-900/60 border border-zinc-800/80 text-zinc-400" 
+                              title={`Gender: ${user.gender}`}
+                            >
+                              {user.gender.toLowerCase() === 'male' ? (
+                                <IconGenderMale size={13} className="text-cyan-400" />
+                              ) : (
+                                <IconGenderFemale size={13} className="text-pink-400" />
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* Status Badge */}
+                        <td className="py-4 px-10">
+                          {status === 'active' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-950/20 border border-cyan-900/30 text-cyan-400 text-[10px] font-bold uppercase tracking-wider select-none">
+                              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                              Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[10px] font-bold uppercase tracking-wider select-none">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                              Inactive
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-4 px-10 text-right">
+                          <div className="flex items-center justify-end gap-3.5">
+                            <button
+                              onClick={() => handleOpenEdit(user)}
+                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
+                              title="Edit Permissions"
+                            >
+                              <IconPencil size={15} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(user)}
+                              className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1"
+                              title="Delete Admin"
+                            >
+                              <IconTrash size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-[#18181b] px-10 py-4">
+              <div className="text-[11px] text-zinc-500 text-left">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length} entries
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
+                >
+                  Previous
+                </Button>
+                <div className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Slide-out / Modal Dialog for Editing Admin User */}
       {isModalOpen && editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+          <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 rounded-xl">
             
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary">
-                  <IconUser size={18} />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
+                  <IconUser size={16} />
                 </div>
                 <div>
-                  <CardTitle className="text-base font-bold text-white">
+                  <CardTitle className="text-sm font-bold text-white">
                     Edit Admin User
                   </CardTitle>
-                  <CardDescription className="text-[11px] text-muted-foreground mt-0.5">
+                  <CardDescription className="text-[10px] text-zinc-500 mt-0.5">
                     Modify operational permissions and details for this administrator
                   </CardDescription>
                 </div>
@@ -477,9 +492,9 @@ export default function AdminUsersPage() {
                 variant="ghost"
                 size="icon"
                 onClick={handleCloseModal}
-                className="h-8 w-8 text-muted-foreground hover:text-white rounded-lg"
+                className="h-8 w-8 text-zinc-500 hover:text-white rounded-lg hover:bg-zinc-900"
               >
-                <IconX size={16} />
+                <IconX size={14} />
               </Button>
             </div>
 
@@ -488,42 +503,42 @@ export default function AdminUsersPage() {
               {/* Name Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                    First Name <span className="text-destructive">*</span>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    First Name <span className="text-red-500">*</span>
                   </label>
                   <Input
                     required
                     placeholder="First Name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                    className="h-9 text-xs bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-purple-500 rounded-lg"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                     Last Name
                   </label>
                   <Input
                     placeholder="Last Name"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                    className="h-9 text-xs bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-purple-500 rounded-lg"
                   />
                 </div>
               </div>
 
               {/* Status Select */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                  Status <span className="text-destructive">*</span>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  Status <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="flex h-9 w-full rounded-md border border-white/10 bg-zinc-900 px-3 py-1 text-xs text-white focus:outline-none focus:border-primary/50"
+                  className="flex h-9 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs text-white focus:outline-none focus:border-purple-500"
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="active" className="bg-zinc-950">Active</option>
+                  <option value="inactive" className="bg-zinc-950">Inactive</option>
                 </select>
               </div>
 
@@ -533,14 +548,14 @@ export default function AdminUsersPage() {
                   type="button"
                   variant="ghost"
                   onClick={handleCloseModal}
-                  className="h-9 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white"
+                  className="h-8 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={saving || !formData.name.trim()}
-                  className="h-9 text-xs font-bold uppercase tracking-wider px-5 shadow-xl shadow-primary/20"
+                  className="h-8 text-xs font-semibold uppercase tracking-wider px-5 bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] rounded-lg transition-colors duration-200"
                 >
                   {saving ? 'Saving...' : 'Update Details'}
                 </Button>
@@ -553,19 +568,19 @@ export default function AdminUsersPage() {
 
       {/* Slide-out / Modal Dialog for Bootstrapping New Admin User */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+          <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 rounded-xl">
             
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary">
-                  <IconPlus size={18} />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
+                  <IconPlus size={16} />
                 </div>
                 <div>
-                  <CardTitle className="text-base font-bold text-white">
+                  <CardTitle className="text-sm font-bold text-white">
                     Add New Admin User
                   </CardTitle>
-                  <CardDescription className="text-[11px] text-muted-foreground mt-0.5">
+                  <CardDescription className="text-[10px] text-zinc-500 mt-0.5">
                     Register a new administrator and create their system credentials
                   </CardDescription>
                 </div>
@@ -574,9 +589,9 @@ export default function AdminUsersPage() {
                 variant="ghost"
                 size="icon"
                 onClick={handleCloseAddModal}
-                className="h-8 w-8 text-muted-foreground hover:text-white rounded-lg"
+                className="h-8 w-8 text-zinc-500 hover:text-white rounded-lg hover:bg-zinc-900"
               >
-                <IconX size={16} />
+                <IconX size={14} />
               </Button>
             </div>
 
@@ -585,34 +600,34 @@ export default function AdminUsersPage() {
               {/* Name Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                    First Name <span className="text-destructive">*</span>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    First Name <span className="text-red-500">*</span>
                   </label>
                   <Input
                     required
                     placeholder="First Name"
                     value={addFormData.name}
                     onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })}
-                    className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                    className="h-9 text-xs bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-purple-500 rounded-lg"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                     Last Name
                   </label>
                   <Input
                     placeholder="Last Name"
                     value={addFormData.lastName}
                     onChange={(e) => setAddFormData({ ...addFormData, lastName: e.target.value })}
-                    className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                    className="h-9 text-xs bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-purple-500 rounded-lg"
                   />
                 </div>
               </div>
 
               {/* Email Address */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                  Email Address <span className="text-destructive">*</span>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <Input
                   required
@@ -620,14 +635,14 @@ export default function AdminUsersPage() {
                   placeholder="name@company.com"
                   value={addFormData.email}
                   onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
-                  className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                  className="h-9 text-xs bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-purple-500 rounded-lg"
                 />
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                  Password <span className="text-destructive">*</span>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  Password <span className="text-red-500">*</span>
                 </label>
                 <Input
                   required
@@ -635,7 +650,7 @@ export default function AdminUsersPage() {
                   placeholder="Minimum 8 characters with numbers & symbols"
                   value={addFormData.password}
                   onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
-                  className="h-9 text-xs bg-white/5 border-white/10 focus:border-primary/50"
+                  className="h-9 text-xs bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-purple-500 rounded-lg"
                 />
               </div>
 
@@ -645,14 +660,14 @@ export default function AdminUsersPage() {
                   type="button"
                   variant="ghost"
                   onClick={handleCloseAddModal}
-                  className="h-9 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white"
+                  className="h-8 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={saving || !addFormData.name.trim() || !addFormData.email.trim() || !addFormData.password.trim()}
-                  className="h-9 text-xs font-bold uppercase tracking-wider px-5 shadow-xl shadow-primary/20"
+                  className="h-8 text-xs font-semibold uppercase tracking-wider px-5 bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] rounded-lg transition-colors duration-200"
                 >
                   {saving ? 'Creating...' : 'Create Admin'}
                 </Button>
@@ -665,29 +680,29 @@ export default function AdminUsersPage() {
 
       {/* Custom Gorgeous Deletion Confirmation Dialog */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <Card className="w-full max-w-sm border-white/10 bg-zinc-950/95 p-5 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <Card className="w-full max-w-sm border-white/10 bg-zinc-950/95 p-5 shadow-2xl space-y-4 rounded-xl">
             <CardHeader className="p-0">
-              <CardTitle className="text-sm font-bold flex items-center gap-2 text-destructive">
-                <IconAlertCircle size={18} />
+              <CardTitle className="text-xs font-bold flex items-center gap-2 text-red-400 uppercase tracking-wider">
+                <IconAlertCircle size={16} />
                 <span>Confirm Deletion</span>
               </CardTitle>
-              <CardDescription className="text-xs pt-1">
+              <CardDescription className="text-xs pt-1 text-zinc-400">
                 Are you sure you want to delete admin user <strong className="text-white font-semibold">"{deleteTarget.name} {deleteTarget.lastName || ''}"</strong>? This administrator will immediately lose access to the system.
               </CardDescription>
             </CardHeader>
-            <div className="flex gap-3 justify-end pt-2 border-t border-white/5">
+            <div className="flex gap-3 justify-end pt-2 border-t border-[#18181b]">
               <Button
                 variant="ghost"
                 onClick={() => setDeleteTarget(null)}
-                className="h-8 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white"
+                className="h-8 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleDeleteUser}
-                className="h-8 text-xs font-bold uppercase tracking-wider px-4"
+                className="h-8 text-xs font-semibold uppercase tracking-wider px-4 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
               >
                 Confirm Delete
               </Button>

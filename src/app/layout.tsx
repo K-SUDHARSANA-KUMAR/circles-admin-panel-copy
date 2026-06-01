@@ -4,7 +4,6 @@ import GenericProvider from '@/providers/generic-provider';
 import QueryProvider from '@/providers/query-provider';
 import { ReduxProvider } from '@/providers/redux-provider';
 import { DM_Sans } from 'next/font/google';
-
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
