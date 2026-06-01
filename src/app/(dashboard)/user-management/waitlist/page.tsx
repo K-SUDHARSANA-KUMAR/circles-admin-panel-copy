@@ -38,7 +38,7 @@ export default function WaitlistPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [processing, setProcessing] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const router = useRouter();
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
@@ -401,7 +401,12 @@ export default function WaitlistPage() {
             totalItems={total}
             initialPagination={{ pageIndex: currentPage - 1, pageSize: itemsPerPage }}
             onPaginationChange={(paginationState) => {
-              setCurrentPage(paginationState.pageIndex + 1);
+              if (paginationState.pageSize !== itemsPerPage) {
+                setItemsPerPage(paginationState.pageSize);
+                setCurrentPage(1);
+              } else {
+                setCurrentPage(paginationState.pageIndex + 1);
+              }
             }}
             getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
             onRowClick={(row) => router.push(`/user-management/waitlist/${row.id}`)}

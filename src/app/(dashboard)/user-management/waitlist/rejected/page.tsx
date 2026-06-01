@@ -28,7 +28,7 @@ export default function RejectedWaitlistPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Debounce search query to prevent excessive API requests
   useEffect(() => {
@@ -269,7 +269,12 @@ export default function RejectedWaitlistPage() {
             totalItems={total}
             initialPagination={{ pageIndex: currentPage - 1, pageSize: itemsPerPage }}
             onPaginationChange={(paginationState) => {
-              setCurrentPage(paginationState.pageIndex + 1);
+              if (paginationState.pageSize !== itemsPerPage) {
+                setItemsPerPage(paginationState.pageSize);
+                setCurrentPage(1);
+              } else {
+                setCurrentPage(paginationState.pageIndex + 1);
+              }
             }}
             getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
           />
