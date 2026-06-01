@@ -38,7 +38,7 @@ export default function ProfileVerificationPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   // Modal and verification states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -392,7 +392,12 @@ export default function ProfileVerificationPage() {
             totalItems={total}
             initialPagination={{ pageIndex: page - 1, pageSize: limit }}
             onPaginationChange={(paginationState) => {
-              setPage(paginationState.pageIndex + 1);
+              if (paginationState.pageSize !== limit) {
+                setLimit(paginationState.pageSize);
+                setPage(1);
+              } else {
+                setPage(paginationState.pageIndex + 1);
+              }
             }}
             getRowClassName={() => "group border-border/40 hover:bg-primary/5 smooth-transition"}
             onRowClick={(row) => router.push(`/user-management/users/${row.id}`)}

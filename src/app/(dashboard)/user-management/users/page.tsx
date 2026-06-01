@@ -35,6 +35,8 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Modal and status update states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,7 +98,7 @@ export default function UsersPage() {
       header: 'S.No',
       cell: ({ row }) => (
         <span className="text-xs font-bold text-muted-foreground/50 group-hover:text-primary transition-colors">
-          {row.index + 1}
+          {(currentPage - 1) * itemsPerPage + row.index + 1}
         </span>
       ),
     },
@@ -281,11 +283,12 @@ export default function UsersPage() {
     };
   }, [searchQuery]);
 
-  const loadCustomers = useCallback(async (searchVal = '') => {
+  const loadCustomers = useCallback(async (searchVal = '', pageNum = 1, limitNum = 10) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetchCustomers({ search: searchVal, limit: 50, skip: 0 });
+      const skip = (pageNum - 1) * limitNum;
+      const response = await fetchCustomers({ search: searchVal, limit: limitNum, skip });
       setCustomers(response.customers);
       setTotal(response.total);
     } catch (err: unknown) {
@@ -297,12 +300,17 @@ export default function UsersPage() {
     }
   }, []);
 
+  // Reset page index when search query changes
   useEffect(() => {
-    loadCustomers(debouncedSearch);
-  }, [debouncedSearch, loadCustomers]);
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    loadCustomers(debouncedSearch, currentPage, itemsPerPage);
+  }, [debouncedSearch, currentPage, itemsPerPage, loadCustomers]);
 
   const handleRefresh = () => {
-    loadCustomers(searchQuery);
+    loadCustomers(searchQuery, currentPage, itemsPerPage);
   };
 
   const handleOpenEdit = (customer: Customer) => {
@@ -402,6 +410,18 @@ export default function UsersPage() {
             isLoading={loading}
             isColumnDisplay={false}
             isDownload={false}
+            manualPagination={true}
+            pageCount={Math.ceil(total / itemsPerPage)}
+            totalItems={total}
+            initialPagination={{ pageIndex: currentPage - 1, pageSize: itemsPerPage }}
+            onPaginationChange={(paginationState) => {
+              if (paginationState.pageSize !== itemsPerPage) {
+                setItemsPerPage(paginationState.pageSize);
+                setCurrentPage(1);
+              } else {
+                setCurrentPage(paginationState.pageIndex + 1);
+              }
+            }}
             getRowClassName={() => "group border-b border-[#333333] hover:bg-white/5 transition-colors font-sans"}
             onRowClick={(row) => router.push(`/user-management/users/${row.id}`)}
           />
