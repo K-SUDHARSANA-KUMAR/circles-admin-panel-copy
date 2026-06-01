@@ -5,11 +5,17 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchCustomerById } from '@/services/user.service';
 import { fetchInterestGroups } from '@/services/interest.service';
 import { fetchCities } from '@/services/cities.service';
-import { IconLoader, IconAlertCircle, IconRefresh } from '@tabler/icons-react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconUser } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import UserDetailsView, { type DetailedUser } from '@/components/shared/UserDetailsView';
+import {
+  DetailPageContainer,
+  DetailPageHeader,
+  DetailLoadingPanel,
+  ListingErrorPanel,
+  listingStyles,
+} from '@/components/shared/listing-page';
 
 export default function UserDetailClient() {
   const router = useRouter();
@@ -28,7 +34,7 @@ export default function UserDetailClient() {
     try {
       const cities = await fetchCities();
       const mapping: Record<string, string> = {};
-      cities.forEach(city => {
+      cities.forEach((city) => {
         const id = city.cityId || city.city_id || city.id;
         if (id) {
           mapping[id] = city.name;
@@ -104,62 +110,44 @@ export default function UserDetailClient() {
 
   if (!userId) {
     return (
-      <div className="max-w-[1400px] mx-auto min-h-[60vh] flex items-center justify-center font-sans">
-        <Card className="w-full max-w-md border-destructive/20 bg-[#222222] p-6 shadow-2xl space-y-4 rounded-lg text-center">
-          <CardTitle className="text-base font-bold text-white">Missing User ID</CardTitle>
-          <CardDescription className="text-[12px] text-muted-foreground">
-            Open a user from the list to view their profile.
-          </CardDescription>
-          <Button onClick={handleBack} className="h-9 text-xs font-bold uppercase tracking-wider">
+      <DetailPageContainer className="min-h-[60vh] flex items-center justify-center">
+        <div className={`${listingStyles.tableWrapper} w-full max-w-md p-6 text-center space-y-4`}>
+          <h2 className={listingStyles.title}>
+            <IconUser className={listingStyles.titleIcon} size={22} aria-hidden />
+            Missing User ID
+          </h2>
+          <p className={listingStyles.subtitle}>Open a user from the list to view their profile.</p>
+          <Button onClick={handleBack} className={listingStyles.primaryButton}>
             Back to List
           </Button>
-        </Card>
-      </div>
+        </div>
+      </DetailPageContainer>
     );
   }
 
   if (loading) {
-    return (
-      <div className="max-w-[1400px] mx-auto min-h-[60vh] flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300 font-sans">
-        <IconLoader className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-sm font-medium text-muted-foreground">Fetching complete user profile details...</p>
-      </div>
-    );
+    return <DetailLoadingPanel message="Fetching complete user profile details..." />;
   }
 
   if (error || !user) {
     return (
-      <div className="max-w-[1400px] mx-auto min-h-[60vh] flex items-center justify-center font-sans">
-        <Card className="w-full max-w-md border-destructive/20 bg-[#222222] p-6 shadow-2xl space-y-4 rounded-lg text-center animate-in zoom-in-95 duration-200">
-          <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-lg bg-destructive/10 border border-destructive/20">
-            <IconAlertCircle size={24} className="text-destructive" />
-          </div>
-          <div className="space-y-1">
-            <CardTitle className="text-base font-bold text-white">Failed to Load User Profile</CardTitle>
-            <CardDescription className="text-[12px] text-muted-foreground mt-0.5">
-              {error || 'No customer data was returned by the user-service.'}
-            </CardDescription>
-          </div>
-          <div className="flex gap-3 justify-center pt-2">
-            <Button
-              onClick={handleBack}
-              variant="ghost"
-              className="h-9 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white"
-            >
-              Back to List
-            </Button>
-            <Button
-              onClick={loadUserDetails}
-              className="h-9 text-xs font-bold uppercase tracking-wider px-5 flex items-center gap-1.5"
-            >
-              <IconRefresh size={12} />
-              <span>Retry</span>
-            </Button>
-          </div>
-        </Card>
-      </div>
+      <DetailPageContainer className="min-h-[60vh] flex flex-col justify-center gap-4">
+        <DetailPageHeader
+          icon={IconUser}
+          title="User Details"
+          subtitle="Profile could not be loaded"
+          onBack={handleBack}
+        />
+        <ListingErrorPanel
+          title="Failed to Load User Profile"
+          message={error || 'No customer data was returned by the user-service.'}
+          onRetry={loadUserDetails}
+        />
+      </DetailPageContainer>
     );
   }
+
+  const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
 
   return (
     <UserDetailsView
@@ -172,6 +160,8 @@ export default function UserDetailClient() {
       cityMap={cityMap}
       onBack={handleBack}
       onReload={loadUserDetails}
+      pageTitle={displayName}
+      pageSubtitle={user.email}
     />
   );
 }

@@ -29,6 +29,13 @@ import {
   updateInterestGroup,
   updateSubInterest,
 } from '@/services/interest.service';
+import {
+  ListingPageContainer,
+  ListingSectionHeader,
+  ListingToolbar,
+  ListingErrorPanel,
+  listingStyles,
+} from '@/components/shared/listing-page';
 
 
 interface GroupStyle {
@@ -238,47 +245,32 @@ export default function InterestsPage() {
   const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
 
   return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-700 space-y-5">
+    <ListingPageContainer>
+      <ListingSectionHeader
+        icon={IconTags}
+        title="Interest Management"
+        subtitle={`${groups.length} interest groups configured`}
+      />
 
-      {/* ── Top bar ────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
-        <div className="flex items-center gap-3">
-          <h2 className="text-sm font-normal text-white">Interest Management</h2>
-          {!loading && (
-            <span className="text-[10px] font-bold text-[#d8b4fe] bg-[#1c122c] px-2.5 py-1 rounded-md border border-[#3b1a60] tracking-wider uppercase">
-              {groups.length} Groups
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-            <Input
-              placeholder="Search groups..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-8 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 w-48 rounded-lg"
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={loadGroups}
-            disabled={loading}
-            className="h-8 w-8 shrink-0 border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-400"
-            title="Refresh"
-          >
-            <IconRefresh size={13} className={loading ? 'animate-spin' : ''} />
-          </Button>
+      <ListingToolbar
+        countLabel={`${groups.length} Groups`}
+        showCount={!loading}
+        searchPlaceholder="Search groups..."
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onRefresh={loadGroups}
+        refreshDisabled={loading}
+        refreshLoading={loading}
+        primaryAction={
           <Button
             onClick={() => setIsCreating(!isCreating)}
-            className="flex items-center gap-1.5 h-8 px-3 text-xs font-bold bg-[#d8b4fe] hover:bg-[#c084fc] text-[#3b0764] rounded-lg border-none"
+            className={listingStyles.primaryButton}
           >
             {isCreating ? <IconX size={14} /> : <IconFolderPlus size={14} />}
             <span>{isCreating ? 'Cancel' : 'New Group'}</span>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Create panel ───────────────────────────────────────────────── */}
       {isCreating && (
@@ -309,16 +301,11 @@ export default function InterestsPage() {
 
       {/* ── Error ─────────────────────────────────────────────────────── */}
       {!loading && error && (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
-            <IconAlertCircle size={28} className="text-destructive" />
-          </div>
-          <p className="text-sm font-semibold text-foreground">Failed to load interests</p>
-          <p className="text-xs text-muted-foreground max-w-xs">{error}</p>
-          <Button onClick={loadGroups} variant="outline" className="gap-2 text-xs font-bold uppercase tracking-wider">
-            <IconRefresh size={14} /> Try Again
-          </Button>
-        </div>
+        <ListingErrorPanel
+          title="Failed to load interests"
+          message={error}
+          onRetry={loadGroups}
+        />
       )}
 
       {/* ── Empty ─────────────────────────────────────────────────────── */}
@@ -537,7 +524,7 @@ export default function InterestsPage() {
           </div>
         </div>
       )}
-    </div>
+    </ListingPageContainer>
   );
 }
 

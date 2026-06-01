@@ -5,11 +5,17 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchCustomerById, approveWaitlistUser, rejectWaitlistUser } from '@/services/user.service';
 import { fetchInterestGroups } from '@/services/interest.service';
 import { fetchCities } from '@/services/cities.service';
-import { IconLoader, IconAlertCircle, IconRefresh, IconCheck, IconX } from '@tabler/icons-react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconLoader, IconCheck, IconX, IconShieldCheck } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import UserDetailsView, { type DetailedUser } from '@/components/shared/UserDetailsView';
+import {
+  DetailLoadingPanel,
+  DetailPageContainer,
+  DetailPageHeader,
+  ListingErrorPanel,
+  listingStyles,
+} from '@/components/shared/listing-page';
 
 export default function WaitlistDetailClient() {
   const router = useRouter();
@@ -29,7 +35,7 @@ export default function WaitlistDetailClient() {
     try {
       const cities = await fetchCities();
       const mapping: Record<string, string> = {};
-      cities.forEach(city => {
+      cities.forEach((city) => {
         const id = city.cityId || city.city_id || city.id;
         if (id) {
           mapping[id] = city.name;
@@ -108,7 +114,7 @@ export default function WaitlistDetailClient() {
       await approveWaitlistUser(user.id);
       const name = `${user.name || ''} ${user.lastName || ''}`.trim() || 'User';
       toast.success(`Successfully approved ${name}`);
-      router.push('/user-management/waitlist');
+      await loadUserDetails();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to approve user.';
       toast.error(message);
@@ -135,72 +141,13 @@ export default function WaitlistDetailClient() {
 
   const handleBack = () => router.push('/user-management/waitlist');
 
-  if (!userId) {
-    return (
-      <div className="max-w-[1400px] mx-auto min-h-[60vh] flex items-center justify-center font-sans">
-        <Card className="w-full max-w-md border-destructive/20 bg-[#222222] p-6 shadow-2xl space-y-4 rounded-lg text-center">
-          <CardTitle className="text-base font-bold text-white">Missing User ID</CardTitle>
-          <CardDescription className="text-[12px] text-muted-foreground">
-            Open an applicant from the waitlist to review their profile.
-          </CardDescription>
-          <Button onClick={handleBack} className="h-9 text-xs font-bold uppercase tracking-wider">
-            Back to List
-          </Button>
-        </Card>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="max-w-[1400px] mx-auto min-h-[60vh] flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300 font-sans">
-        <IconLoader className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-sm font-medium text-muted-foreground">Fetching waitlist profile details...</p>
-      </div>
-    );
-  }
-
-  if (error || !user) {
-    return (
-      <div className="max-w-[1400px] mx-auto min-h-[60vh] flex items-center justify-center font-sans">
-        <Card className="w-full max-w-md border-destructive/20 bg-[#222222] p-6 shadow-2xl space-y-4 rounded-lg text-center animate-in zoom-in-95 duration-200">
-          <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-lg bg-destructive/10 border border-destructive/20">
-            <IconAlertCircle size={24} className="text-destructive" />
-          </div>
-          <div className="space-y-1">
-            <CardTitle className="text-base font-bold text-white">Failed to Load User Profile</CardTitle>
-            <CardDescription className="text-[12px] text-muted-foreground mt-0.5">
-              {error || 'No waitlist user data was returned.'}
-            </CardDescription>
-          </div>
-          <div className="flex gap-3 justify-center pt-2">
-            <Button
-              onClick={handleBack}
-              variant="ghost"
-              className="h-9 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white"
-            >
-              Back to List
-            </Button>
-            <Button
-              onClick={loadUserDetails}
-              className="h-9 text-xs font-bold uppercase tracking-wider px-5 flex items-center gap-1.5"
-            >
-              <IconRefresh size={12} />
-              <span>Retry</span>
-            </Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  const headerActions = (
-    <div className="flex gap-3 shrink-0 md:ml-auto md:self-center pb-1">
+  const headerActions = user ? (
+    <div className="flex gap-3 shrink-0 flex-wrap">
       <Button
         variant="destructive"
         disabled={processing !== null}
         onClick={handleReject}
-        className="h-9 px-5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+        className="h-8 px-5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
       >
         {processing === 'reject' ? (
           <IconLoader size={12} className="animate-spin" />
@@ -209,11 +156,10 @@ export default function WaitlistDetailClient() {
         )}
         <span>Reject</span>
       </Button>
-
       <Button
         disabled={processing !== null}
         onClick={handleApprove}
-        className="h-9 px-5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white border-none"
+        className="h-8 px-5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white border-none"
       >
         {processing === 'approve' ? (
           <IconLoader size={12} className="animate-spin" />
@@ -223,7 +169,49 @@ export default function WaitlistDetailClient() {
         <span>Approve</span>
       </Button>
     </div>
-  );
+  ) : null;
+
+  if (!userId) {
+    return (
+      <DetailPageContainer className="min-h-[60vh] flex items-center justify-center">
+        <div className={`${listingStyles.tableWrapper} w-full max-w-md p-6 text-center space-y-4`}>
+          <h2 className={listingStyles.title}>
+            <IconShieldCheck className={listingStyles.titleIcon} size={22} aria-hidden />
+            Missing User ID
+          </h2>
+          <p className={listingStyles.subtitle}>Open an applicant from the waitlist to review their profile.</p>
+          <Button onClick={handleBack} className={listingStyles.primaryButton}>
+            Back to List
+          </Button>
+        </div>
+      </DetailPageContainer>
+    );
+  }
+
+  if (loading) {
+    return <DetailLoadingPanel message="Fetching waitlist profile details..." />;
+  }
+
+  if (error || !user) {
+    return (
+      <DetailPageContainer className="min-h-[60vh] flex flex-col justify-center gap-4">
+        <DetailPageHeader
+          icon={IconShieldCheck}
+          title="Waitlist Applicant"
+          subtitle="Profile could not be loaded"
+          onBack={handleBack}
+          backLabel="Back to Waitlist"
+        />
+        <ListingErrorPanel
+          title="Failed to Load User Profile"
+          message={error || 'No waitlist user data was returned.'}
+          onRetry={loadUserDetails}
+        />
+      </DetailPageContainer>
+    );
+  }
+
+  const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Unnamed Applicant';
 
   return (
     <UserDetailsView
@@ -237,6 +225,9 @@ export default function WaitlistDetailClient() {
       headerActions={headerActions}
       onBack={handleBack}
       onReload={loadUserDetails}
+      pageTitle={displayName}
+      pageSubtitle="Review and verify waitlist applicant"
+      backLabel="Back to Waitlist"
     />
   );
 }

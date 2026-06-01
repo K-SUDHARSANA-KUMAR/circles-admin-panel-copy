@@ -16,12 +16,16 @@ import {
   IconEye,
   IconCalendarTime,
   IconInfoCircle,
-  IconArrowLeft,
   IconMapPin
 } from '@tabler/icons-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { type Customer } from '@/services/user.service';
+import {
+  DetailPageContainer,
+  DetailPageHeader,
+  detailStyles,
+} from '@/components/shared/listing-page';
 
 export interface DetailedUser extends Customer {
   role?: string;
@@ -54,6 +58,9 @@ interface UserDetailsViewProps {
   headerActions?: React.ReactNode;
   onBack: () => void;
   onReload: () => void;
+  pageTitle?: string;
+  pageSubtitle?: string;
+  backLabel?: string;
 }
 
 export default function UserDetailsView({
@@ -67,6 +74,9 @@ export default function UserDetailsView({
   headerActions,
   onBack,
   onReload,
+  pageTitle = 'User Details',
+  pageSubtitle,
+  backLabel = 'Back to List',
 }: UserDetailsViewProps) {
   const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
   const score = user.reliabilityScore !== undefined ? user.reliabilityScore : 100;
@@ -120,37 +130,38 @@ export default function UserDetailsView({
 
   const cityValue = cityMap[user.cityId || ''] || user.location || '—';
 
+  const resolvedSubtitle =
+    pageSubtitle ?? user.email ?? 'View complete profile and verification data';
+
   return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6 pb-12">
-      
-      {/* Back navigation & primary Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white transition-colors w-fit group"
-        >
-          <IconArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-          <span>Back to List</span>
-        </button>
+    <DetailPageContainer className="pb-12">
+      <DetailPageHeader
+        icon={IconUser}
+        title={pageTitle}
+        subtitle={resolvedSubtitle}
+        onBack={onBack}
+        backLabel={backLabel}
+        trailing={
+          <>
+            <Button
+              variant="outline"
+              onClick={onReload}
+              className={`${detailStyles.outlineButton} flex items-center gap-1.5`}
+            >
+              <IconRefresh size={12} />
+              <span>Reload</span>
+            </Button>
+            {headerActions}
+          </>
+        }
+      />
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={onReload}
-            className="h-8 text-xs border-[#333333] hover:bg-[#333333] flex items-center gap-1"
-          >
-            <IconRefresh size={12} />
-            <span>Reload Data</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Profile Summary Header Card */}
-      <div className="bg-[#222222] border border-[#333333] rounded-lg overflow-hidden relative shadow-lg">
+      {/* Profile summary */}
+      <div className={detailStyles.card}>
         {/* Profile Details Block */}
         <div className="px-6 pb-6 pt-6 flex flex-col md:flex-row md:items-end gap-6 relative">
           {/* Avatar Container */}
-          <div className="w-28 h-28 rounded-full border-4 border-[#222222] bg-[#171717] overflow-hidden z-10 shrink-0 shadow-xl flex items-center justify-center font-bold text-3xl text-primary select-none">
+          <div className="w-28 h-28 rounded-full border-4 border-[#09090b] bg-zinc-900 overflow-hidden z-10 shrink-0 shadow-xl flex items-center justify-center font-bold text-3xl text-[#d8b4fe] select-none">
             {user.profilePictureUrl ? (
               <img 
                 src={user.profilePictureUrl} 
@@ -168,34 +179,32 @@ export default function UserDetailsView({
           {/* User Primary Meta Info */}
           <div className="flex-1 space-y-2.5">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-bold text-white tracking-tight">{displayName}</h1>
+              <h2 className="text-xl font-bold text-white tracking-tight">{displayName}</h2>
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-zinc-400">
               <span className="flex items-center gap-1">
-                <IconMail size={13} className="text-muted-foreground/60" />
+                <IconMail size={13} className="text-zinc-600" />
                 <span>{user.email}</span>
               </span>
               {user.phone && (
                 <span className="flex items-center gap-1">
-                  <IconPhone size={13} className="text-muted-foreground/60" />
+                  <IconPhone size={13} className="text-zinc-600" />
                   <span>{user.phone}</span>
                 </span>
               )}
               <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors" onClick={onCopyId}>
-                <IconInfoCircle size={13} className="text-muted-foreground/60" />
+                <IconInfoCircle size={13} className="text-zinc-600" />
                 <span>ID: {user.id}</span>
                 {copiedId ? (
                   <IconCheck size={11} className="text-emerald-400" />
                 ) : (
-                  <IconCopy size={11} className="text-muted-foreground/40 opacity-0 group-hover:opacity-100" />
+                  <IconCopy size={11} className="text-zinc-600" />
                 )}
               </span>
             </div>
           </div>
 
-          {/* Header Action slots */}
-          {headerActions}
         </div>
       </div>
 
@@ -203,16 +212,16 @@ export default function UserDetailsView({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Reliability Score Card */}
-        <Card className="border-[#333333] bg-[#222222]">
+        <Card className={`${detailStyles.card} border-0 shadow-none`}>
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+            <CardDescription className={`${detailStyles.sectionLabel} flex items-center justify-between`}>
               <span>Reliability Score</span>
-              <IconAward size={14} className="text-primary/70" />
+              <IconAward size={14} className={detailStyles.cardTitleIcon} />
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0 space-y-2">
-            <h2 className="text-2xl font-black text-white">{score}%</h2>
-            <div className="w-full bg-[#171717] h-1.5 rounded-full overflow-hidden border border-[#333333]">
+            <h2 className={detailStyles.metricValue}>{score}%</h2>
+            <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-zinc-800">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${
                   score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-500' : 'bg-rose-500'
@@ -224,16 +233,16 @@ export default function UserDetailsView({
         </Card>
 
         {/* Referral Code Card */}
-        <Card className="border-[#333333] bg-[#222222]">
+        <Card className="border-[#18181b] bg-[#09090b]">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center justify-between">
               <span>Referral Code</span>
-              <IconCopy size={14} className="text-primary/70" />
+              <IconCopy size={14} className="text-[#d8b4fe]" />
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0 space-y-2.5">
             {user.referralCode ? (
-              <div className="flex items-center justify-between bg-[#171717] border border-[#333333] px-3 py-1.5 rounded-md">
+              <div className="flex items-center justify-between bg-zinc-900/60 border border-[#18181b] px-3 py-1.5 rounded-md">
                 <code className="text-sm font-mono font-bold text-white">{user.referralCode}</code>
                 <Button
                   variant="ghost"
@@ -248,7 +257,7 @@ export default function UserDetailsView({
               <p className="text-xs text-muted-foreground/60 italic py-1.5">No Referral Code</p>
             )}
 
-            <div className="flex items-center justify-between text-[10px] text-muted-foreground border-t border-[#333333]/40 pt-2 mt-1">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground border-t border-[#18181b]/40 pt-2 mt-1">
               <span>Referral Medium</span>
               <span className="font-bold text-white capitalize">{user.referralMedium || 'Direct / N/A'}</span>
             </div>
@@ -256,11 +265,11 @@ export default function UserDetailsView({
         </Card>
 
         {/* Verification Status Card */}
-        <Card className="border-[#333333] bg-[#222222]">
+        <Card className="border-[#18181b] bg-[#09090b]">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center justify-between">
               <span>Profile Verification</span>
-              <IconEye size={14} className="text-primary/70" />
+              <IconEye size={14} className="text-[#d8b4fe]" />
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
@@ -273,11 +282,11 @@ export default function UserDetailsView({
         </Card>
 
         {/* Subscription Card */}
-        <Card className="border-[#333333] bg-[#222222]">
+        <Card className="border-[#18181b] bg-[#09090b]">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center justify-between">
               <span>Subscription Status</span>
-              <IconWorld size={14} className="text-primary/70" />
+              <IconWorld size={14} className="text-[#d8b4fe]" />
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
@@ -294,10 +303,10 @@ export default function UserDetailsView({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Column 1: Personal & General Details */}
-        <Card className="border-[#333333] bg-[#222222] shadow-md">
-          <CardHeader className="border-b border-[#333333]/60 px-5 py-4">
+        <Card className="border-[#18181b] bg-[#09090b] shadow-md">
+          <CardHeader className="border-b border-[#18181b]/60 px-5 py-4">
             <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-              <IconUser size={16} className="text-primary" />
+              <IconUser size={16} className={detailStyles.cardTitleIcon} />
               <span>Personal Details</span>
             </CardTitle>
           </CardHeader>
@@ -305,8 +314,8 @@ export default function UserDetailsView({
             
             {/* Bio Block */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Biography</label>
-              <div className="bg-[#171717] border border-[#333333] p-3.5 rounded-lg">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Biography</label>
+              <div className="bg-zinc-900/60 border border-[#18181b] p-3.5 rounded-lg">
                 {user.bio ? (
                   <p className="text-xs text-foreground/90 leading-relaxed italic">"{user.bio}"</p>
                 ) : (
@@ -319,7 +328,7 @@ export default function UserDetailsView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Date of Birth</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Date of Birth</label>
                 <div className="flex items-center gap-1.5 text-xs text-white">
                   <IconCalendar size={13} className="text-muted-foreground/60" />
                   <span>{formatDate(user.dob, false)}</span>
@@ -327,7 +336,7 @@ export default function UserDetailsView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Gender</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Gender</label>
                 <div className="flex items-center gap-1.5 text-xs text-white capitalize">
                   <IconHeart size={13} className="text-muted-foreground/60" />
                   <span>{user.gender || 'Not Specified'}</span>
@@ -335,7 +344,7 @@ export default function UserDetailsView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">City</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">City</label>
                 <div className="flex items-center gap-1.5 text-xs text-white">
                   <IconMapPin size={13} className="text-muted-foreground/60" />
                   <span>{cityValue}</span>
@@ -343,7 +352,7 @@ export default function UserDetailsView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Location</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Location</label>
                 <div className="text-xs text-white">
                   <span>{user.location || '—'}</span>
                 </div>
@@ -352,17 +361,17 @@ export default function UserDetailsView({
             </div>
 
             {/* Taxonomy / Arrays Row (Interests & Languages) */}
-            <div className="space-y-4 pt-2 border-t border-[#333333]/50">
+            <div className="space-y-4 pt-2 border-t border-[#18181b]/50">
               
               <div className="space-y-2">
-                <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1">
                   <IconLanguage size={11} />
                   <span>Spoken Languages</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {languagesList.length > 0 ? (
                     languagesList.map((lang, i) => (
-                      <span key={i} className="text-[10px] font-bold bg-[#171717] border border-[#333333] text-foreground/80 px-2 py-0.5 rounded uppercase tracking-wider">
+                      <span key={i} className="text-[10px] font-bold bg-zinc-900/60 border border-[#18181b] text-foreground/80 px-2 py-0.5 rounded uppercase tracking-wider">
                         {lang}
                       </span>
                     ))
@@ -373,7 +382,7 @@ export default function UserDetailsView({
               </div>
 
               <div className="space-y-2">
-                <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1">
                   <IconHeart size={11} />
                   <span>User Interests</span>
                 </label>
@@ -382,7 +391,7 @@ export default function UserDetailsView({
                     interestsList.map((interestId, i) => {
                       const name = interestMap[interestId] || interestId;
                       return (
-                        <span key={i} className="text-[10px] font-bold bg-[#171717] border border-[#333333] text-foreground/80 px-2 py-0.5 rounded capitalize">
+                        <span key={i} className="text-[10px] font-bold bg-zinc-900/60 border border-[#18181b] text-foreground/80 px-2 py-0.5 rounded capitalize">
                           {name}
                         </span>
                       );
@@ -399,10 +408,10 @@ export default function UserDetailsView({
         </Card>
 
         {/* Column 2: Account Preferences & Dates */}
-        <Card className="border-[#333333] bg-[#222222] shadow-md">
-          <CardHeader className="border-b border-[#333333]/60 px-5 py-4">
+        <Card className="border-[#18181b] bg-[#09090b] shadow-md">
+          <CardHeader className="border-b border-[#18181b]/60 px-5 py-4">
             <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-              <IconCalendarTime size={16} className="text-primary" />
+              <IconCalendarTime size={16} className={detailStyles.cardTitleIcon} />
               <span>System & Security Meta</span>
             </CardTitle>
           </CardHeader>
@@ -412,7 +421,7 @@ export default function UserDetailsView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Account Visibility</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Account Visibility</label>
                 <div className="flex items-center gap-1.5 text-xs text-white capitalize">
                   <IconEye size={13} className="text-muted-foreground/60" />
                   <span>{user.visibility || 'Public'}</span>
@@ -420,7 +429,7 @@ export default function UserDetailsView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Social Links</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Social Links</label>
                 <div className="text-xs text-muted-foreground/60">
                   {user.socialLinks && Object.keys(user.socialLinks).length > 0 ? (
                     <div className="space-y-1">
@@ -443,6 +452,6 @@ export default function UserDetailsView({
 
       </div>
 
-    </div>
+    </DetailPageContainer>
   );
 }

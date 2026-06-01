@@ -1,13 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { VenueForm } from './venue-form';
 import { fetchVenueById, type Venue } from '@/services/venue.service';
-import { IconRefresh, IconAlertCircle } from '@tabler/icons-react';
-import { Button } from '@/components/ui/button';
+import { IconBuilding } from '@tabler/icons-react';
+import {
+  DetailLoadingPanel,
+  DetailPageContainer,
+  DetailPageHeader,
+  ListingErrorPanel,
+} from '@/components/shared/listing-page';
 
 export default function VenueDetailClient() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const venueId = searchParams.get('id');
   const editMode = searchParams.get('edit') === 'true';
@@ -38,49 +44,34 @@ export default function VenueDetailClient() {
     loadVenue();
   }, [venueId]);
 
+  const handleBack = () => router.push('/dashboard/venues');
+
   if (!venueId) {
     return null;
   }
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 bg-[#222222] border border-[#333333] p-12 rounded-lg min-h-[400px] max-w-[1400px] mx-auto animate-in fade-in duration-300">
-        <IconRefresh size={32} className="animate-spin text-primary" />
-        <p className="text-xs text-muted-foreground">Retrieving venue configurations...</p>
-      </div>
-    );
+    return <DetailLoadingPanel message="Retrieving venue configurations..." />;
   }
 
   if (error || !venue) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 bg-[#222222] border border-[#333333] p-12 rounded-lg min-h-[400px] max-w-[1400px] mx-auto animate-in fade-in duration-300">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
-          <IconAlertCircle size={24} className="text-destructive" />
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-white text-center">Venue Not Found</h3>
-          <p className="text-xs text-muted-foreground/80 max-w-sm mx-auto mt-1 text-center">
-            {error || "The venue you're looking for doesn't exist or has been removed."}
-          </p>
-        </div>
-        <Button
-          onClick={loadVenue}
-          variant="outline"
-          size="sm"
-          className="mt-2 h-9 px-4 border-[#333333]"
-        >
-          Retry Load
-        </Button>
-      </div>
+      <DetailPageContainer className="min-h-[60vh] flex flex-col justify-center gap-4">
+        <DetailPageHeader
+          icon={IconBuilding}
+          title="Venue Details"
+          subtitle="Venue could not be loaded"
+          onBack={handleBack}
+          backLabel="Back to Venues"
+        />
+        <ListingErrorPanel
+          title="Venue Not Found"
+          message={error || "The venue you're looking for doesn't exist or has been removed."}
+          onRetry={loadVenue}
+        />
+      </DetailPageContainer>
     );
   }
 
-  return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300">
-      <VenueForm 
-        initialData={venue} 
-        mode={editMode ? "edit" : "view"} 
-      />
-    </div>
-  );
+  return <VenueForm initialData={venue} mode={editMode ? 'edit' : 'view'} />;
 }

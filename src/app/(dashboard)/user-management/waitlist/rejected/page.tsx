@@ -3,9 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchRejectedWaitlist, type WaitlistUser } from '@/services/user.service';
 import {
-  IconSearch,
-  IconRefresh,
-  IconAlertCircle,
   IconUser,
   IconPhone,
   IconMail,
@@ -13,6 +10,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import {
+  ListingPageContainer,
+  ListingSectionHeader,
+  ListingToolbar,
+  ListingErrorPanel,
+  listingStyles,
+} from '@/components/shared/listing-page';
+import { IconUserX } from '@tabler/icons-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DataTable } from '@/components/ui/data-table';
@@ -193,70 +198,42 @@ export default function RejectedWaitlistPage() {
   ];
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700 font-figtree">
+    <ListingPageContainer>
+      <ListingSectionHeader
+        icon={IconUserX}
+        title="Rejected Waitlist"
+        subtitle={`${total} rejected applicants`}
+      />
 
-      {/* Actions / Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#222222] border border-[#333333] p-4 rounded-lg">
-        <div className="flex items-center gap-3">
-          {!loading && !error && (
-            <span className="text-xs font-bold text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-full border border-rose-500/20 tracking-wider uppercase">
-              {total} Rejected Users
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+      <ListingToolbar
+        countLabel={`${total} Rejected Users`}
+        showCount={!loading && !error}
+        searchPlaceholder="Search by name or email..."
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onRefresh={handleRefresh}
+        refreshDisabled={loading}
+        refreshLoading={loading}
+        leadingActions={
           <Link href="/user-management/waitlist">
             <Button
               variant="outline"
-              className="h-9 text-xs border-[#333333] hover:bg-[#333333] text-primary hover:text-primary/80 transition-colors"
+              className="h-8 text-xs border-[#18181b] bg-[#09090b] hover:bg-[#18181b] text-zinc-300 hover:text-white rounded-lg transition-colors"
             >
               Back to Waitlist
             </Button>
           </Link>
-          <div className="relative flex-1 sm:flex-initial sm:w-64">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs"
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={loading}
-            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
-            title="Refresh List"
-          >
-            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Main Table Layout */}
       {error ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#222222] border border-[#333333] rounded-lg">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
-            <IconAlertCircle size={28} className="text-destructive" />
-          </div>
-          <div className="space-y-1 text-center">
-            <p className="text-sm font-semibold text-foreground">Failed to load verification queue</p>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">{error}</p>
-          </div>
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            className="gap-2 text-xs font-bold uppercase tracking-wider border-white/10 hover:bg-white/5"
-          >
-            <IconRefresh size={14} />
-            Try Again
-          </Button>
-        </div>
+        <ListingErrorPanel
+          title="Failed to load rejected users"
+          message={error}
+          onRetry={handleRefresh}
+        />
       ) : (
-        <div className="glass-card overflow-hidden shadow-2xl border-[#333333] p-4 bg-[#222222]">
+        <div className={`${listingStyles.tableWrapper} p-4`}>
           <DataTable
             tableId="rejected_waitlist_table"
             columns={columns}
@@ -280,6 +257,6 @@ export default function RejectedWaitlistPage() {
           />
         </div>
       )}
-    </div>
+    </ListingPageContainer>
   );
 }

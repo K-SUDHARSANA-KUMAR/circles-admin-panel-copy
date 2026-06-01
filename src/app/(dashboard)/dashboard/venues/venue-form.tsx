@@ -4,7 +4,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconArrowLeft, IconCheck, IconEdit, IconCalendarEvent } from "@tabler/icons-react";
+import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconCheck, IconEdit, IconCalendarEvent, IconBuilding } from "@tabler/icons-react";
+import { DetailPageContainer, DetailPageHeader, detailStyles, listingStyles } from "@/components/shared/listing-page";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
 import { fetchCities, type City } from "@/services/cities.service";
@@ -248,65 +249,64 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     }
   };
 
-  return (
-    <div className="flex flex-col gap-8 max-w-[1600px] mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Page Header */}
-      <div className="flex items-center justify-between border-b border-border/50 pb-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => router.push("/dashboard/venues")}
-            className="rounded-full hover:bg-primary/10 hover:text-primary transition-all"
-          >
-            <IconArrowLeft size={22} />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-glow">
-              {isViewing ? "Venue Details" : mode === 'edit' ? "Edit Venue" : "Create New Venue"}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {isViewing ? "Viewing detailed information about this venue" : currentMode === 'edit' ? "Update existing venue information" : "Add a new destination to your circle"}
-            </p>
-          </div>
-        </div>
+  const pageTitle = isViewing
+    ? formData.name || "Venue Details"
+    : currentMode === "edit"
+      ? "Edit Venue"
+      : "Create New Venue";
 
-        <div className="flex items-center gap-3">
-          {isViewing ? (
-            <Button 
+  const pageSubtitle = isViewing
+    ? "Viewing detailed information about this venue"
+    : currentMode === "edit"
+      ? "Update existing venue information"
+      : "Add a new destination to your circle";
+
+  const handleBackToVenues = () => router.push("/dashboard/venues");
+
+  return (
+    <DetailPageContainer className="max-w-[1600px]">
+      <DetailPageHeader
+        icon={IconBuilding}
+        title={pageTitle}
+        subtitle={pageSubtitle}
+        onBack={handleBackToVenues}
+        backLabel="Back to Venues"
+        trailing={
+          isViewing ? (
+            <Button
               variant="outline"
               onClick={() => {
                 const id = formData.id || venueIdFromUrl;
                 if (!id) return;
                 router.push(`/dashboard/venues?id=${id}&edit=true`);
               }}
-              className="gap-2 px-6 h-11 text-base font-semibold border-primary/20 hover:border-primary/50 hover:bg-primary/5"
+              className={`${detailStyles.outlineButton} flex items-center gap-1.5`}
             >
-              <IconEdit size={20} className="text-primary" />
+              <IconEdit size={14} className="text-[#d8b4fe]" />
               Edit Venue
             </Button>
           ) : (
             <>
-              {currentMode === 'edit' && (
-                <Button 
+              {currentMode === "edit" && (
+                <Button
                   variant="ghost"
                   onClick={() => {
                     const id = formData.id || venueIdFromUrl;
                     if (!id) {
-                      router.push('/dashboard/venues');
+                      handleBackToVenues();
                       return;
                     }
                     router.push(`/dashboard/venues?id=${id}`);
                   }}
-                  className="h-11 px-6 font-semibold"
+                  className="h-8 px-4 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white"
                 >
                   Cancel
                 </Button>
               )}
-              <Button 
+              <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="gap-2 px-8 h-11 text-base font-semibold shadow-lg shadow-primary/20 disabled:opacity-70"
+                className={`${listingStyles.primaryButton} disabled:opacity-70`}
               >
                 {saving ? (
                   <span className="animate-spin h-5 w-5 border-2 border-primary-foreground border-t-transparent rounded-full mr-2" />
@@ -316,9 +316,9 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                 {saving ? "Saving..." : currentMode === 'edit' ? "Update Venue" : "Save Venue"}
               </Button>
             </>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Image & Interests */}
@@ -723,6 +723,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
           initialCoordinates={mapCoords}
         />
       )}
-    </div>
+    </DetailPageContainer>
   );
 };

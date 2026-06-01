@@ -3,9 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAdminUsers, updateAdminUser, deleteAdminUser, createAdminUser, type AdminUser } from '@/services/adminuser.service';
 import { 
-  IconSearch, 
   IconRefresh, 
-  IconAlertCircle, 
   IconUser, 
   IconPhone, 
   IconMail, 
@@ -15,8 +13,16 @@ import {
   IconPencil,
   IconTrash,
   IconX,
-  IconPlus
+  IconPlus,
 } from '@tabler/icons-react';
+import {
+  ListingPageContainer,
+  ListingSectionHeader,
+  ListingToolbar,
+  ListingErrorPanel,
+  ListingPagination,
+  listingStyles,
+} from '@/components/shared/listing-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -210,90 +216,61 @@ export default function AdminUsersPage() {
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700">
-      
-      {/* Actions / Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
-        <div className="flex items-center gap-3">
-          {!loading && !error && (
-            <span className="text-[10px] font-bold text-[#d8b4fe] bg-[#1c122c] px-2.5 py-1 rounded-md border border-[#3b1a60] tracking-wider uppercase select-none">
-              {total} Admin Users
-            </span>
-          )}
-        </div>
+    <ListingPageContainer>
+      <ListingSectionHeader
+        icon={IconShield}
+        title="Admin User Management"
+        subtitle={`${total} administrators registered`}
+      />
 
-        {/* Actions */}
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-initial sm:w-64">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-            <Input
-              placeholder="Search by name or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-8 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 rounded-lg"
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={loading}
-            className="h-8 w-8 shrink-0 border-[#18181b] bg-[#09090b] hover:bg-[#18181b] rounded-lg"
-            title="Refresh"
-          >
-            <IconRefresh size={12} className={loading ? 'animate-spin' : ''} />
-          </Button>
+      <ListingToolbar
+        countLabel={`${total} Admin Users`}
+        showCount={!loading && !error}
+        searchPlaceholder="Search by name or email..."
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onRefresh={handleRefresh}
+        refreshDisabled={loading}
+        refreshLoading={loading}
+        primaryAction={
           <Button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 h-8 px-4 text-xs font-bold uppercase tracking-wider bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] shrink-0 rounded-lg transition-colors duration-200"
+            className={listingStyles.primaryButton}
           >
             <IconPlus size={14} />
             <span>Add Admin</span>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Main Table Layout */}
       {error ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#09090b] border border-[#18181b] rounded-xl">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 border border-destructive/20">
-            <IconAlertCircle size={28} className="text-destructive" />
-          </div>
-          <div className="space-y-1 text-center">
-            <p className="text-sm font-semibold text-white">Failed to load admin users</p>
-            <p className="text-xs text-zinc-500 max-w-sm mx-auto">{error}</p>
-          </div>
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            className="gap-2 text-xs font-bold uppercase tracking-wider border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800 h-8"
-          >
-            <IconRefresh size={12} />
-            Try Again
-          </Button>
-        </div>
+        <ListingErrorPanel
+          title="Failed to load admin users"
+          message={error}
+          onRetry={handleRefresh}
+        />
       ) : (
-        <div className="bg-[#09090b] border border-[#18181b] rounded-xl shadow-2xl overflow-hidden">
+        <div className={listingStyles.tableWrapper}>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-[#18181b]">
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[25%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[25%]">
                     Admin User
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[25%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[25%]">
                     Contact Info
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[15%]">
                     Role
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[10%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[10%]">
                     Gender
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[15%]">
                     Status
                   </th>
-                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[10%]">
+                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[10%]">
                     Actions
                   </th>
                 </tr>
@@ -328,7 +305,7 @@ export default function AdminUsersPage() {
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200"
                       >
                         {/* Admin User */}
-                        <td className="py-5 px-8">
+                        <td className="py-5 px-12">
                           <div className="flex items-center gap-3">
                             <div
                               className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-sm"
@@ -345,7 +322,7 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Contact Info */}
-                        <td className="py-5 px-8">
+                        <td className="py-5 px-12">
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                               <IconMail size={12} className="shrink-0 text-zinc-600" />
@@ -361,7 +338,7 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Role Badge */}
-                        <td className="py-5 px-8">
+                        <td className="py-5 px-12">
                           {isSuper ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#2c1225]/60 border border-[#601a4f]/50 text-pink-400 text-[11px] font-semibold select-none">
                               <IconShield size={10} className="shrink-0" />
@@ -376,7 +353,7 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Gender */}
-                        <td className="py-5 px-8">
+                        <td className="py-5 px-12">
                           {user.gender ? (
                             <div 
                               className="inline-flex items-center p-1 rounded-md bg-zinc-900/60 border border-zinc-800/80 text-zinc-400" 
@@ -394,7 +371,7 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-5 px-8">
+                        <td className="py-5 px-12">
                           {status === 'active' ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-950/20 border border-cyan-900/30 text-cyan-400 text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
@@ -409,7 +386,7 @@ export default function AdminUsersPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-5 px-8 text-right">
+                        <td className="py-5 px-12 text-right">
                           <div className="flex items-center justify-end gap-3.5">
                             <button
                               onClick={() => handleOpenEdit(user)}
@@ -435,36 +412,16 @@ export default function AdminUsersPage() {
             </table>
           </div>
 
-          {/* Pagination Controls */}
-          {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-[#18181b] px-8 py-4">
-              <div className="text-[11px] text-zinc-500 text-left">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length} entries
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => prev - 1)}
-                  className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-                >
-                  Previous
-                </Button>
-                <div className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+          {!loading && (
+            <ListingPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredUsers.length}
+              itemsPerPage={itemsPerPage}
+              itemLabel="administrators"
+              onPrevious={() => setCurrentPage((prev) => prev - 1)}
+              onNext={() => setCurrentPage((prev) => prev + 1)}
+            />
           )}
         </div>
       )}
@@ -711,6 +668,6 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-    </div>
+    </ListingPageContainer>
   );
 }

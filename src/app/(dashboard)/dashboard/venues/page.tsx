@@ -11,6 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle } from "@tabler/icons-react";
+import {
+  ListingPageContainer,
+  ListingSectionHeader,
+  ListingToolbar,
+  listingStyles,
+} from "@/components/shared/listing-page";
 import { useRouter, useSearchParams } from "next/navigation";
 import VenueDetailClient from "./VenueDetailClient";
 import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
@@ -56,22 +62,21 @@ const VenuesPage = () => {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6">
-      
-      {/* Actions / Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
-        <div className="flex items-center gap-3">
-          {!loading && (
-            <span className="text-xs font-bold text-[#d8b4fe] bg-[#1c122c] px-3 py-1.5 rounded-md border border-[#3b1a60] tracking-wider uppercase flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#d8b4fe] inline-block"></span>
-              {venues.length} Total Spaces
-            </span>
-          )}
-        </div>
+    <ListingPageContainer className="font-sans">
+      <ListingSectionHeader
+        icon={IconBuilding}
+        title="Venue Management"
+        subtitle={`${venues.length} venues registered`}
+      />
 
-        <div className="flex items-center gap-3 ml-auto sm:ml-0">
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-[#030303] border border-[#18181b] rounded-lg p-0.5 mr-1">
+      <ListingToolbar
+        countLabel={`${venues.length} Total Spaces`}
+        showCount={!loading}
+        onRefresh={loadVenues}
+        refreshDisabled={loading}
+        refreshLoading={loading}
+        leadingActions={
+          <div className="flex items-center bg-[#030303] border border-[#18181b] rounded-lg p-0.5">
             <button
               type="button"
               onClick={() => setViewMode('table')}
@@ -95,27 +100,17 @@ const VenuesPage = () => {
               <IconLayoutGrid size={14} />
             </button>
           </div>
-
+        }
+        primaryAction={
           <Button
-            variant="outline"
-            size="icon"
-            onClick={loadVenues}
-            disabled={loading}
-            className="h-9 w-9 shrink-0 border-[#333333] hover:bg-[#333333]"
-            title="Refresh"
-          >
-            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
-          </Button>
-          <Button 
-            variant="default" 
-            className="flex items-center gap-2 h-9 px-4 text-xs font-bold uppercase tracking-wider bg-[#d8b4fe] hover:bg-[#c084fc] text-[#3b0764] transition-all rounded-lg border-none shadow-lg shadow-purple-500/10"
             onClick={() => router.push("/dashboard/venues/create")}
+            className={listingStyles.primaryButton}
           >
-            <IconPlus size={16} className="text-[#3b0764]" />
-            <span>Add New Venue</span>
+            <IconPlus size={14} />
+            <span>Add Venue</span>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Main Content */}
       {loading ? (
@@ -165,11 +160,11 @@ const VenuesPage = () => {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-[#18181b] bg-transparent font-sans">
-                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[30%]">Venue Information</TableHead>
-                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[20%]">Location</TableHead>
-                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[15%]">City</TableHead>
-                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[15%]">Manager</TableHead>
-                <TableHead className="text-right bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-8 border-b border-[#18181b] w-[20%]">Actions</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[30%]">Venue Information</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[20%]">Location</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[15%]">City</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[15%]">Manager</TableHead>
+                <TableHead className="text-right bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[20%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-[#18181b]">
@@ -179,7 +174,7 @@ const VenuesPage = () => {
                   className="group border-b border-[#18181b] hover:bg-[#0c0c0e] transition-colors font-sans cursor-pointer"
                   onClick={() => router.push(`/dashboard/venues?id=${venue.id}`)}
                 >
-                  <TableCell className="py-5 px-8">
+                  <TableCell className="py-5 px-12">
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-white">{venue.name}</span>
                       {venue.addressLine1 && (
@@ -187,9 +182,9 @@ const VenuesPage = () => {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="py-5 px-8 text-sm text-zinc-400 font-normal">{venue.location || '—'}</TableCell>
-                  <TableCell className="py-5 px-8 text-sm text-zinc-400 font-normal">{venue.city || '—'}</TableCell>
-                  <TableCell className="py-5 px-8">
+                  <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.location || '—'}</TableCell>
+                  <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.city || '—'}</TableCell>
+                  <TableCell className="py-5 px-12">
                     {venue.manager ? (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                         <IconUser size={12} className="text-zinc-600 shrink-0" />
@@ -199,7 +194,7 @@ const VenuesPage = () => {
                       <span className="text-xs text-zinc-600">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right py-5 px-8">
+                  <TableCell className="text-right py-5 px-12">
                     <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-200">
                       <button
                         className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
@@ -331,7 +326,7 @@ const VenuesPage = () => {
           </div>
         </div>
       )}
-    </div>
+    </ListingPageContainer>
   );
 };
 

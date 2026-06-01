@@ -240,10 +240,17 @@ const handleResponseError = async (
     }
   }
 
-  if (error.request) {
-    console.error('Network error:', error.request);
-  } else {
-    console.error('Error:', error.message);
+  if (error.request && !error.response) {
+    const requestUrl =
+      originalRequest?.baseURL && originalRequest?.url
+        ? `${originalRequest.baseURL}${originalRequest.url}`
+        : originalRequest?.url || 'unknown URL';
+    console.warn(
+      `Network error: unable to reach ${requestUrl}.`,
+      error.message || 'No response from server.'
+    );
+  } else if (error.message) {
+    console.error('Request error:', error.message);
   }
 
   return Promise.reject(error);

@@ -6,18 +6,31 @@ import UserDetailClient from './UserDetailClient';
 import { fetchCustomers, updateCustomerStatus, type Customer } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import { 
-  IconSearch, 
   IconRefresh, 
-  IconAlertCircle, 
   IconUser, 
   IconPhone, 
-  IconMail, 
   IconAward,
   IconPencil,
   IconX,
   IconLoader,
-  IconMapPin
+  IconMapPin,
+  IconUsers,
 } from '@tabler/icons-react';
+import {
+  ListingPageContainer,
+  ListingSectionHeader,
+  ListingToolbar,
+  ListingTableWrapper,
+  ListingTableHead,
+  ListingTh,
+  ListingTableBody,
+  ListingStatusBadge,
+  ListingLoadingRow,
+  ListingEmptyRow,
+  ListingErrorPanel,
+  ListingPagination,
+  listingStyles,
+} from '@/components/shared/listing-page';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -158,107 +171,66 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-700 space-y-6">
-      
-      {/* Actions / Filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] font-bold text-[#d8b4fe] bg-[#1c122c] px-2.5 py-1 rounded-md border border-[#3b1a60] tracking-wider uppercase select-none">
-            {total} Total Users
-          </span>
-        </div>
+    <ListingPageContainer>
+      <ListingSectionHeader
+        icon={IconUsers}
+        title="User Management"
+        subtitle={`${total} registered users`}
+      />
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-initial sm:w-64">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-            <Input
-              placeholder="Search by name or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-8 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 rounded-lg"
-            />
-          </div>
-          <Button
-            variant="outline" 
-            size="icon"
-            onClick={handleRefresh}
-            disabled={loading}
-            className="h-8 w-8 shrink-0 border-[#18181b] bg-[#09090b] hover:bg-[#18181b] rounded-lg"
-            title="Refresh List"
-          >
-            <IconRefresh size={12} className={loading ? 'animate-spin' : ''} />
-          </Button>
-        </div>
-      </div>
+      <ListingToolbar
+        countLabel={`${total} Total Users`}
+        showCount={!loading}
+        searchPlaceholder="Search by name or email..."
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onRefresh={handleRefresh}
+        refreshDisabled={loading}
+        refreshLoading={loading}
+      />
 
-      {/* Main Table Layout */}
       {error ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-8 bg-[#09090b] border border-[#18181b] rounded-xl">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10 border border-destructive/20">
-            <IconAlertCircle size={24} className="text-destructive" />
-          </div>
-          <div className="space-y-1 text-center">
-            <p className="text-sm font-semibold text-white">Failed to load users</p>
-            <p className="text-xs text-zinc-500 max-w-sm mx-auto">{error}</p>
-          </div>
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            className="gap-2 text-xs font-bold uppercase tracking-wider border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800 h-8"
-          >
-            <IconRefresh size={12} />
-            Try Again
-          </Button>
-        </div>
+        <ListingErrorPanel
+          title="Failed to load users"
+          message={error}
+          onRetry={handleRefresh}
+        />
       ) : (
-        <div className="bg-[#09090b] border border-[#18181b] rounded-xl shadow-2xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-[#18181b]">
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[20%]">
-                    Name
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[15%]">
-                    Phone No
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[12%]">
-                    Status
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[13%]">
-                    City
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[12%]">
-                    Referral Code
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[13%]">
-                    Medium
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[10%]">
-                    Score
-                  </th>
-                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-8 select-none w-[5%]">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#18181b]">
+        <ListingTableWrapper
+          footer={
+            !loading ? (
+              <ListingPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={total}
+                itemsPerPage={itemsPerPage}
+                itemLabel="users"
+                onPrevious={() => setCurrentPage((prev) => prev - 1)}
+                onNext={() => setCurrentPage((prev) => prev + 1)}
+              />
+            ) : undefined
+          }
+        >
+          <ListingTableHead>
+            <ListingTh className="w-[20%]">Name</ListingTh>
+            <ListingTh className="w-[15%]">Phone No</ListingTh>
+            <ListingTh className="w-[12%]">Status</ListingTh>
+            <ListingTh className="w-[13%]">City</ListingTh>
+            <ListingTh className="w-[12%]">Referral Code</ListingTh>
+            <ListingTh className="w-[13%]">Medium</ListingTh>
+            <ListingTh className="w-[10%]">Score</ListingTh>
+            <ListingTh align="right" className="w-[5%]">Actions</ListingTh>
+          </ListingTableHead>
+          <ListingTableBody>
                 {loading ? (
-                  <tr>
-                    <td colSpan={8} className="py-20 text-center">
-                      <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
-                      <p className="text-xs text-zinc-500 mt-2 font-medium">Loading registered users...</p>
-                    </td>
-                  </tr>
+                  <ListingLoadingRow colSpan={8} message="Loading registered users..." />
                 ) : customers.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="py-20 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <IconUser size={32} className="text-zinc-600" />
-                        <p className="text-xs font-semibold text-zinc-400">No users found</p>
-                      </div>
-                    </td>
-                  </tr>
+                  <ListingEmptyRow
+                    colSpan={8}
+                    icon={IconUser}
+                    title="No registered users found"
+                    description="Try modifying your search criteria"
+                  />
                 ) : (
                   customers.map((customer) => {
                     const displayName = customer.name ? `${customer.name} ${customer.lastName || ''}`.trim() : 'Unnamed User';
@@ -274,10 +246,10 @@ export default function UsersPage() {
                       <tr
                         key={customer.id}
                         onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
-                        className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
+                        className={`${listingStyles.tableRow} cursor-pointer`}
                       >
                         {/* Name */}
-                        <td className="py-5 px-8">
+                        <td className={listingStyles.cellDefault}>
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 overflow-hidden">
                               {profilePictureUrl ? (
@@ -300,7 +272,7 @@ export default function UsersPage() {
                         </td>
 
                         {/* Phone */}
-                        <td className="py-5 px-8">
+                        <td className={listingStyles.cellDefault}>
                           {customer.phone ? (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                               <IconPhone size={12} className="shrink-0 text-zinc-600" />
@@ -312,22 +284,15 @@ export default function UsersPage() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-5 px-8">
-                          {status === 'active' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[11px] font-semibold select-none">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
-                              Active
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[11px] font-semibold select-none">
-                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                              Inactive
-                            </span>
-                          )}
+                        <td className={listingStyles.cellDefault}>
+                          <ListingStatusBadge
+                            variant={status === 'active' ? 'active' : 'inactive'}
+                            label={status === 'active' ? 'Active' : 'Inactive'}
+                          />
                         </td>
 
                         {/* City */}
-                        <td className="py-5 px-8">
+                        <td className={listingStyles.cellDefault}>
                           {cityName ? (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                               <IconMapPin size={12} className="shrink-0 text-zinc-600" />
@@ -339,7 +304,7 @@ export default function UsersPage() {
                         </td>
 
                         {/* Referral Code */}
-                        <td className="py-5 px-8">
+                        <td className={listingStyles.cellDefault}>
                           {code ? (
                             <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
                               {code}
@@ -350,7 +315,7 @@ export default function UsersPage() {
                         </td>
 
                         {/* Referral Medium */}
-                        <td className="py-5 px-8">
+                        <td className={listingStyles.cellDefault}>
                           {medium ? (
                             <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 select-none">
                               {medium}
@@ -361,7 +326,7 @@ export default function UsersPage() {
                         </td>
 
                         {/* Reliability Score */}
-                        <td className="py-5 px-8">
+                        <td className={listingStyles.cellDefault}>
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}>
                             <IconAward size={12} className="shrink-0" />
                             <span>{score}%</span>
@@ -369,7 +334,7 @@ export default function UsersPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-5 px-8 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className={`${listingStyles.cellDefault} text-right`} onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-2.5">
                             <button
                               onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
@@ -391,42 +356,8 @@ export default function UsersPage() {
                     );
                   })
                 )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Controls */}
-          {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-[#18181b] px-8 py-4">
-              <div className="text-[11px] text-zinc-500 text-left">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, total)} of {total} entries
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => prev - 1)}
-                  className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-                >
-                  Previous
-                </Button>
-                <div className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+          </ListingTableBody>
+        </ListingTableWrapper>
       )}
 
       {/* Slide-out / Modal Dialog for Editing Customer Status */}
@@ -535,6 +466,6 @@ export default function UsersPage() {
         </div>
       )}
 
-    </div>
+    </ListingPageContainer>
   );
 }

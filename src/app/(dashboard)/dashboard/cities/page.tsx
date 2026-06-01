@@ -18,6 +18,12 @@ import {
 import { fetchCities, createCity, updateCity, deleteCity, type City } from '@/services/cities.service';
 import { fetchCountries, createCountry, updateCountry, deleteCountry, type Country } from '@/services/countries.service';
 import { toast } from 'sonner';
+import {
+  ListingPageContainer,
+  ListingSectionHeader,
+  ListingToolbar,
+  listingStyles,
+} from '@/components/shared/listing-page';
 
 export default function CitiesPage() {
   const [activeTab, setActiveTab] = useState<'cities' | 'countries'>('cities');
@@ -327,19 +333,12 @@ export default function CitiesPage() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700">
-      
-      {/* Dynamic Header with Tabs */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#18181b] pb-4 gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <IconBuildingCommunity className="text-[#d8b4fe]" size={22} />
-            Destinations & Logistics
-          </h1>
-          <p className="text-xs text-zinc-500 mt-1">Manage operational cities and supported countries</p>
-        </div>
-        
-        {/* Sleek Tabs */}
+    <ListingPageContainer>
+      <ListingSectionHeader
+        icon={IconBuildingCommunity}
+        title="City Management"
+        subtitle={`${cities.length} cities registered`}
+        trailing={
         <div className="flex bg-[#09090b] border border-[#18181b] p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('cities')}
@@ -364,50 +363,27 @@ export default function CitiesPage() {
             Countries
           </button>
         </div>
-      </div>
+        }
+      />
 
       {activeTab === 'cities' ? (
         <>
-          {/* Cities Filter bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
-            <div className="flex items-center gap-3">
-              {!loading && (
-                <span className="text-[10px] font-bold text-[#d8b4fe] bg-[#1c122c] px-2.5 py-1 rounded-md border border-[#3b1a60] tracking-wider uppercase">
-                  {cities.length} Operational Cities
-                </span>
-              )}
-            </div>
-
-            {/* Actions & Search */}
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-initial sm:w-64">
-                <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-                <Input
-                  placeholder="Search by city name or code..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-8 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 rounded-lg"
-                />
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={loadCities}
-                disabled={loading}
-                className="h-8 w-8 shrink-0 border-[#18181b] bg-[#09090b] hover:bg-[#18181b] rounded-lg"
-                title="Refresh"
-              >
-                <IconRefresh size={12} className={loading ? 'animate-spin' : ''} />
-              </Button>
-              <Button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 h-8 px-4 text-xs font-bold uppercase tracking-wider bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] shrink-0 rounded-lg transition-colors duration-200"
-              >
+          <ListingToolbar
+            countLabel={`${cities.length} Operational Cities`}
+            showCount={!loading}
+            searchPlaceholder="Search by city name or code..."
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            onRefresh={loadCities}
+            refreshDisabled={loading}
+            refreshLoading={loading}
+            primaryAction={
+              <Button onClick={() => setIsModalOpen(true)} className={listingStyles.primaryButton}>
                 <IconPlus size={14} />
                 <span>Add City</span>
               </Button>
-            </div>
-          </div>
+            }
+          />
 
           {/* Cities Table Content */}
           {error ? (
@@ -562,46 +538,22 @@ export default function CitiesPage() {
         </>
       ) : (
         <>
-          {/* Countries Filter bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#09090b] border border-[#18181b] p-4 rounded-xl">
-            <div className="flex items-center gap-3">
-              {!countriesLoading && (
-                <span className="text-[10px] font-bold text-[#d8b4fe] bg-[#1c122c] px-2.5 py-1 rounded-md border border-[#3b1a60] tracking-wider uppercase">
-                  {countries.length} Supported Countries
-                </span>
-              )}
-            </div>
-
-            {/* Actions & Search */}
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-initial sm:w-64">
-                <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-                <Input
-                  placeholder="Search by country name or code..."
-                  value={searchQueryCountry}
-                  onChange={(e) => setSearchQueryCountry(e.target.value)}
-                  className="pl-8 h-8 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 rounded-lg"
-                />
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={loadCountries}
-                disabled={countriesLoading}
-                className="h-8 w-8 shrink-0 border-[#18181b] bg-[#09090b] hover:bg-[#18181b] rounded-lg"
-                title="Refresh Countries"
-              >
-                <IconRefresh size={12} className={countriesLoading ? 'animate-spin' : ''} />
-              </Button>
-              <Button
-                onClick={() => setIsCountryModalOpen(true)}
-                className="flex items-center gap-2 h-8 px-4 text-xs font-bold uppercase tracking-wider bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] shrink-0 rounded-lg transition-colors duration-200"
-              >
+          <ListingToolbar
+            countLabel={`${countries.length} Supported Countries`}
+            showCount={!countriesLoading}
+            searchPlaceholder="Search by country name or code..."
+            searchValue={searchQueryCountry}
+            onSearchChange={setSearchQueryCountry}
+            onRefresh={loadCountries}
+            refreshDisabled={countriesLoading}
+            refreshLoading={countriesLoading}
+            primaryAction={
+              <Button onClick={() => setIsCountryModalOpen(true)} className={listingStyles.primaryButton}>
                 <IconPlus size={14} />
                 <span>Add Country</span>
               </Button>
-            </div>
-          </div>
+            }
+          />
 
           {/* Countries Table Content */}
           {countriesError ? (
@@ -1026,6 +978,6 @@ export default function CitiesPage() {
         </div>
       )}
 
-    </div>
+    </ListingPageContainer>
   );
 }
