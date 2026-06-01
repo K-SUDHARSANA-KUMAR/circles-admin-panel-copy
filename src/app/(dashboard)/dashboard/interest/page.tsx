@@ -423,14 +423,14 @@ export default function InterestsPage() {
 
               {/* Add Interest Input */}
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Add Interest</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Add Interest</label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="Add interest (e.g., Naruto, Fitness...)"
                     value={subInputs[activeGroup.id] || ''}
                     onChange={(e) => handleSubInputChange(activeGroup.id, e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleAddSubInterest(activeGroup.id); }}
-                    className="flex-1 h-9 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-200 placeholder:text-zinc-600 rounded-lg"
+                    className="flex-1 h-9 text-xs bg-zinc-900/60 border-zinc-800 text-zinc-200 placeholder:text-zinc-500 rounded-lg"
                   />
                   <Button
                     onClick={() => handleAddSubInterest(activeGroup.id)}
@@ -444,7 +444,7 @@ export default function InterestsPage() {
               {/* Active Interests Tags */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Active Interests</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Active Interests</span>
                   <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
                     {activeGroup.subInterests.length} Total
                   </span>

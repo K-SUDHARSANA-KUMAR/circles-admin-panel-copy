@@ -291,7 +291,7 @@ const VenuesPage = () => {
                       }}
                     >
                       <IconPencil size={13} />
-                      <span>Edit</span>
+                      <span>Edit Venue</span>
                     </Button>
                   </div>
                 </div>
