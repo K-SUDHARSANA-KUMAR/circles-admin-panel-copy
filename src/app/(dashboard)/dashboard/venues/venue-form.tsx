@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconArrowLeft, IconCheck, IconEdit, IconCalendarEvent } from "@tabler/icons-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
+import { fetchCities, type City } from "@/services/cities.service";
+import { createVenue, updateVenue } from "@/services/venue.service";
+import { toast } from "sonner";
+import { useFileUpload } from "@/features/common/hooks/useFileUpload";
 
 export interface Venue {
   id?: string;
@@ -18,6 +20,7 @@ export interface Venue {
   location?: string;
   addressLine1: string;
   city: string;
+  cityId?: string;
   region: string;
   country?: string;
   postalCode: string;
@@ -33,6 +36,8 @@ export interface Venue {
   isVisible?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  coverImageS3FileName?: string;
+  popularityScore?: number;
 }
 
 interface VenueFormProps {
@@ -43,6 +48,7 @@ interface VenueFormProps {
 export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { uploadFile } = useFileUpload();
   
   // Determine if we are in edit mode based on URL or initial mode
   const isEditFromUrl = searchParams.get("edit") === "true";
@@ -51,14 +57,20 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const [cities, setCities] = useState<City[]>([]);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   const [formData, setFormData] = useState<Venue>({
+    id: initialData?.id || "",
     name: initialData?.name || "",
     image: initialData?.image || null,
     imageFile: null,
     addressLine1: initialData?.addressLine1 || "",
     city: initialData?.city || "",
+    cityId: initialData?.cityId || "",
     region: initialData?.region || "",
-    country: initialData?.country || "",
+    country: initialData?.country || "IN",
     postalCode: initialData?.postalCode || "",
     latitude: initialData?.latitude || "",
     longitude: initialData?.longitude || "",
@@ -69,9 +81,25 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     isVisible: initialData?.isVisible !== undefined ? initialData.isVisible : true,
     createdAt: initialData?.createdAt,
     updatedAt: initialData?.updatedAt,
+    coverImageS3FileName: initialData?.coverImageS3FileName || "",
   });
 
   const [interestInput, setInterestInput] = useState("");
+
+  useEffect(() => {
+    const loadCitiesList = async () => {
+      setLoadingCities(true);
+      try {
+        const data = await fetchCities();
+        setCities(data);
+      } catch (err: any) {
+        console.error("Failed to load cities for dropdown:", err);
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+    loadCitiesList();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -124,10 +152,60 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     }));
   };
 
-  const handleSave = () => {
-    // In a real app, this would be an API call
-    console.log("Saving venue data:", formData);
-    router.push("/dashboard/venues");
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Venue Name is required");
+      return;
+    }
+    if (!formData.cityId) {
+      toast.error("City is required. Please select a city.");
+      return;
+    }
+    if (!formData.addressLine1.trim()) {
+      toast.error("Address Line 1 is required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      let coverImageS3FileName = formData.image ? (formData.coverImageS3FileName || "") : "";
+      if (formData.imageFile) {
+        // Upload image to S3 first
+        coverImageS3FileName = await uploadFile.mutateAsync({
+          file: formData.imageFile,
+          folder: "venuesimages",
+        });
+      }
+
+      const payload = {
+        name: formData.name.trim(),
+        cityId: formData.cityId,
+        latitude: parseFloat(formData.latitude) || 0,
+        longitude: parseFloat(formData.longitude) || 0,
+        addressLine1: formData.addressLine1.trim(),
+        region: formData.region.trim(),
+        country: formData.country || "IN",
+        isVisible: formData.isVisible !== false,
+        coverImageS3FileName: coverImageS3FileName,
+        isPartner: formData.isPartner || false,
+      };
+
+      if (currentMode === "edit") {
+        if (!formData.id) throw new Error("Venue ID is missing for update");
+        await updateVenue(formData.id, payload);
+        toast.success(`Successfully updated venue: ${formData.name}`);
+      } else {
+        await createVenue(payload);
+        toast.success(`Successfully created venue: ${formData.name}`);
+      }
+      
+      router.push("/dashboard/venues");
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save venue");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -176,10 +254,15 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
               )}
               <Button 
                 onClick={handleSave}
-                className="gap-2 px-8 h-11 text-base font-semibold shadow-lg shadow-primary/20"
+                disabled={saving}
+                className="gap-2 px-8 h-11 text-base font-semibold shadow-lg shadow-primary/20 disabled:opacity-70"
               >
-                <IconCheck size={20} />
-                {currentMode === 'edit' ? "Update Venue" : "Save Venue"}
+                {saving ? (
+                  <span className="animate-spin h-5 w-5 border-2 border-primary-foreground border-t-transparent rounded-full mr-2" />
+                ) : (
+                  <IconCheck size={20} />
+                )}
+                {saving ? "Saving..." : currentMode === 'edit' ? "Update Venue" : "Save Venue"}
               </Button>
             </>
           )}
@@ -266,6 +349,8 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
             )}
           </div>
 
+          {/* Commented out as it is not needed in creating the venue */}
+          {/* 
           <div className="glass-card p-6 flex flex-col gap-4">
             <Label className="text-base font-bold flex items-center gap-2">
               <IconInfoCircle size={18} className="text-primary" />
@@ -323,13 +408,14 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
               </div>
             )}
           </div>
+          */}
           <div className="glass-card p-6 flex flex-col gap-6">
             <Label className="text-base font-bold flex items-center gap-2">
               <IconInfoCircle size={18} className="text-primary" />
               Venue Settings
             </Label>
             
-            <div className="flex flex-col gap-4">
+             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-muted/20 shadow-inner">
                 <div>
                   <Label htmlFor="isFeature" className="font-bold text-base cursor-pointer">Featured Venue</Label>
@@ -389,26 +475,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                 />
               </div>
 
-              <div className="grid gap-3">
-                <div className="flex items-center gap-2">
-                  <IconInfoCircle className="text-primary" size={18} />
-                  <Label htmlFor="description" className="text-base font-bold">About Venue</Label>
-                </div>
-                {isViewing ? (
-                  <div className="p-6 rounded-2xl bg-muted/20 border border-border/50 text-base leading-relaxed text-foreground/80 shadow-inner">
-                    {formData.description || "This venue doesn't have a description yet."}
-                  </div>
-                ) : (
-                  <Textarea 
-                    id="description" 
-                    name="description" 
-                    placeholder="Describe the venue, its unique features, and the vibe..." 
-                    className="min-h-[160px] resize-none rounded-2xl p-6 text-base"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  />
-                )}
-              </div>
             </div>
 
             <div className="grid gap-6 mt-4 pt-6 border-t border-border/50">
@@ -432,16 +498,39 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="grid gap-3">
-                  <Label htmlFor="city" className="font-bold">City</Label>
-                  <Input 
-                    id="city" 
-                    name="city" 
-                    placeholder="e.g. Mumbai" 
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    readOnly={isViewing}
-                    className="rounded-xl h-11"
-                  />
+                  <Label htmlFor="cityId" className="font-bold">City <span className="text-destructive">*</span></Label>
+                  {isViewing ? (
+                    <Input 
+                      id="city" 
+                      value={formData.city || "Not Specified"}
+                      readOnly
+                      className="rounded-xl h-11"
+                    />
+                  ) : (
+                    <select
+                      id="cityId"
+                      name="cityId"
+                      value={formData.cityId || ""}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        const selectedCity = cities.find(c => (c.city_id ?? c.id) === selectedId);
+                        setFormData(prev => ({
+                          ...prev,
+                          cityId: selectedId,
+                          city: selectedCity ? selectedCity.name : "",
+                          country: selectedCity?.country_code || prev.country
+                        }));
+                      }}
+                      className="flex h-11 w-full rounded-xl border border-border/50 bg-[#171717] px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="" disabled className="bg-[#171717]">Select operational city...</option>
+                      {cities.map((c) => (
+                        <option key={c.city_id ?? c.id} value={c.city_id ?? c.id} className="bg-[#171717] text-white">
+                          {c.name} ({c.country_code})
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div className="grid gap-3">
                   <Label htmlFor="region" className="font-bold">Region / State</Label>
@@ -457,19 +546,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="postalCode" className="font-bold">Postal Code</Label>
-                  <Input 
-                    id="postalCode" 
-                    name="postalCode" 
-                    placeholder="400001" 
-                    value={formData.postalCode}
-                    onChange={handleInputChange}
-                    readOnly={isViewing}
-                    className="rounded-xl h-11"
-                  />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="latitude" className="font-bold">Latitude</Label>
                   <Input 
