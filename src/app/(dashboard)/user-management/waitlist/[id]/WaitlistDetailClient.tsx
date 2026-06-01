@@ -32,7 +32,7 @@ export default function WaitlistDetailClient({ userId }: WaitlistDetailClientPro
       const cities = await fetchCities();
       const mapping: Record<string, string> = {};
       cities.forEach(city => {
-        const id = city.city_id || city.id;
+        const id = city.cityId || city.city_id || city.id;
         if (id) {
           mapping[id] = city.name;
         }

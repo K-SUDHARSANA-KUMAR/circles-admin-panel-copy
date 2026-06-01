@@ -513,22 +513,26 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                       value={formData.cityId || ""}
                       onChange={(e) => {
                         const selectedId = e.target.value;
-                        const selectedCity = cities.find(c => (c.city_id ?? c.id) === selectedId);
+                        const selectedCity = cities.find(c => (c.cityId ?? c.city_id ?? c.id) === selectedId);
                         setFormData(prev => ({
                           ...prev,
                           cityId: selectedId,
                           city: selectedCity ? selectedCity.name : "",
-                          country: selectedCity?.country_code || prev.country
+                          country: selectedCity?.country?.code || selectedCity?.country_code || prev.country
                         }));
                       }}
                       className="flex h-11 w-full rounded-xl border border-border/50 bg-[#171717] px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="" disabled className="bg-[#171717]">Select operational city...</option>
-                      {cities.map((c) => (
-                        <option key={c.city_id ?? c.id} value={c.city_id ?? c.id} className="bg-[#171717] text-white">
-                          {c.name} ({c.country_code})
-                        </option>
-                      ))}
+                      {cities.map((c) => {
+                        const cid = c.cityId ?? c.city_id ?? c.id;
+                        const countryCode = c.country?.code ?? c.country_code ?? "";
+                        return (
+                          <option key={cid} value={cid} className="bg-[#171717] text-white">
+                            {c.name} {countryCode ? `(${countryCode})` : ""}
+                          </option>
+                        );
+                      })}
                     </select>
                   )}
                 </div>
