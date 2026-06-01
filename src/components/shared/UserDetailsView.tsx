@@ -438,38 +438,6 @@ export default function UserDetailsView({
 
             </div>
 
-            {/* Account Status Preferences */}
-            <div className="bg-[#171717] border border-[#333333] p-3.5 rounded-lg space-y-2.5 pt-2">
-              <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground block border-b border-[#333333] pb-1.5">Account Status</label>
-              
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">User Role</span>
-                <span className="font-semibold text-white capitalize">{user.role || 'User'}</span>
-              </div>
-
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">Profile Verification</span>
-                <span className="font-semibold text-white capitalize">
-                  {user.profileVerificationStatus || 'Pending'} {user.profileVerified ? '(Verified)' : '(Unverified)'}
-                </span>
-              </div>
-            </div>
-
-            {/* Life cycle stamps */}
-            <div className="bg-[#171717] border border-[#333333] p-3.5 rounded-lg space-y-2.5 pt-2">
-              <label className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground block border-b border-[#333333] pb-1.5">Audit Lifecycle</label>
-              
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">Joined / Created At</span>
-                <span className="font-semibold text-white font-sans">{formatDate(user.createdAt)}</span>
-              </div>
-
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">Last Profile Update</span>
-                <span className="font-semibold text-white font-sans">{formatDate(user.updatedAt)}</span>
-              </div>
-            </div>
-
           </CardContent>
         </Card>
 

@@ -479,24 +479,7 @@ export default function InterestsPage() {
                 </div>
               </div>
 
-              {/* Footer metadata */}
-              <div className="flex items-center gap-8 pt-4 border-t border-[#18181b]">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Created By</p>
-                  <p className="text-xs text-zinc-300 font-medium flex items-center gap-1.5">
-                    <span className="h-5 w-5 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[9px] font-bold text-primary">
-                      {activeGroup.name[0]}
-                    </span>
-                    Admin
-                  </p>
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Last Updated</p>
-                  <p className="text-xs text-zinc-300 font-medium">
-                    {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </p>
-                </div>
-              </div>
+        
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-3 bg-[#09090b] border border-[#18181b] rounded-xl py-20 text-center">
