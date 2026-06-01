@@ -5,12 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconArrowLeft, IconCheck, IconEdit, IconCalendarEvent } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
 import { fetchCities, type City } from "@/services/cities.service";
 import { createVenue, updateVenue } from "@/services/venue.service";
 import { toast } from "sonner";
 import { useFileUpload } from "@/features/common/hooks/useFileUpload";
+import dynamic from "next/dynamic";
+
+// Dynamically import map components to avoid SSR/window undefined issues
+const LocationPickerModal = dynamic(
+  () => import("@/components/modals/location-picker-modal").then((m) => m.LocationPickerModal),
+  { ssr: false }
+);
+
+const MapComponent = dynamic(
+  () => import("@/components/modals/map-component"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 w-full flex items-center justify-center bg-muted/20 rounded-xl border border-border/50">
+        <span className="text-sm text-muted-foreground flex items-center gap-2">
+          <span className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+          Loading map preview...
+        </span>
+      </div>
+    ),
+  }
+);
 
 export interface Venue {
   id?: string;
@@ -47,10 +69,13 @@ interface VenueFormProps {
 
 export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { uploadFile } = useFileUpload();
-  
-  // Determine if we are in edit mode based on the passed prop mode
-  const currentMode = mode;
+  const venueIdFromUrl = searchParams.get("id");
+
+  // Determine if we are in edit mode based on URL or initial mode
+  const isEditFromUrl = searchParams.get("edit") === "true";
+  const currentMode = mode === "create" ? "create" : (isEditFromUrl ? "edit" : "view");
   const isViewing = currentMode === "view";
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +83,9 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   const [cities, setCities] = useState<City[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Map state
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   const [formData, setFormData] = useState<Venue>({
     id: initialData?.id || "",
@@ -83,6 +111,20 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   });
 
   const [interestInput, setInterestInput] = useState("");
+
+  // Check if coordinates are valid numbers and not zero
+  const latNum = parseFloat(formData.latitude);
+  const lngNum = parseFloat(formData.longitude);
+  const hasValidCoordinates = !isNaN(latNum) && !isNaN(lngNum) && latNum !== 0 && lngNum !== 0;
+  const mapCoords = hasValidCoordinates ? { lat: latNum, lng: lngNum } : undefined;
+
+  const handleLocationSelect = (coordinates: { lat: number; lng: number }) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: String(coordinates.lat),
+      longitude: String(coordinates.lng),
+    }));
+  };
 
   useEffect(() => {
     const loadCitiesList = async () => {
@@ -233,7 +275,11 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
           {isViewing ? (
             <Button 
               variant="outline"
-              onClick={() => router.push(`?edit=true`)}
+              onClick={() => {
+                const id = formData.id || venueIdFromUrl;
+                if (!id) return;
+                router.push(`/dashboard/venues?id=${id}&edit=true`);
+              }}
               className="gap-2 px-6 h-11 text-base font-semibold border-primary/20 hover:border-primary/50 hover:bg-primary/5"
             >
               <IconEdit size={20} className="text-primary" />
@@ -244,7 +290,14 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
               {currentMode === 'edit' && (
                 <Button 
                   variant="ghost"
-                  onClick={() => router.push('?')}
+                  onClick={() => {
+                    const id = formData.id || venueIdFromUrl;
+                    if (!id) {
+                      router.push('/dashboard/venues');
+                      return;
+                    }
+                    router.push(`/dashboard/venues?id=${id}`);
+                  }}
                   className="h-11 px-6 font-semibold"
                 >
                   Cancel
@@ -511,22 +564,26 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                       value={formData.cityId || ""}
                       onChange={(e) => {
                         const selectedId = e.target.value;
-                        const selectedCity = cities.find(c => (c.city_id ?? c.id) === selectedId);
+                        const selectedCity = cities.find(c => (c.cityId ?? c.city_id ?? c.id) === selectedId);
                         setFormData(prev => ({
                           ...prev,
                           cityId: selectedId,
                           city: selectedCity ? selectedCity.name : "",
-                          country: selectedCity?.country_code || prev.country
+                          country: selectedCity?.country?.code || selectedCity?.country_code || prev.country
                         }));
                       }}
                       className="flex h-11 w-full rounded-xl border border-border/50 bg-[#171717] px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="" disabled className="bg-[#171717]">Select operational city...</option>
-                      {cities.map((c) => (
-                        <option key={c.city_id ?? c.id} value={c.city_id ?? c.id} className="bg-[#171717] text-white">
-                          {c.name} ({c.country_code})
-                        </option>
-                      ))}
+                      {cities.map((c) => {
+                        const cid = c.cityId ?? c.city_id ?? c.id;
+                        const countryCode = c.country?.code ?? c.country_code ?? "";
+                        return (
+                          <option key={cid} value={cid} className="bg-[#171717] text-white">
+                            {c.name} {countryCode ? `(${countryCode})` : ""}
+                          </option>
+                        );
+                      })}
                     </select>
                   )}
                 </div>
@@ -570,6 +627,60 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                   />
                 </div>
               </div>
+
+              {/* Map Preview and Location Picker Trigger */}
+              <div className="space-y-3 mt-2">
+                <div className="flex items-center justify-between">
+                  <Label className="font-bold flex items-center gap-1.5">
+                    <IconMapPin size={18} className="text-primary" />
+                    Map Location
+                  </Label>
+                  {!isViewing && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsMapModalOpen(true)}
+                      className="gap-1.5 text-xs border-primary/20 hover:border-primary/50 text-primary hover:bg-primary/5 rounded-xl px-4 py-2"
+                    >
+                      <IconMapPin size={14} />
+                      Pin on Map
+                    </Button>
+                  )}
+                </div>
+
+                {hasValidCoordinates ? (
+                  <div className="h-64 w-full rounded-2xl overflow-hidden border border-border/50 relative z-0 shadow-inner">
+                    <MapComponent
+                      initialCoordinates={mapCoords}
+                      selectedCoordinates={mapCoords}
+                      readOnly={true}
+                      onLocationSelect={() => {}}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-64 w-full rounded-2xl border-2 border-dashed border-border/50 flex flex-col items-center justify-center gap-2.5 bg-muted/10 text-muted-foreground p-6 text-center">
+                    <div className="bg-primary/10 p-3 rounded-full text-primary">
+                      <IconMapPin size={24} />
+                    </div>
+                    <div className="max-w-xs">
+                      <p className="font-semibold text-foreground text-sm">No Map Pin Set</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Define coordinates above or click below to search and pinpoint this venue on OpenStreetMap.</p>
+                    </div>
+                    {!isViewing && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setIsMapModalOpen(true)}
+                        className="mt-1.5 rounded-xl px-4"
+                      >
+                        Set Location Pin
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {(formData.createdAt || formData.updatedAt) && (
@@ -602,6 +713,16 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
           )}
         </div>
       </div>
+
+      {/* Location Picker Modal */}
+      {!isViewing && (
+        <LocationPickerModal
+          open={isMapModalOpen}
+          onOpenChange={setIsMapModalOpen}
+          onLocationSelect={handleLocationSelect}
+          initialCoordinates={mapCoords}
+        />
+      )}
     </div>
   );
 };

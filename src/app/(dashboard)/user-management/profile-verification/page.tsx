@@ -46,7 +46,7 @@ export default function ProfileVerificationPage() {
         const cities = await fetchCities();
         const mapping: Record<string, string> = {};
         cities.forEach(city => {
-          const id = city.city_id || city.id;
+          const id = city.cityId || city.city_id || city.id;
           if (id) {
             mapping[id] = city.name;
           }
@@ -264,7 +264,7 @@ export default function ProfileVerificationPage() {
                     return (
                       <tr
                         key={user.id}
-                        onClick={() => router.push(`/user-management/users/${user.id}`)}
+                        onClick={() => router.push(`/user-management/users?id=${user.id}`)}
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
                       >
                         {/* Name */}

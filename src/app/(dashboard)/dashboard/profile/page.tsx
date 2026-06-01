@@ -62,8 +62,8 @@ const ProfilePage = () => {
           </div>
           
           {/* Reliability Score Circle */}
-          <div className="absolute top-0 right-0 group">
-          <div className="relative h-24 w-24 flex items-center justify-center">
+          {/* <div className="absolute top-0 right-0 group">
+           <div className="relative h-24 w-24 flex items-center justify-center">
             <svg className="h-full w-full -rotate-90">
               <circle
                 cx="48"
@@ -95,7 +95,7 @@ const ProfilePage = () => {
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-zinc-900 text-white text-[10px] px-2 py-1 rounded pointer-events-none">
             Reliability Score
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-4">
@@ -155,21 +155,21 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          <Card className="p-6 glass-card border-none shadow-xl w-full">
+          {/* <Card className="p-6 glass-card border-none shadow-xl w-full">
             <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-3">Bio</h3>
             <p className="text-foreground/80 leading-relaxed text-sm italic">
               "{profileData.bio}"
             </p>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Right Column: Detailed Info */}
         <div className="lg:col-span-8">
           <Card className="glass-card border-none shadow-2xl overflow-hidden">
-            <div className="bg-primary/5 p-6 border-b border-primary/10">
+            {/* <div className="bg-primary/5 p-6 border-b border-primary/10">
               <h2 className="text-xl font-bold">Personal Information</h2>
               <p className="text-xs text-muted-foreground mt-1">Manage your personal details and contact information</p>
-            </div>
+            </div> */}
             
             <div className="p-8 grid gap-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -185,7 +185,7 @@ const ProfilePage = () => {
                 </div>
 
                 {/* DOB */}
-                <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-primary/5 transition-colors group">
+                {/* <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-primary/5 transition-colors group">
                   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                     <IconCalendar size={20} />
                   </div>
@@ -193,10 +193,10 @@ const ProfilePage = () => {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Date of Birth</p>
                     <p className="text-lg font-semibold mt-1">{profileData.dob}</p>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Phone */}
-                <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-primary/5 transition-colors group">
+                {/* <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-primary/5 transition-colors group">
                   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                     <IconPhone size={20} />
                   </div>
@@ -204,7 +204,7 @@ const ProfilePage = () => {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone Number</p>
                     <p className="text-lg font-semibold mt-1">{profileData.phoneNumber}</p>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Email */}
                 <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-primary/5 transition-colors group">
@@ -220,11 +220,11 @@ const ProfilePage = () => {
 
               <Separator className="bg-primary/10" />
               
-              <div className="flex justify-end gap-3">
+              {/* <div className="flex justify-end gap-3">
                 <button className="px-6 py-2 rounded-lg bg-primary text-white font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
                   Edit Profile
                 </button>
-              </div>
+              </div> */}
             </div>
             </Card>
           </div>
@@ -232,7 +232,7 @@ const ProfilePage = () => {
       </section>
 
       {/* Section 2: Interest */}
-      <section id="interests" className="min-h-[60vh] mt-12 pt-12 border-t border-primary/10 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+      {/* <section id="interests" className="min-h-[60vh] mt-12 pt-12 border-t border-primary/10 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
         <h3 className="text-3xl font-black mb-8 flex items-center gap-4">
           <span className="h-10 w-2 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
           INTERESTS
@@ -247,7 +247,7 @@ const ProfilePage = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };
