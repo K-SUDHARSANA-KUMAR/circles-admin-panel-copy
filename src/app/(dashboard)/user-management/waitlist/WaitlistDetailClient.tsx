@@ -108,7 +108,7 @@ export default function WaitlistDetailClient() {
       await approveWaitlistUser(user.id);
       const name = `${user.name || ''} ${user.lastName || ''}`.trim() || 'User';
       toast.success(`Successfully approved ${name}`);
-      await loadUserDetails();
+      router.push('/user-management/waitlist');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to approve user.';
       toast.error(message);
