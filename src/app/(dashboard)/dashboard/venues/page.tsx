@@ -10,9 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconPlus, IconTrash, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle } from "@tabler/icons-react";
+import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
-import { fetchVenues, deleteVenue, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
+import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
 import { toast } from "sonner";
 
 const VenuesPage = () => {
@@ -20,7 +20,7 @@ const VenuesPage = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'partner'>('all');
 
   const loadVenues = useCallback(async () => {
@@ -46,17 +46,6 @@ const VenuesPage = () => {
     loadVenues();
   }, [loadVenues]);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this venue?")) {
-      try {
-        await deleteVenue(id);
-        toast.success("Venue deleted successfully");
-        loadVenues();
-      } catch (err: any) {
-        toast.error(err.message || "Failed to delete venue");
-      }
-    }
-  };
 
   return (
     <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300 font-sans space-y-6">
@@ -214,16 +203,6 @@ const VenuesPage = () => {
                       >
                         <IconPencil size={15} />
                       </button>
-                      <button
-                        className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (venue.id) handleDelete(venue.id);
-                        }}
-                        title="Delete Venue"
-                      >
-                        <IconTrash size={15} />
-                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -305,17 +284,6 @@ const VenuesPage = () => {
                     >
                       <IconPencil size={13} />
                       <span>Edit</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 bg-transparent border border-zinc-800 text-red-400 hover:text-red-300 hover:border-red-900/50 rounded-lg flex items-center justify-center transition-all shrink-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (venue.id) handleDelete(venue.id);
-                      }}
-                    >
-                      <IconTrash size={13} />
                     </Button>
                   </div>
                 </div>
