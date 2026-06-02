@@ -14,6 +14,9 @@ import {
   IconTrash,
   IconX,
   IconPlus,
+  IconEye,
+  IconEyeOff,
+  IconAlertCircle,
 } from '@tabler/icons-react';
 import {
   ListingPageContainer,
@@ -41,6 +44,7 @@ export default function AdminUsersPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -137,6 +141,7 @@ export default function AdminUsersPage() {
       lastName: '',
       password: ''
     });
+    setShowPassword(false);
     setIsAddModalOpen(false);
   };
 
@@ -601,14 +606,23 @@ export default function AdminUsersPage() {
                 <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   Password <span className="text-red-500">*</span>
                 </label>
-                <Input
-                  required
-                  type="password"
-                  placeholder="Minimum 8 characters with numbers & symbols"
-                  value={addFormData.password}
-                  onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
-                  className="h-9 text-xs bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-purple-500 rounded-lg"
-                />
+                <div className="relative">
+                  <Input
+                    required
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Minimum 8 characters with numbers & symbols"
+                    value={addFormData.password}
+                    onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
+                    className="h-9 pr-10 text-xs bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-purple-500 rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors duration-200"
+                  >
+                    {showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                  </button>
+                </div>
               </div>
 
               {/* Actions */}
