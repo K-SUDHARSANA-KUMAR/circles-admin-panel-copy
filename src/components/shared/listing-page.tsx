@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import type { TablerIcon } from '@tabler/icons-react';
 
 export const listingStyles = {
-  container: 'max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-700',
+  container: 'max-w-[1535px] mx-auto space-y-6 animate-in fade-in duration-700',
   sectionHeader:
     'flex flex-col md:flex-row md:items-center justify-between border-b border-[#18181b] pb-4 gap-4',
   title: 'text-xl font-bold text-white tracking-tight flex items-center gap-2',

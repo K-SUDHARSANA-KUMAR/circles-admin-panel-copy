@@ -8,6 +8,7 @@ import {
   IconRefresh, 
   IconUser, 
   IconShieldCheck,
+  IconUserCheck,
   IconX,
   IconLoader,
   IconCheck,
@@ -186,28 +187,28 @@ export default function ProfileVerificationPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-[#18181b]">
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[20%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[20%]">
                     Name
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[15%]">
                     Phone No
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[12%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
                     Status
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[13%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
                     City
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[12%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
                     Referral Code
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[13%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
                     Medium
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[10%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
                     Score
                   </th>
-                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-4 px-12 select-none w-[5%]">
+                  <th className="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[5%]">
                     Actions
                   </th>
                 </tr>
@@ -247,7 +248,7 @@ export default function ProfileVerificationPage() {
                         className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
                       >
                         {/* Name */}
-                        <td className="py-5 px-12">
+                        <td className="py-3 px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 overflow-hidden">
                               {profilePictureUrl ? (
@@ -270,7 +271,7 @@ export default function ProfileVerificationPage() {
                         </td>
 
                         {/* Phone */}
-                        <td className="py-5 px-12">
+                        <td className="py-3 px-6">
                           {user.phone ? (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                               <IconPhone size={12} className="shrink-0 text-zinc-600" />
@@ -282,7 +283,7 @@ export default function ProfileVerificationPage() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-5 px-12">
+                        <td className="py-3 px-6">
                           {status === 'verified' || status === 'approved' || status === 'active' ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
@@ -302,7 +303,7 @@ export default function ProfileVerificationPage() {
                         </td>
 
                         {/* City */}
-                        <td className="py-5 px-12">
+                        <td className="py-3 px-6">
                           {cityName ? (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                               <IconMapPin size={12} className="shrink-0 text-zinc-600" />
@@ -314,7 +315,7 @@ export default function ProfileVerificationPage() {
                         </td>
 
                         {/* Referral Code */}
-                        <td className="py-5 px-12">
+                        <td className="py-3 px-6">
                           {code ? (
                             <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
                               {code}
@@ -325,7 +326,7 @@ export default function ProfileVerificationPage() {
                         </td>
 
                         {/* Referral Medium */}
-                        <td className="py-5 px-12">
+                        <td className="py-3 px-6">
                           {medium ? (
                             <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 select-none">
                               {medium}
@@ -336,7 +337,7 @@ export default function ProfileVerificationPage() {
                         </td>
 
                         {/* Reliability Score */}
-                        <td className="py-5 px-12">
+                        <td className="py-3 px-6">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}>
                             <IconAward size={12} className="shrink-0" />
                             <span>{score}%</span>
@@ -344,14 +345,14 @@ export default function ProfileVerificationPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-5 px-12 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end">
+                        <td className="py-3 px-6 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center">
                             <button
                               onClick={() => handleOpenVerify(user)}
                               className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
                               title="Review Verification"
                             >
-                              <IconShieldCheck size={16} />
+                              <IconUserCheck size={20} />
                             </button>
                           </div>
                         </td>

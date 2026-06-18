@@ -52,7 +52,7 @@ const dashboardMetrics = [
 
 const DashboardPage = () => {
   return (
-    <section className="flex flex-col gap-5 w-full max-w-[1400px] mx-auto animate-in fade-in duration-700">
+    <section className="flex flex-col gap-5 w-full max-w-[1535px] mx-auto animate-in fade-in duration-700">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {dashboardMetrics.map((metric, index) => {
           const IconComponent = metric.icon;

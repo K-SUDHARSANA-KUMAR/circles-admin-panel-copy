@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 
 export default function ReviewsPage() {
   return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-700">
+    <div className="max-w-[1535px] mx-auto animate-in fade-in duration-700">
       <Card className="border-[#333333] bg-[#222222] p-12 text-center flex flex-col items-center justify-center gap-4 min-h-[300px]">
         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary">
           <IconMessageReport size={24} />
