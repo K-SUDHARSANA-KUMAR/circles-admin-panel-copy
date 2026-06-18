@@ -215,7 +215,7 @@ const VenuesPage = () => {
         </div>
       ) : (
         /* Premium Cards Layout */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
           {venues.map((venue) => {
             const category = venue.interests && venue.interests[0] ? venue.interests[0] : "Venue";
             const city = venue.city || "Location";
