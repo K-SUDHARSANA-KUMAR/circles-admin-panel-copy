@@ -349,10 +349,10 @@ export default function ProfileVerificationPage() {
                           <div className="flex items-center justify-center">
                             <button
                               onClick={() => handleOpenVerify(user)}
-                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
+                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                               title="Review Verification"
                             >
-                              <IconUserCheck size={20} />
+                              <IconUserCheck size={20} className="cursor-pointer" />
                             </button>
                           </div>
                         </td>

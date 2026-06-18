@@ -338,17 +338,17 @@ export default function UsersPage() {
                           <div className="flex items-center justify-end gap-2.5">
                             <button
                               onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
-                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
+                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                               title="Verify Details"
                             >
-                              <IconUser size={15} />
+                              <IconUser size={15} className="cursor-pointer" />
                             </button>
                             <button
                               onClick={() => handleOpenEdit(customer)}
-                              className="text-zinc-500 hover:text-white hover:scale-110 active:scale-95 transition-all p-1"
+                              className="text-zinc-500 hover:text-white hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                               title="Edit Status"
                             >
-                              <IconPencil size={15} />
+                              <IconPencil size={15} className="cursor-pointer" />
                             </button>
                           </div>
                         </td>
