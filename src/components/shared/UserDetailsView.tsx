@@ -74,11 +74,17 @@ export default function UserDetailsView({
   const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
   const score = user.reliabilityScore !== undefined ? user.reliabilityScore : 100;
 
-  const parseArrayField = (fieldValue?: string): string[] => {
+  const parseArrayField = (fieldValue?: any): string[] => {
     if (!fieldValue) return [];
+    if (Array.isArray(fieldValue)) {
+      return fieldValue.map(String);
+    }
+    if (typeof fieldValue !== 'string') {
+      return [String(fieldValue)];
+    }
     try {
       const parsed = JSON.parse(fieldValue);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) return parsed.map(String);
       return [fieldValue];
     } catch (e) {
       if (fieldValue.startsWith('[') && fieldValue.endsWith(']')) {

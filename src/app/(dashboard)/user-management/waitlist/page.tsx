@@ -401,11 +401,11 @@ export default function WaitlistPage() {
                             <button
                               type="button"
                               onClick={() => router.push(getDetailUrl(user.id))}
-                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
+                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                               title={isRejectedTab ? 'View Applicant' : 'Review & Verify User'}
                               aria-label={isRejectedTab ? 'View applicant' : 'Review and verify user'}
                             >
-                              <IconUserSearch size={20} />
+                              <IconUserSearch size={20} className="cursor-pointer" />
                             </button>
                           </div>
                         </td>

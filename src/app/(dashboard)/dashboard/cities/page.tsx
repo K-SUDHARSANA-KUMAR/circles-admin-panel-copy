@@ -476,17 +476,17 @@ export default function CitiesPage() {
                               <div className="flex items-center justify-end gap-3.5">
                                 <button
                                   onClick={() => handleOpenEdit(city)}
-                                  className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
+                                  className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                                   title="Edit City"
                                 >
-                                  <IconPencil size={15} />
+                                  <IconPencil size={15} className="cursor-pointer" />
                                 </button>
                                 <button
                                   onClick={() => setDeleteTarget(city)}
-                                  className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1"
+                                  className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                                   title="Delete City"
                                 >
-                                  <IconTrash size={15} />
+                                  <IconTrash size={15} className="cursor-pointer" />
                                 </button>
                               </div>
                             </td>
@@ -640,17 +640,17 @@ export default function CitiesPage() {
                               <div className="flex items-center justify-end gap-3.5">
                                 <button
                                   onClick={() => handleOpenCountryEdit(country)}
-                                  className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
+                                  className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                                   title="Edit Country"
                                 >
-                                  <IconPencil size={15} />
+                                  <IconPencil size={15} className="cursor-pointer" />
                                 </button>
                                 <button
                                   onClick={() => setDeleteCountryTarget(country)}
-                                  className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1"
+                                  className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                                   title="Delete Country"
                                 >
-                                  <IconTrash size={15} />
+                                  <IconTrash size={15} className="cursor-pointer" />
                                 </button>
                               </div>
                             </td>
