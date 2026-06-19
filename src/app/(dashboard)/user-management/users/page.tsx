@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import UserDetailClient from './UserDetailClient';
 import { fetchCustomers, updateCustomerStatus, type Customer } from '@/services/user.service';
@@ -46,7 +47,6 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -87,16 +87,8 @@ export default function UsersPage() {
     return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
   };
 
-  // Debounce search query to prevent excessive API requests
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 400);
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
 
   const loadCustomers = useCallback(async (searchVal = '', pageNum = 1, limitNum = 10) => {
     setLoading(true);
@@ -207,6 +199,10 @@ export default function UsersPage() {
                 itemLabel="users"
                 onPrevious={() => setCurrentPage((prev) => prev - 1)}
                 onNext={() => setCurrentPage((prev) => prev + 1)}
+                onItemsPerPageChange={(val) => {
+                  setItemsPerPage(val);
+                  setCurrentPage(1);
+                }}
               />
             ) : undefined
           }

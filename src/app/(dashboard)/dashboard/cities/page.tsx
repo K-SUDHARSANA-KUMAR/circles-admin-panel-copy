@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,18 +36,8 @@ export default function CitiesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  // Debounce search query to prevent excessive API requests
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 400);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
   // Reset page when search changes
   useEffect(() => {
@@ -67,7 +58,7 @@ export default function CitiesPage() {
 
   // Cities Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Countries states
   const [countries, setCountries] = useState<Country[]>([]);
@@ -88,7 +79,7 @@ export default function CitiesPage() {
 
   // Countries Pagination state
   const [currentCountryPage, setCurrentCountryPage] = useState(1);
-  const itemsPerCountryPage = 10;
+  const [itemsPerCountryPage, setItemsPerCountryPage] = useState(10);
 
   // ─── Fetch Cities ──────────────────────────────────────────────────────────
   const loadCities = useCallback(async (searchVal = '', pageNum = 1) => {
@@ -106,9 +97,18 @@ export default function CitiesPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [itemsPerPage]);
+
+  const prevSearchRef = useRef(debouncedSearch);
 
   useEffect(() => {
+    if (prevSearchRef.current !== debouncedSearch) {
+      prevSearchRef.current = debouncedSearch;
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+        return;
+      }
+    }
     loadCities(debouncedSearch, currentPage);
   }, [debouncedSearch, currentPage, loadCities]);
 
@@ -392,7 +392,7 @@ export default function CitiesPage() {
                 <p className="text-xs text-zinc-500 max-w-xs mx-auto mt-0.5">{error}</p>
               </div>
               <Button
-                onClick={loadCities}
+                onClick={() => loadCities(searchQuery, currentPage)}
                 variant="outline"
                 size="sm"
                 className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800"
@@ -499,12 +499,27 @@ export default function CitiesPage() {
               </div>
 
               {/* Pagination Controls */}
-              {!loading && totalPages > 1 && (
+              {!loading && totalCities > 0 && (
                 <div className="flex items-center justify-between border-t border-[#18181b] px-12 py-4">
                   <div className="text-[11px] text-zinc-500 text-left">
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalCities)} of {totalCities} cities
                   </div>
                   <div className="flex items-center gap-2">
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="h-7 px-2 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-800 focus:outline-none transition-all cursor-pointer mr-2 select-none"
+                      aria-label="Records per page"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={30}>30</option>
+                      <option value={40}>40</option>
+                    </select>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -663,12 +678,27 @@ export default function CitiesPage() {
               </div>
 
               {/* Country Pagination Controls */}
-              {!countriesLoading && totalCountryPages > 1 && (
+              {!countriesLoading && filteredCountries.length > 0 && (
                 <div className="flex items-center justify-between border-t border-[#18181b] px-12 py-4">
                   <div className="text-[11px] text-zinc-500 text-left">
                     Showing {(currentCountryPage - 1) * itemsPerCountryPage + 1} to {Math.min(currentCountryPage * itemsPerCountryPage, filteredCountries.length)} of {filteredCountries.length} countries
                   </div>
                   <div className="flex items-center gap-2">
+                    <select
+                      value={itemsPerCountryPage}
+                      onChange={(e) => {
+                        setItemsPerCountryPage(Number(e.target.value));
+                        setCurrentCountryPage(1);
+                      }}
+                      className="h-7 px-2 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-800 focus:outline-none transition-all cursor-pointer mr-2 select-none"
+                      aria-label="Records per page"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={30}>30</option>
+                      <option value={40}>40</option>
+                    </select>
                     <Button
                       variant="ghost"
                       size="sm"

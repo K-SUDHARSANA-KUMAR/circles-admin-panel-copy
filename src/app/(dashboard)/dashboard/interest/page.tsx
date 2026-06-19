@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,8 +21,9 @@ import {
 import {
   type GroupColor,
   type InterestGroup,
-  COLOR_CYCLE,
   fetchInterestGroups,
+  fetchInterestsBySearch,
+  fetchInterestGroupById,
   createInterestGroup,
   deleteInterestGroup,
   createSubInterest,
@@ -44,6 +46,21 @@ interface GroupStyle {
   bg: string;
   badge: GroupColor;
   glow: string;
+}
+
+// ─── Highlight matched text ───────────────────────────────────────────────────
+
+function HighlightText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span>{text.slice(idx, idx + query.length)}</span>
+      {text.slice(idx + query.length)}
+    </>
+  );
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -69,18 +86,9 @@ export default function InterestsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  // Debounce search query to prevent excessive API requests
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 400);
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
 
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -108,8 +116,45 @@ export default function InterestsPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchInterestGroups(searchVal);
-      setGroups(data);
+      if (searchVal.trim()) {
+        // Dual backend search: by group name AND by interest name in parallel
+        const [groupsByName, interestMatches] = await Promise.all([
+          fetchInterestGroups(searchVal),
+          fetchInterestsBySearch(searchVal),
+        ]);
+
+        // Collect group IDs already found by group-name search
+        const foundGroupIds = new Set(groupsByName.map((g) => g.id));
+
+        // Find unique parent group IDs from interest matches not already included
+        const missingParentIds = [
+          ...new Set(
+            interestMatches
+              .map((i) => i.interestGroupId)
+              .filter((id) => id && !foundGroupIds.has(id))
+          ),
+        ];
+
+        // Fetch missing parent groups concurrently
+        const parentGroups = (
+          await Promise.all(missingParentIds.map((id) => fetchInterestGroupById(id)))
+        ).filter((g): g is InterestGroup => g !== null);
+
+        const mergedGroups = [...groupsByName, ...parentGroups];
+        setGroups(mergedGroups);
+
+        // Auto-select when search narrows result to a single group
+        if (mergedGroups.length === 1) {
+          setActiveGroupId(mergedGroups[0].id);
+        } else if (mergedGroups.length === 0) {
+          setActiveGroupId(null);
+        }
+        // If multiple groups match, leave selection up to the user
+      } else {
+        // No search — fetch all groups and reset selection
+        const data = await fetchInterestGroups('');
+        setGroups(data);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load interests. Please try again.';
       setError(msg);
@@ -193,15 +238,7 @@ export default function InterestsPage() {
     }
   };
 
-  // ── Filter ─────────────────────────────────────────────────────────────────
-
-  const filteredGroups = groups.filter((group) => {
-    const matchesGroup = group.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSub = group.subInterests.some((sub) =>
-      sub.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    return matchesGroup || matchesSub;
-  });
+  // No client-side filtering — backend handles all search logic
 
   // ── Color map ──────────────────────────────────────────────────────────────
 
@@ -268,7 +305,7 @@ export default function InterestsPage() {
       <ListingToolbar
         countLabel={`${groups.length} Groups`}
         showCount={!loading}
-        searchPlaceholder="Search groups..."
+        searchPlaceholder="Search groups or interests..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onRefresh={() => loadGroups(searchQuery)}
@@ -322,7 +359,7 @@ export default function InterestsPage() {
       )}
 
       {/* ── Empty ─────────────────────────────────────────────────────── */}
-      {!loading && !error && filteredGroups.length === 0 && (
+      {!loading && !error && groups.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10">
             <IconTags size={24} className="text-muted-foreground" />
@@ -333,7 +370,7 @@ export default function InterestsPage() {
       )}
 
       {/* ── Two-column layout ─────────────────────────────────────────── */}
-      {!loading && !error && filteredGroups.length > 0 && (
+      {!loading && !error && groups.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
 
           {/* ── LEFT: Group list ──────────────────────────────────────── */}
@@ -347,7 +384,7 @@ export default function InterestsPage() {
               New Group
             </Button>
 
-            {filteredGroups.map((group) => {
+            {groups.map((group) => {
               const isActive = activeGroupId === group.id;
               const style = getStyle(group.color, isActive);
               return (
@@ -454,9 +491,13 @@ export default function InterestsPage() {
                     activeGroup.subInterests.map((sub) => (
                       <span
                         key={sub.id}
-                        className="group/tag inline-flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium px-3 py-1.5 rounded-lg hover:border-zinc-700 transition-all"
+                        className={`group/tag inline-flex items-center gap-1.5 border text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${
+                          debouncedSearch.trim() && sub.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+                            ? 'bg-zinc-900 border-amber-400 text-zinc-300'
+                            : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'
+                        }`}
                       >
-                        {sub.name}
+                        <HighlightText text={sub.name} query={debouncedSearch} />
                         <button
                           type="button"
                           onClick={() => { setEditTarget({ type: 'subInterest', id: sub.id, name: sub.name }); setEditName(sub.name); }}
