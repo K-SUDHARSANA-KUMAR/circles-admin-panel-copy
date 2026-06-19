@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import WaitlistDetailClient from './WaitlistDetailClient';
 import {
@@ -72,9 +73,8 @@ export default function WaitlistPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -96,12 +96,8 @@ export default function WaitlistPage() {
     loadCities();
   }, []);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 400);
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
 
   // Removed separate currentPage reset hook to integrate it in the fetch effect below
 
@@ -426,6 +422,10 @@ export default function WaitlistPage() {
               itemLabel="applicants"
               onPrevious={() => setCurrentPage((prev) => prev - 1)}
               onNext={() => setCurrentPage((prev) => prev + 1)}
+              onItemsPerPageChange={(val) => {
+                setItemsPerPage(val);
+                setCurrentPage(1);
+              }}
             />
           )}
         </div>

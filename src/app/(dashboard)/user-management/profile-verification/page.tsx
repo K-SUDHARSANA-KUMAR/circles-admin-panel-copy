@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import { 
@@ -36,7 +37,6 @@ export default function ProfileVerificationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
@@ -65,13 +65,8 @@ export default function ProfileVerificationPage() {
     loadCities();
   }, []);
 
-  // Debounce search query
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 400);
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
 
   const loadUsers = useCallback(async (searchVal = '', currentPage = 1) => {
     setLoading(true);
@@ -375,6 +370,10 @@ export default function ProfileVerificationPage() {
               itemLabel="profiles"
               onPrevious={() => setPage((prev) => prev - 1)}
               onNext={() => setPage((prev) => prev + 1)}
+              onItemsPerPageChange={(val) => {
+                setLimit(val);
+                setPage(1);
+              }}
             />
           )}
         </div>

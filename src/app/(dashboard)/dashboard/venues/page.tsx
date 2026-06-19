@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -37,24 +38,10 @@ const VenuesPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalVenues, setTotalVenues] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Debounce search query to prevent excessive API requests
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 400);
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
-
-  // Reset page when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch]);
 
   const loadVenues = useCallback(async (searchVal = '', pageNum = 1) => {
     setLoading(true);
@@ -77,10 +64,20 @@ const VenuesPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterType]);
+  }, [filterType, itemsPerPage]);
+
+  const prevSearchRef = useRef(debouncedSearch);
 
   useEffect(() => {
     if (detailVenueId) return;
+
+    if (prevSearchRef.current !== debouncedSearch) {
+      prevSearchRef.current = debouncedSearch;
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+        return;
+      }
+    }
     loadVenues(debouncedSearch, currentPage);
   }, [loadVenues, debouncedSearch, currentPage, detailVenueId]);
 
@@ -156,7 +153,7 @@ const VenuesPage = () => {
             <p className="text-xs text-zinc-500 max-w-xs mx-auto mt-0.5 text-center">{error}</p>
           </div>
           <Button
-            onClick={loadVenues}
+            onClick={() => loadVenues(searchQuery, currentPage)}
             variant="outline"
             size="sm"
             className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-[#18181b] bg-zinc-900 text-white hover:bg-zinc-800"
@@ -326,33 +323,47 @@ const VenuesPage = () => {
 
       {/* Pagination footer */}
       {!loading && !error && venues.length > 0 && (
-        <div className="flex items-center justify-between pt-4 px-1 text-xs">
+        <div className="flex items-center justify-between border-t border-[#18181b] pt-4 px-1 text-xs mt-4">
           <span className="text-zinc-500">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalVenues)} of {totalVenues} entries
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalVenues)} of {totalVenues} venues
           </span>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="flex items-center justify-center h-8 w-8 rounded-lg border border-[#18181b] bg-zinc-950 text-zinc-400 hover:bg-zinc-900 transition-all font-semibold disabled:opacity-30"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="h-7 px-2 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-800 focus:outline-none transition-all cursor-pointer mr-2 select-none"
+              aria-label="Records per page"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={30}>30</option>
+              <option value={40}>40</option>
+            </select>
+            <Button
+              variant="ghost"
+              size="sm"
               disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
             >
-              &lt;
-            </button>
-            <button
-              type="button"
-              className="flex items-center justify-center px-3 h-8 rounded-lg bg-[#8b5cf6] text-white font-bold transition-all shadow-md shadow-purple-500/20"
-            >
-              {currentPage}
-            </button>
-            <button
-              type="button"
-              className="flex items-center justify-center h-8 w-8 rounded-lg border border-[#18181b] bg-zinc-950 text-zinc-400 hover:bg-zinc-900 transition-all font-semibold disabled:opacity-30"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              Previous
+            </Button>
+            <span className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
               disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
             >
-              &gt;
-            </button>
+              Next
+            </Button>
           </div>
         </div>
       )}

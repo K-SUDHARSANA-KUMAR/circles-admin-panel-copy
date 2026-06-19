@@ -126,6 +126,7 @@ export function buildInterestGroups(groups: ApiInterestGroup[]): InterestGroup[]
 
 /**
  * Fetches all interest groups (with interests embedded).
+ * Optionally filters by group name via backend search param.
  */
 export async function fetchInterestGroups(search?: string): Promise<InterestGroup[]> {
   try {
@@ -139,6 +140,47 @@ export async function fetchInterestGroups(search?: string): Promise<InterestGrou
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
+  }
+}
+
+/**
+ * Searches interests (sub-interests) by name via backend API.
+ * Returns matching ApiInterest objects that include their interestGroupId.
+ */
+export async function fetchInterestsBySearch(search: string): Promise<ApiInterest[]> {
+  try {
+    const url = `${INTERESTS_URL}?search=${encodeURIComponent(search.trim())}`;
+    const res = await customAxios.get(url);
+    const data = extractArray(res.data);
+    if (!data) return [];
+    return (data as ApiInterest[]).filter((i) => i && i.Interestid);
+  } catch {
+    // Interest name search is best-effort — silently fall back to empty
+    return [];
+  }
+}
+
+/**
+ * Fetches a single interest group by its ID.
+ * Used to load parent groups discovered via interest-name search.
+ */
+export async function fetchInterestGroupById(id: string): Promise<InterestGroup | null> {
+  try {
+    const res = await customAxios.get(`${INTEREST_GROUPS_URL}/${id}`);
+    const raw = res.data;
+    let group: ApiInterestGroup | null = null;
+    if (raw && raw.Interestgroup_id) {
+      group = raw as ApiInterestGroup;
+    } else if (raw?.result?.data) {
+      group = raw.result.data as ApiInterestGroup;
+    } else if (raw?.data) {
+      group = raw.data as ApiInterestGroup;
+    }
+    if (!group) return null;
+    const built = buildInterestGroups([group]);
+    return built[0] ?? null;
+  } catch {
+    return null;
   }
 }
 

@@ -10,7 +10,7 @@ export const AuthHero = () => {
       className="bg-primary relative hidden h-1/2 w-full flex-col items-center justify-center px-20 md:flex md:h-auto md:w-1/2"
       style={{ background: 'linear-gradient(135deg, #000000 0%, #333333 100%)' }}
     >
-      <div className="text-centerflex flex h-fit flex-col gap-10 text-center text-neutral-200">
+      <div className="text-center flex h-fit flex-col gap-10 text-neutral-200">
         <div>
           <img src={quoteLine.src} alt="quote-line" className="h-auto w-full" />
         </div>

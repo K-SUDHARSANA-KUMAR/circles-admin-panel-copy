@@ -360,6 +360,7 @@ type ListingPaginationProps = {
   itemLabel?: string;
   onPrevious: () => void;
   onNext: () => void;
+  onItemsPerPageChange?: (value: number) => void;
 };
 
 export const ListingPagination = ({
@@ -370,8 +371,9 @@ export const ListingPagination = ({
   itemLabel = 'entries',
   onPrevious,
   onNext,
+  onItemsPerPageChange,
 }: ListingPaginationProps) => {
-  if (totalPages <= 1) return null;
+  if (totalItems === 0) return null;
 
   const start = (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(currentPage * itemsPerPage, totalItems);
@@ -382,6 +384,20 @@ export const ListingPagination = ({
         Showing {start} to {end} of {totalItems} {itemLabel}
       </div>
       <div className="flex items-center gap-2">
+        {onItemsPerPageChange && (
+          <select
+            value={itemsPerPage}
+            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+            className="h-7 px-2 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-800 focus:outline-none transition-all cursor-pointer mr-2 select-none"
+            aria-label="Records per page"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+            <option value={30}>30</option>
+            <option value={40}>40</option>
+          </select>
+        )}
         <Button
           variant="ghost"
           size="sm"

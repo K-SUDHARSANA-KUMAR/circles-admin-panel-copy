@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { fetchAdminUsers, updateAdminUser, deleteAdminUser, createAdminUser, type AdminUser } from '@/services/adminuser.service';
 import {
-  IconRefresh,
   IconUser,
   IconPhone,
   IconMail,
@@ -37,7 +37,6 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // Modal & Action states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,26 +59,19 @@ export default function AdminUsersPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  // Pagination state (client-side)
+  // Pagination state (server-side)
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Debounce search query to prevent excessive API requests
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 400);
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
 
-  const loadAdminUsers = useCallback(async (searchVal = '') => {
+  const loadAdminUsers = useCallback(async (searchVal = '', pageNum = 1, limitNum = 10) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetchAdminUsers({ search: searchVal });
+      const skip = (pageNum - 1) * limitNum;
+      const response = await fetchAdminUsers({ search: searchVal, limit: limitNum, skip });
       setUsers(response.users);
       setTotal(response.total);
     } catch (err: unknown) {
@@ -91,18 +83,22 @@ export default function AdminUsersPage() {
     }
   }, []);
 
+  const prevSearchRef = useRef(debouncedSearch);
+
   useEffect(() => {
-    loadAdminUsers(debouncedSearch);
-  }, [debouncedSearch, loadAdminUsers]);
+    if (prevSearchRef.current !== debouncedSearch) {
+      prevSearchRef.current = debouncedSearch;
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+        return;
+      }
+    }
+    loadAdminUsers(debouncedSearch, currentPage, itemsPerPage);
+  }, [debouncedSearch, currentPage, itemsPerPage, loadAdminUsers]);
 
   const handleRefresh = () => {
-    loadAdminUsers(searchQuery);
+    loadAdminUsers(searchQuery, currentPage, itemsPerPage);
   };
-
-  // Reset page when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch]);
 
   // ─── Create Admin User (Bootstrap) ──────────────────────────────────────────
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -214,11 +210,8 @@ export default function AdminUsersPage() {
 
   // Slice paginated items
   const filteredUsers = users;
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const paginatedUsers = users;
 
   return (
     <ListingPageContainer>
@@ -421,11 +414,15 @@ export default function AdminUsersPage() {
             <ListingPagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={filteredUsers.length}
+              totalItems={total}
               itemsPerPage={itemsPerPage}
               itemLabel="administrators"
               onPrevious={() => setCurrentPage((prev) => prev - 1)}
               onNext={() => setCurrentPage((prev) => prev + 1)}
+              onItemsPerPageChange={(val) => {
+                setItemsPerPage(val);
+                setCurrentPage(1);
+              }}
             />
           )}
         </div>
