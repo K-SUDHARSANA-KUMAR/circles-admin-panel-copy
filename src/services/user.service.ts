@@ -42,12 +42,29 @@ export async function fetchCustomers(params?: {
   skip?: number;
   search?: string;
 }): Promise<CustomersResponse> {
-  const limit = params?.limit !== undefined ? params.limit : 10;
-  const skip = params?.skip !== undefined ? params.skip : 0;
+  const originalLimit = params?.limit !== undefined ? params.limit : 10;
+  const originalSkip = params?.skip !== undefined ? params.skip : 0;
+
+  let limit = originalLimit;
+  let skip = originalSkip;
+  let backendSearch = params?.search?.trim();
+  let searchTerms: string[] = [];
+  let clientFilter = false;
+
+  if (backendSearch && backendSearch.includes(' ')) {
+    searchTerms = backendSearch.split(/\s+/);
+    // Find the longest word to send to the backend to get the most selective match
+    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
+    clientFilter = true;
+    // Request a larger page size from the backend to do client-side filtering
+    limit = 100;
+    skip = 0;
+  }
+
   let url = `${ADMIN_CUSTOMERS_URL}?limit=${limit}&skip=${skip}`;
 
-  if (params?.search !== undefined && params.search.trim() !== '') {
-    url += `&search=${encodeURIComponent(params.search.trim())}`;
+  if (backendSearch !== undefined && backendSearch !== '') {
+    url += `&search=${encodeURIComponent(backendSearch)}`;
   }
 
   try {
@@ -75,6 +92,15 @@ export async function fetchCustomers(params?: {
           totalCount = 0;
         }
       }
+    }
+
+    if (clientFilter && searchTerms.length > 0) {
+      const filtered = customersList.filter(customer => {
+        const fullName = `${customer.name || ''} ${customer.lastName || ''}`.toLowerCase();
+        return searchTerms.every(term => fullName.includes(term.toLowerCase()));
+      });
+      totalCount = filtered.length;
+      customersList = filtered.slice(originalSkip, originalSkip + originalLimit);
     }
 
     return {
@@ -114,12 +140,27 @@ export async function fetchWaitlist(params?: {
   skip?: number;
   search?: string;
 }): Promise<WaitlistResponse> {
-  const limit = params?.limit !== undefined ? params.limit : 10;
-  const skip = params?.skip !== undefined ? params.skip : 0;
+  const originalLimit = params?.limit !== undefined ? params.limit : 10;
+  const originalSkip = params?.skip !== undefined ? params.skip : 0;
+
+  let limit = originalLimit;
+  let skip = originalSkip;
+  let backendSearch = params?.search?.trim();
+  let searchTerms: string[] = [];
+  let clientFilter = false;
+
+  if (backendSearch && backendSearch.includes(' ')) {
+    searchTerms = backendSearch.split(/\s+/);
+    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
+    clientFilter = true;
+    limit = 100;
+    skip = 0;
+  }
+
   let url = `${ADMIN_WAITLIST_URL}?limit=${limit}&skip=${skip}`;
 
-  if (params?.search !== undefined && params.search.trim() !== '') {
-    url += `&search=${encodeURIComponent(params.search.trim())}`;
+  if (backendSearch !== undefined && backendSearch !== '') {
+    url += `&search=${encodeURIComponent(backendSearch)}`;
   }
 
   try {
@@ -149,6 +190,15 @@ export async function fetchWaitlist(params?: {
       }
     }
 
+    if (clientFilter && searchTerms.length > 0) {
+      const filtered = waitlistList.filter(user => {
+        const fullName = `${user.name || ''} ${user.lastName || ''}`.toLowerCase();
+        return searchTerms.every(term => fullName.includes(term.toLowerCase()));
+      });
+      totalCount = filtered.length;
+      waitlistList = filtered.slice(originalSkip, originalSkip + originalLimit);
+    }
+
     return {
       users: waitlistList,
       total: totalCount,
@@ -167,21 +217,48 @@ export async function fetchRejectedWaitlist(params?: {
   skip?: number;
   search?: string;
 }): Promise<WaitlistResponse> {
-  const limit = params?.limit !== undefined ? params.limit : 10;
-  const skip = params?.skip !== undefined ? params.skip : 0;
+  const originalLimit = params?.limit !== undefined ? params.limit : 10;
+  const originalSkip = params?.skip !== undefined ? params.skip : 0;
+
+  let limit = originalLimit;
+  let skip = originalSkip;
+  let backendSearch = params?.search?.trim();
+  let searchTerms: string[] = [];
+  let clientFilter = false;
+
+  if (backendSearch && backendSearch.includes(' ')) {
+    searchTerms = backendSearch.split(/\s+/);
+    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
+    clientFilter = true;
+    limit = 100;
+    skip = 0;
+  }
+
   let url = `${ADMIN_WAITLIST_URL}/rejected?limit=${limit}&skip=${skip}`;
 
-  if (params?.search !== undefined && params.search.trim() !== '') {
-    url += `&search=${encodeURIComponent(params.search.trim())}`;
+  if (backendSearch !== undefined && backendSearch !== '') {
+    url += `&search=${encodeURIComponent(backendSearch)}`;
   }
 
   try {
     const res = await customAxios.get(url);
     const data = res.data?.data;
 
+    let usersList = data?.items || [];
+    let totalCount = data?.totalItems || 0;
+
+    if (clientFilter && searchTerms.length > 0) {
+      const filtered = usersList.filter((user: any) => {
+        const fullName = `${user.name || ''} ${user.lastName || ''}`.toLowerCase();
+        return searchTerms.every((term: string) => fullName.includes(term.toLowerCase()));
+      });
+      totalCount = filtered.length;
+      usersList = filtered.slice(originalSkip, originalSkip + originalLimit);
+    }
+
     return {
-      users: data?.items || [],
-      total: data?.totalItems || 0,
+      users: usersList,
+      total: totalCount,
     };
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
@@ -295,12 +372,27 @@ export async function fetchProfileUsersGetAll(params?: {
   skip?: number;
   search?: string;
 }): Promise<ProfileUsersResponse> {
-  const limit = params?.limit !== undefined ? params.limit : 10;
-  const skip = params?.skip !== undefined ? params.skip : 0;
+  const originalLimit = params?.limit !== undefined ? params.limit : 10;
+  const originalSkip = params?.skip !== undefined ? params.skip : 0;
+
+  let limit = originalLimit;
+  let skip = originalSkip;
+  let backendSearch = params?.search?.trim();
+  let searchTerms: string[] = [];
+  let clientFilter = false;
+
+  if (backendSearch && backendSearch.includes(' ')) {
+    searchTerms = backendSearch.split(/\s+/);
+    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
+    clientFilter = true;
+    limit = 100;
+    skip = 0;
+  }
+
   let url = `${ADMIN_PROFILE_USERS_URL}?limit=${limit}&skip=${skip}`;
 
-  if (params?.search !== undefined && params.search.trim() !== '') {
-    url += `&search=${encodeURIComponent(params.search.trim())}`;
+  if (backendSearch !== undefined && backendSearch !== '') {
+    url += `&search=${encodeURIComponent(backendSearch)}`;
   }
 
   try {
@@ -325,6 +417,15 @@ export async function fetchProfileUsersGetAll(params?: {
           totalCount = data.totalItems ?? data.total ?? usersList.length;
         }
       }
+    }
+
+    if (clientFilter && searchTerms.length > 0) {
+      const filtered = usersList.filter(user => {
+        const fullName = `${user.name || ''} ${user.lastName || ''}`.toLowerCase();
+        return searchTerms.every(term => fullName.includes(term.toLowerCase()));
+      });
+      totalCount = filtered.length;
+      usersList = filtered.slice(originalSkip, originalSkip + originalLimit);
     }
 
     return {

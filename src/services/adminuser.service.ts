@@ -31,12 +31,27 @@ export async function fetchAdminUsers(params?: {
   skip?: number;
   search?: string;
 }): Promise<AdminUsersResponse> {
-  const limit = params?.limit !== undefined ? params.limit : 10;
-  const skip = params?.skip !== undefined ? params.skip : 0;
+  const originalLimit = params?.limit !== undefined ? params.limit : 10;
+  const originalSkip = params?.skip !== undefined ? params.skip : 0;
+
+  let limit = originalLimit;
+  let skip = originalSkip;
+  let backendSearch = params?.search?.trim();
+  let searchTerms: string[] = [];
+  let clientFilter = false;
+
+  if (backendSearch && backendSearch.includes(' ')) {
+    searchTerms = backendSearch.split(/\s+/);
+    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
+    clientFilter = true;
+    limit = 100;
+    skip = 0;
+  }
+
   let url = `${ADMIN_USERS_URL}?limit=${limit}&skip=${skip}`;
 
-  if (params?.search !== undefined && params.search.trim() !== '') {
-    url += `&search=${encodeURIComponent(params.search.trim())}`;
+  if (backendSearch !== undefined && backendSearch !== '') {
+    url += `&search=${encodeURIComponent(backendSearch)}`;
   }
 
   try {
@@ -66,6 +81,15 @@ export async function fetchAdminUsers(params?: {
       }
     } else {
       throw new Error('Unexpected response format from admin users API');
+    }
+
+    if (clientFilter && searchTerms.length > 0) {
+      const filtered = usersList.filter(user => {
+        const fullName = `${user.name || ''} ${user.lastName || ''}`.toLowerCase();
+        return searchTerms.every(term => fullName.includes(term.toLowerCase()));
+      });
+      totalCount = filtered.length;
+      usersList = filtered.slice(originalSkip, originalSkip + originalLimit);
     }
 
     return {
