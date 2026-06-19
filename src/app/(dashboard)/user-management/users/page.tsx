@@ -181,7 +181,7 @@ export default function UsersPage() {
       <ListingToolbar
         countLabel={`${total} Total Users`}
         showCount={!loading}
-        searchPlaceholder="Search by name or email..."
+        searchPlaceholder="Search by name or phone no..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onRefresh={handleRefresh}
@@ -245,8 +245,7 @@ export default function UsersPage() {
                     return (
                       <tr
                         key={customer.id}
-                        onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
-                        className={`${listingStyles.tableRow} cursor-pointer`}
+                        className={listingStyles.tableRow}
                       >
                         {/* Name */}
                         <td className={listingStyles.cellDefault}>

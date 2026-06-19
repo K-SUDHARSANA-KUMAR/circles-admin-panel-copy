@@ -31,20 +31,16 @@ export async function fetchAdminUsers(params?: {
   skip?: number;
   search?: string;
 }): Promise<AdminUsersResponse> {
-  const url = new URL(ADMIN_USERS_URL);
-  
-  if (params?.limit !== undefined) {
-    url.searchParams.append('limit', params.limit.toString());
-  }
-  if (params?.skip !== undefined) {
-    url.searchParams.append('skip', params.skip.toString());
-  }
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  let url = `${ADMIN_USERS_URL}?limit=${limit}&skip=${skip}`;
+
   if (params?.search !== undefined && params.search.trim() !== '') {
-    url.searchParams.append('search', params.search.trim());
+    url += `&search=${encodeURIComponent(params.search.trim())}`;
   }
 
   try {
-    const res = await customAxios.get(url.toString());
+    const res = await customAxios.get(url);
     
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 

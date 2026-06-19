@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import WaitlistDetailClient from './WaitlistDetailClient';
 import {
@@ -103,9 +103,7 @@ export default function WaitlistPage() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch, activeTab]);
+  // Removed separate currentPage reset hook to integrate it in the fetch effect below
 
   const handleTabChange = (tab: WaitlistTab) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -155,10 +153,22 @@ export default function WaitlistPage() {
     }
   }, [activeTab, currentPage, debouncedSearch, itemsPerPage]);
 
+  const prevSearchRef = useRef(debouncedSearch);
+  const prevTabRef = useRef(activeTab);
+
   useEffect(() => {
     if (detailUserId) return;
+
+    if (prevSearchRef.current !== debouncedSearch || prevTabRef.current !== activeTab) {
+      prevSearchRef.current = debouncedSearch;
+      prevTabRef.current = activeTab;
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+        return;
+      }
+    }
     loadUsers();
-  }, [loadUsers, detailUserId]);
+  }, [debouncedSearch, currentPage, activeTab, loadUsers, detailUserId]);
 
   const handleRefresh = () => {
     loadUsers();
@@ -219,7 +229,7 @@ export default function WaitlistPage() {
             : `${total} Pending Verification`
         }
         showCount={!loading && !error}
-        searchPlaceholder="Search by name or email..."
+        searchPlaceholder="Search by name or phone no..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onRefresh={handleRefresh}
@@ -292,8 +302,7 @@ export default function WaitlistPage() {
                     return (
                       <tr
                         key={user.id}
-                        onClick={() => router.push(getDetailUrl(user.id))}
-                        className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
+                        className="group hover:bg-[#0c0c0e] transition-colors duration-200"
                       >
                         <td className="py-3 px-6">
                           <div className="flex items-center gap-3">

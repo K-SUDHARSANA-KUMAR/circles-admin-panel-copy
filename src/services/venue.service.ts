@@ -165,26 +165,36 @@ function extractVenuesArray(resData: any): ApiVenue[] {
 /**
  * Fetches all venues.
  */
-export async function fetchVenues(): Promise<Venue[]> {
+export async function fetchVenues(params?: { search?: string; page?: number; limit?: number }): Promise<Venue[]> {
   try {
-    let res = await customAxios.get(`${VENUES_URL}/`);
+    const queryParams: Record<string, unknown> = {};
+    if (params?.page !== undefined) queryParams.page = params.page;
+    if (params?.limit !== undefined) queryParams.limit = params.limit;
+    if (params?.search?.trim()) queryParams.search = params.search.trim();
+
+    const res = await customAxios.get(VENUES_URL, { params: queryParams });
     let rawData = res.data;
     let venuesList = extractVenuesArray(rawData);
     
-    // Fallback if no array extracted from trailing slash response
-    if (venuesList.length === 0) {
+    // Fallback if no array extracted and no parameters provided
+    if (venuesList.length === 0 && !params?.search && !params?.page) {
       try {
-        const fallbackRes = await customAxios.get(VENUES_URL);
+        const fallbackRes = await customAxios.get(`${VENUES_URL}/`, { params: queryParams });
         const fallbackList = extractVenuesArray(fallbackRes.data);
         if (fallbackList.length > 0) {
           venuesList = fallbackList;
+          rawData = fallbackRes.data;
         }
       } catch (fallbackErr) {
         console.warn("Trailing slash fallback request failed:", fallbackErr);
       }
     }
     
-    return venuesList.map(mapApiToVenue);
+    const mappedVenues = venuesList.map(mapApiToVenue);
+    const total = rawData?.data?.total ?? rawData?.result?.data?.total ?? rawData?.total ?? mappedVenues.length;
+    const totalPages = rawData?.data?.totalPages ?? rawData?.result?.data?.totalPages ?? rawData?.totalPages ?? Math.ceil(total / (params?.limit ?? 10));
+
+    return Object.assign(mappedVenues, { total, totalPages });
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message || 'Failed to fetch venues';
     throw new Error(msg);

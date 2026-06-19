@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import { 
@@ -45,7 +44,6 @@ export default function ProfileVerificationPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [verifyingUser, setVerifyingUser] = useState<ProfileVerificationUser | null>(null);
   const [saving, setSaving] = useState(false);
-  const router = useRouter();
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -92,12 +90,17 @@ export default function ProfileVerificationPage() {
     }
   }, [limit]);
 
-  useEffect(() => {
-    // Reset to page 1 on new search
-    setPage(1);
-  }, [debouncedSearch]);
+  const prevSearchRef = useRef(debouncedSearch);
 
   useEffect(() => {
+    // If search query changed, reset page to 1
+    if (prevSearchRef.current !== debouncedSearch) {
+      prevSearchRef.current = debouncedSearch;
+      if (page !== 1) {
+        setPage(1);
+        return; // Skip loading on this render to let page reset first
+      }
+    }
     loadUsers(debouncedSearch, page);
   }, [debouncedSearch, page, loadUsers]);
 
@@ -167,7 +170,7 @@ export default function ProfileVerificationPage() {
       <ListingToolbar
         countLabel={`${total} Pending Approvals`}
         showCount={!loading}
-        searchPlaceholder="Search by name or email..."
+        searchPlaceholder="Search by name or phone no..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onRefresh={handleRefresh}
@@ -244,8 +247,7 @@ export default function ProfileVerificationPage() {
                     return (
                       <tr
                         key={user.id}
-                        onClick={() => router.push(`/user-management/users?id=${user.id}`)}
-                        className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer"
+                        className="group hover:bg-[#0c0c0e] transition-colors duration-200"
                       >
                         {/* Name */}
                         <td className="py-3 px-6">

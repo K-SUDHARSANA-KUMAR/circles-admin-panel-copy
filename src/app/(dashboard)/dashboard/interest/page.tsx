@@ -69,6 +69,19 @@ export default function InterestsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search query to prevent excessive API requests
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
@@ -91,11 +104,11 @@ export default function InterestsPage() {
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
-  const loadGroups = useCallback(async () => {
+  const loadGroups = useCallback(async (searchVal = '') => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchInterestGroups();
+      const data = await fetchInterestGroups(searchVal);
       setGroups(data);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load interests. Please try again.';
@@ -106,8 +119,8 @@ export default function InterestsPage() {
   }, []);
 
   useEffect(() => {
-    loadGroups();
-  }, [loadGroups]);
+    loadGroups(debouncedSearch);
+  }, [debouncedSearch, loadGroups]);
 
   // ── CRUD handlers ──────────────────────────────────────────────────────────
 
@@ -119,7 +132,7 @@ export default function InterestsPage() {
       setNewGroupName('');
       setNewSubGroupName('');
       setIsCreating(false);
-      await loadGroups();
+      await loadGroups(searchQuery);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create group.';
       alert(msg);
@@ -139,7 +152,7 @@ export default function InterestsPage() {
       } else {
         await deleteSubInterest(target.id);
       }
-      await loadGroups();
+      await loadGroups(searchQuery);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete item.';
       alert(msg);
@@ -156,7 +169,7 @@ export default function InterestsPage() {
       } else {
         await updateSubInterest(target.id, editName.trim());
       }
-      await loadGroups();
+      await loadGroups(searchQuery);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update item.';
       alert(msg);
@@ -173,7 +186,7 @@ export default function InterestsPage() {
     try {
       await createSubInterest(val, groupId);
       setSubInputs((prev) => ({ ...prev, [groupId]: '' }));
-      await loadGroups();
+      await loadGroups(searchQuery);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to add sub-interest.';
       alert(msg);
@@ -258,7 +271,7 @@ export default function InterestsPage() {
         searchPlaceholder="Search groups..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        onRefresh={loadGroups}
+        onRefresh={() => loadGroups(searchQuery)}
         refreshDisabled={loading}
         refreshLoading={loading}
         primaryAction={

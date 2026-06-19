@@ -25,14 +25,33 @@ export const CITIES_URL = apiEndPoint.CITIES_ENDPOINT as string;
 /**
  * Fetches the list of cities.
  */
-export async function fetchCities(): Promise<City[]> {
+export async function fetchCities(params?: { search?: string; limit?: number; skip?: number }): Promise<City[]> {
   try {
-    const res = await customAxios.get(CITIES_URL);
+    const queryParams: Record<string, any> = {};
+    if (params?.limit !== undefined) queryParams.limit = params.limit;
+    if (params?.skip !== undefined) queryParams.skip = params.skip;
+    if (params?.search?.trim()) queryParams.search = params.search.trim();
+
+    const res = await customAxios.get(CITIES_URL, { params: queryParams });
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
-    if (!Array.isArray(data)) {
+    const cities =
+      res?.data?.result?.data?.items ??
+      res?.data?.data?.items ??
+      res?.data?.items ??
+      res?.data?.cities ??
+      (Array.isArray(data) ? data : null);
+
+    if (!Array.isArray(cities)) {
       throw new Error('Unexpected response format from API');
     }
-    return data.map((item: any) => ({
+
+    const totalItems =
+      res?.data?.result?.data?.totalItems ??
+      res?.data?.data?.totalItems ??
+      res?.data?.totalItems ??
+      cities.length;
+
+    const mappedCities = cities.map((item: any) => ({
       ...item,
       city_id: item.city_id ?? item.cityId,
       cityId: item.cityId ?? item.city_id,
@@ -42,6 +61,8 @@ export async function fetchCities(): Promise<City[]> {
       country_id: item.country_id ?? item.country?.countryId ?? item.countryId ?? '',
       countryId: item.countryId ?? item.country?.countryId ?? item.country_id ?? '',
     }));
+
+    return Object.assign(mappedCities, { totalItems });
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message || 'Server responded with error';
     throw new Error(msg);
