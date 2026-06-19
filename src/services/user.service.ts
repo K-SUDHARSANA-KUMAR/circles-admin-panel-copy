@@ -42,24 +42,16 @@ export async function fetchCustomers(params?: {
   skip?: number;
   search?: string;
 }): Promise<CustomersResponse> {
-  const url = new URL(ADMIN_CUSTOMERS_URL);
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  let url = `${ADMIN_CUSTOMERS_URL}?limit=${limit}&skip=${skip}`;
 
-  if (params?.limit !== undefined) {
-    url.searchParams.append('limit', params.limit.toString());
-  } else {
-    url.searchParams.append('limit', '10');
-  }
-  if (params?.skip !== undefined) {
-    url.searchParams.append('skip', params.skip.toString());
-  } else {
-    url.searchParams.append('skip', '0');
-  }
   if (params?.search !== undefined && params.search.trim() !== '') {
-    url.searchParams.append('search', params.search.trim());
+    url += `&search=${encodeURIComponent(params.search.trim())}`;
   }
 
   try {
-    const res = await customAxios.get(url.toString());
+    const res = await customAxios.get(url);
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
     let customersList: Customer[] = [];
@@ -122,24 +114,16 @@ export async function fetchWaitlist(params?: {
   skip?: number;
   search?: string;
 }): Promise<WaitlistResponse> {
-  const url = new URL(ADMIN_WAITLIST_URL);
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  let url = `${ADMIN_WAITLIST_URL}?limit=${limit}&skip=${skip}`;
 
-  if (params?.limit !== undefined) {
-    url.searchParams.append('limit', params.limit.toString());
-  } else {
-    url.searchParams.append('limit', '10');
-  }
-  if (params?.skip !== undefined) {
-    url.searchParams.append('skip', params.skip.toString());
-  } else {
-    url.searchParams.append('skip', '0');
-  }
   if (params?.search !== undefined && params.search.trim() !== '') {
-    url.searchParams.append('search', params.search.trim());
+    url += `&search=${encodeURIComponent(params.search.trim())}`;
   }
 
   try {
-    const res = await customAxios.get(url.toString());
+    const res = await customAxios.get(url);
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
     let waitlistList: WaitlistUser[] = [];
@@ -183,24 +167,16 @@ export async function fetchRejectedWaitlist(params?: {
   skip?: number;
   search?: string;
 }): Promise<WaitlistResponse> {
-  const url = new URL(`${ADMIN_WAITLIST_URL}/rejected`);
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  let url = `${ADMIN_WAITLIST_URL}/rejected?limit=${limit}&skip=${skip}`;
 
-  if (params?.limit !== undefined) {
-    url.searchParams.append('limit', params.limit.toString());
-  } else {
-    url.searchParams.append('limit', '10');
-  }
-  if (params?.skip !== undefined) {
-    url.searchParams.append('skip', params.skip.toString());
-  } else {
-    url.searchParams.append('skip', '0');
-  }
   if (params?.search !== undefined && params.search.trim() !== '') {
-    url.searchParams.append('search', params.search.trim());
+    url += `&search=${encodeURIComponent(params.search.trim())}`;
   }
 
   try {
-    const res = await customAxios.get(url.toString());
+    const res = await customAxios.get(url);
     const data = res.data?.data;
 
     return {
@@ -319,24 +295,16 @@ export async function fetchProfileUsersGetAll(params?: {
   skip?: number;
   search?: string;
 }): Promise<ProfileUsersResponse> {
-  const url = new URL(ADMIN_PROFILE_USERS_URL);
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  let url = `${ADMIN_PROFILE_USERS_URL}?limit=${limit}&skip=${skip}`;
 
-  if (params?.limit !== undefined) {
-    url.searchParams.append('limit', params.limit.toString());
-  } else {
-    url.searchParams.append('limit', '10');
-  }
-  if (params?.skip !== undefined) {
-    url.searchParams.append('skip', params.skip.toString());
-  } else {
-    url.searchParams.append('skip', '0');
-  }
   if (params?.search !== undefined && params.search.trim() !== '') {
-    url.searchParams.append('search', params.search.trim());
+    url += `&search=${encodeURIComponent(params.search.trim())}`;
   }
 
   try {
-    const res = await customAxios.get(url.toString());
+    const res = await customAxios.get(url);
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
     let usersList: ProfileVerificationUser[] = [];

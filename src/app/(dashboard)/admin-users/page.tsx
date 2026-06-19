@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAdminUsers, updateAdminUser, deleteAdminUser, createAdminUser, type AdminUser } from '@/services/adminuser.service';
-import { 
-  IconRefresh, 
-  IconUser, 
-  IconPhone, 
-  IconMail, 
+import {
+  IconRefresh,
+  IconUser,
+  IconPhone,
+  IconMail,
   IconShield,
   IconGenderMale,
   IconGenderFemale,
@@ -360,8 +360,8 @@ export default function AdminUsersPage() {
                         {/* Gender */}
                         <td className="py-3 px-6">
                           {user.gender ? (
-                            <div 
-                              className="inline-flex items-center p-1 rounded-md bg-zinc-900/60 border border-zinc-800/80 text-zinc-400" 
+                            <div
+                              className="inline-flex items-center p-1 rounded-md bg-zinc-900/60 border border-zinc-800/80 text-zinc-400"
                               title={`Gender: ${user.gender}`}
                             >
                               {user.gender.toLowerCase() === 'male' ? (
@@ -435,7 +435,7 @@ export default function AdminUsersPage() {
       {isModalOpen && editingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
           <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 rounded-xl">
-            
+
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
@@ -461,7 +461,7 @@ export default function AdminUsersPage() {
             </div>
 
             <form onSubmit={handleSaveUser} className="space-y-4">
-              
+
               {/* Name Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -532,7 +532,7 @@ export default function AdminUsersPage() {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
           <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 rounded-xl">
-            
+
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
@@ -558,7 +558,7 @@ export default function AdminUsersPage() {
             </div>
 
             <form onSubmit={handleCreateUser} className="space-y-4">
-              
+
               {/* Name Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">

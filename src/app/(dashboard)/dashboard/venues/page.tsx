@@ -33,15 +33,42 @@ const VenuesPage = () => {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'partner'>('all');
 
-  const loadVenues = useCallback(async () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalVenues, setTotalVenues] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const itemsPerPage = 10;
+
+  // Debounce search query to prevent excessive API requests
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  const loadVenues = useCallback(async (searchVal = '', pageNum = 1) => {
     setLoading(true);
     setError(null);
     try {
       let data: Venue[] = [];
       if (filterType === 'featured') {
         data = await fetchFeaturedVenues();
+        setTotalVenues(data.length);
+        setTotalPages(1);
       } else {
-        data = await fetchVenues();
+        data = await fetchVenues({ search: searchVal, page: pageNum, limit: itemsPerPage });
+        setTotalVenues((data as { total?: number }).total ?? data.length);
+        setTotalPages((data as { totalPages?: number }).totalPages ?? 1);
       }
       setVenues(data);
     } catch (err: any) {
@@ -54,8 +81,8 @@ const VenuesPage = () => {
 
   useEffect(() => {
     if (detailVenueId) return;
-    loadVenues();
-  }, [loadVenues, detailVenueId]);
+    loadVenues(debouncedSearch, currentPage);
+  }, [loadVenues, debouncedSearch, currentPage, detailVenueId]);
 
   if (detailVenueId) {
     return <VenueDetailClient />;
@@ -66,13 +93,16 @@ const VenuesPage = () => {
       <ListingSectionHeader
         icon={IconBuilding}
         title="Venue Management"
-        subtitle={`${venues.length} venues registered`}
+        subtitle={`${totalVenues} venues registered`}
       />
 
       <ListingToolbar
-        countLabel={`${venues.length} Total Spaces`}
+        countLabel={`${totalVenues} Total Spaces`}
         showCount={!loading}
-        onRefresh={loadVenues}
+        searchPlaceholder="Search venues..."
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onRefresh={() => loadVenues(searchQuery, currentPage)}
         refreshDisabled={loading}
         refreshLoading={loading}
         leadingActions={
@@ -80,22 +110,20 @@ const VenuesPage = () => {
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                viewMode === 'table'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'table'
                   ? 'bg-zinc-800 text-white shadow-md'
                   : 'text-muted-foreground hover:text-white'
-              }`}
+                }`}
             >
               <IconList size={14} />
             </button>
             <button
               type="button"
               onClick={() => setViewMode('cards')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                viewMode === 'cards'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'cards'
                   ? 'bg-zinc-800 text-white shadow-md'
                   : 'text-muted-foreground hover:text-white'
-              }`}
+                }`}
             >
               <IconLayoutGrid size={14} />
             </button>
@@ -169,8 +197,8 @@ const VenuesPage = () => {
             </TableHeader>
             <TableBody className="divide-y divide-[#18181b]">
               {venues.map((venue) => (
-                <TableRow 
-                  key={venue.id} 
+                <TableRow
+                  key={venue.id}
                   className="group border-b border-[#18181b] hover:bg-[#0c0c0e] transition-colors font-sans cursor-pointer"
                   onClick={() => router.push(`/dashboard/venues?id=${venue.id}`)}
                 >
@@ -238,7 +266,7 @@ const VenuesPage = () => {
                 className="group relative flex flex-col bg-[#0c0c0e] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-black/60"
               >
                 {/* Image Cover with title overlay */}
-                <div className="relative w-full overflow-hidden" style={{height: '260px'}}>
+                <div className="relative w-full overflow-hidden" style={{ height: '260px' }}>
                   {venue.image ? (
                     <img
                       src={venue.image}
@@ -300,26 +328,28 @@ const VenuesPage = () => {
       {!loading && !error && venues.length > 0 && (
         <div className="flex items-center justify-between pt-4 px-1 text-xs">
           <span className="text-zinc-500">
-            Showing 1 to {venues.length} of {venues.length} entries
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalVenues)} of {totalVenues} entries
           </span>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               type="button"
-              className="flex items-center justify-center h-8 w-8 rounded-lg border border-[#18181b] bg-zinc-950 text-zinc-400 hover:bg-zinc-900 transition-all font-semibold"
-              disabled
+              className="flex items-center justify-center h-8 w-8 rounded-lg border border-[#18181b] bg-zinc-950 text-zinc-400 hover:bg-zinc-900 transition-all font-semibold disabled:opacity-30"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
             >
               &lt;
             </button>
-            <button 
+            <button
               type="button"
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#8b5cf6] text-white font-bold transition-all shadow-md shadow-purple-500/20"
+              className="flex items-center justify-center px-3 h-8 rounded-lg bg-[#8b5cf6] text-white font-bold transition-all shadow-md shadow-purple-500/20"
             >
-              1
+              {currentPage}
             </button>
-            <button 
+            <button
               type="button"
-              className="flex items-center justify-center h-8 w-8 rounded-lg border border-[#18181b] bg-zinc-950 text-zinc-400 hover:bg-zinc-900 transition-all font-semibold"
-              disabled
+              className="flex items-center justify-center h-8 w-8 rounded-lg border border-[#18181b] bg-zinc-950 text-zinc-400 hover:bg-zinc-900 transition-all font-semibold disabled:opacity-30"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
             >
               &gt;
             </button>

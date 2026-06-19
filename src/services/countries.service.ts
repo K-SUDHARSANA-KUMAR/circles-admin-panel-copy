@@ -21,7 +21,7 @@ export const COUNTRIES_URL = apiEndPoint.COUNTRIES_ENDPOINT as string;
 export async function fetchCountries(): Promise<Country[]> {
   try {
     const res = await customAxios.get(COUNTRIES_URL);
-    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
+    const data = res.data?.data?.items;
     if (!Array.isArray(data)) {
       throw new Error('Unexpected response format from API');
     }

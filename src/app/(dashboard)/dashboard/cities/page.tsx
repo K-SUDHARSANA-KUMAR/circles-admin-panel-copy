@@ -31,15 +31,33 @@ export default function CitiesPage() {
 
   // Cities states
   const [cities, setCities] = useState<City[]>([]);
+  const [totalCities, setTotalCities] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search query to prevent excessive API requests
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
   // Cities Modal & Action states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCity, setEditingCity] = useState<City | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<City | null>(null);
-  
+
   // Cities Form values
   const [newCityName, setNewCityName] = useState('');
   const [newCityCode, setNewCityCode] = useState('');
@@ -73,12 +91,14 @@ export default function CitiesPage() {
   const itemsPerCountryPage = 10;
 
   // ─── Fetch Cities ──────────────────────────────────────────────────────────
-  const loadCities = useCallback(async () => {
+  const loadCities = useCallback(async (searchVal = '', pageNum = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchCities();
+      const skip = (pageNum - 1) * itemsPerPage;
+      const data = await fetchCities({ limit: itemsPerPage, skip, search: searchVal });
       setCities(data);
+      setTotalCities((data as { totalItems?: number }).totalItems ?? data.length);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load cities. Please try again.';
       setError(msg);
@@ -87,6 +107,10 @@ export default function CitiesPage() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    loadCities(debouncedSearch, currentPage);
+  }, [debouncedSearch, currentPage, loadCities]);
 
   // ─── Fetch Countries ───────────────────────────────────────────────────────
   const loadCountries = useCallback(async () => {
@@ -105,9 +129,8 @@ export default function CitiesPage() {
   }, []);
 
   useEffect(() => {
-    loadCities();
     loadCountries();
-  }, [loadCities, loadCountries]);
+  }, [loadCountries]);
 
   // ─── Handle Save City (Create / Update) ───────────────────────────────────
   const handleSaveCity = async (e: React.FormEvent) => {
@@ -134,9 +157,9 @@ export default function CitiesPage() {
         await createCity(payload);
         toast.success(`Successfully added city: ${newCityName}`);
       }
-      
+
       handleCloseModal();
-      await loadCities();
+      await loadCities(searchQuery, currentPage);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save city.';
       toast.error(msg);
@@ -158,7 +181,7 @@ export default function CitiesPage() {
       await deleteCity(cityId);
       toast.success(`Successfully deleted city: ${deleteTarget.name}`);
       setDeleteTarget(null);
-      await loadCities();
+      await loadCities(searchQuery, currentPage);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete city.';
       toast.error(msg);
@@ -209,7 +232,7 @@ export default function CitiesPage() {
         await createCountry(payload);
         toast.success(`Successfully added country: ${newCountryName}`);
       }
-      
+
       handleCloseCountryModal();
       await loadCountries();
     } catch (err: unknown) {
@@ -258,21 +281,9 @@ export default function CitiesPage() {
   };
 
   // ─── Filtering & Pagination for Cities ─────────────────────────────────────
-  const filteredCities = cities.filter((city) => {
-    const nameMatch = (city.name || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const codeMatch = (city.country_code || '').toLowerCase().includes(searchQuery.toLowerCase());
-    return nameMatch || codeMatch;
-  });
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
-
-  const totalPages = Math.ceil(filteredCities.length / itemsPerPage);
-  const paginatedCities = filteredCities.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const filteredCities = cities;
+  const totalPages = Math.ceil(totalCities / itemsPerPage);
+  const paginatedCities = filteredCities;
 
   // ─── Filtering & Pagination for Countries ──────────────────────────────────
   const filteredCountries = countries.filter((c) => {
@@ -299,7 +310,7 @@ export default function CitiesPage() {
       if (s === 'waitlist') return 'waitlist';
       if (s === 'inactive') return 'inactive';
     }
-    
+
     if (city.is_active || city.isActive) {
       return 'active';
     }
@@ -338,7 +349,7 @@ export default function CitiesPage() {
       <ListingSectionHeader
         icon={IconBuildingCommunity}
         title="City Management"
-        subtitle={`${cities.length} cities registered`}
+        subtitle={`${totalCities} cities registered`}
         trailing={
           <ListingSegmentedTabs
             activeTab={activeTab}
@@ -354,12 +365,12 @@ export default function CitiesPage() {
       {activeTab === 'cities' ? (
         <>
           <ListingToolbar
-            countLabel={`${cities.length} Operational Cities`}
+            countLabel={`${totalCities} Operational Cities`}
             showCount={!loading}
-            searchPlaceholder="Search by city name or code..."
+            searchPlaceholder="Search by city name or country..."
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
-            onRefresh={loadCities}
+            onRefresh={() => loadCities(searchQuery, currentPage)}
             refreshDisabled={loading}
             refreshLoading={loading}
             primaryAction={
@@ -491,7 +502,7 @@ export default function CitiesPage() {
               {!loading && totalPages > 1 && (
                 <div className="flex items-center justify-between border-t border-[#18181b] px-12 py-4">
                   <div className="text-[11px] text-zinc-500 text-left">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredCities.length)} of {filteredCities.length} cities
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalCities)} of {totalCities} cities
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -691,7 +702,7 @@ export default function CitiesPage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
           <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 rounded-xl">
-            
+
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
@@ -717,7 +728,7 @@ export default function CitiesPage() {
             </div>
 
             <form onSubmit={handleSaveCity} className="space-y-4">
-              
+
               {/* City Name Input */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
@@ -802,7 +813,7 @@ export default function CitiesPage() {
       {isCountryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
           <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 rounded-xl">
-            
+
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
@@ -828,7 +839,7 @@ export default function CitiesPage() {
             </div>
 
             <form onSubmit={handleSaveCountry} className="space-y-4">
-              
+
               {/* Country Name Input */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">

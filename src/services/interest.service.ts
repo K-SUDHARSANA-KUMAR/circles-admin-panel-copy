@@ -72,16 +72,54 @@ export const COLOR_CYCLE: GroupColor[] = [
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function extractArray(obj: unknown): unknown[] | null {
+  if (Array.isArray(obj)) return obj;
+  if (!obj || typeof obj !== 'object') return null;
+
+  const record = obj as Record<string, unknown>;
+  const directFields = ['items', 'interests', 'interestGroups', 'groups', 'data'];
+  for (const field of directFields) {
+    const val = record[field];
+    if (Array.isArray(val)) {
+      return val;
+    }
+  }
+
+  const nestedFields = ['result', 'data'];
+  for (const field of nestedFields) {
+    const nested = record[field];
+    if (nested && typeof nested === 'object') {
+      const arr = extractArray(nested);
+      if (arr) return arr;
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    const val = record[key];
+    if (Array.isArray(val)) {
+      return val;
+    }
+  }
+
+  return null;
+}
+
 export function buildInterestGroups(groups: ApiInterestGroup[]): InterestGroup[] {
-  return groups.map((group, index) => ({
-    id: group.Interestgroup_id,
-    name: group.name,
-    color: COLOR_CYCLE[index % COLOR_CYCLE.length],
-    subInterests: (group.tags ?? []).map((tag) => ({
-      id: tag.Interestid,
-      name: tag.name,
-    })),
-  }));
+  if (!Array.isArray(groups)) return [];
+  return groups
+    .filter((group) => group && group.Interestgroup_id)
+    .map((group, index) => ({
+      id: group.Interestgroup_id,
+      name: group.name || '',
+      color: COLOR_CYCLE[index % COLOR_CYCLE.length],
+      subInterests: (group.tags ?? [])
+        .filter((tag) => tag && tag.Interestid)
+        .map((tag) => ({
+          id: tag.Interestid,
+          name: tag.name || '',
+        })),
+    }));
 }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
@@ -89,14 +127,15 @@ export function buildInterestGroups(groups: ApiInterestGroup[]): InterestGroup[]
 /**
  * Fetches all interest groups (with interests embedded).
  */
-export async function fetchInterestGroups(): Promise<InterestGroup[]> {
+export async function fetchInterestGroups(search?: string): Promise<InterestGroup[]> {
   try {
-    const res = await customAxios.get(INTEREST_GROUPS_URL);
-    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
-    if (!Array.isArray(data)) {
+    const url = search?.trim() ? `${INTEREST_GROUPS_URL}?search=${encodeURIComponent(search.trim())}` : INTEREST_GROUPS_URL;
+    const res = await customAxios.get(url);
+    const groupsList = extractArray(res.data);
+    if (!groupsList) {
       throw new Error('Unexpected response format from API');
     }
-    return buildInterestGroups(data);
+    return buildInterestGroups(groupsList as ApiInterestGroup[]);
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
     throw new Error(msg);
