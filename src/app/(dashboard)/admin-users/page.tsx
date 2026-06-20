@@ -30,6 +30,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
+import FilterDropdown from '@/components/common/FilterDropdown';
+import { adminUserFilters } from '@/components/common/filters/adminUsers.filters';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -62,17 +64,27 @@ export default function AdminUsersPage() {
   // Pagination state (server-side)
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
   const debouncedSearch = useDebounce(searchQuery, 500);
 
 
-  const loadAdminUsers = useCallback(async (searchVal = '', pageNum = 1, limitNum = 10) => {
+  const loadAdminUsers = useCallback(async (searchVal = '', pageNum = 1, limitNum = 10, filters: Record<string, any> = {}) => {
     setLoading(true);
     setError(null);
     try {
       const skip = (pageNum - 1) * limitNum;
-      const response = await fetchAdminUsers({ search: searchVal, limit: limitNum, skip });
-      setUsers(response.users);
+      const response = await fetchAdminUsers({
+        search: searchVal,
+        limit: limitNum,
+        skip,
+        status: filters.status,
+        email: filters.email,
+        country: filters.country,
+        role: filters.role,
+      });
+
+      setUsers(response.users || []);
       setTotal(response.total);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch admin users. Please try again.';
@@ -84,20 +96,30 @@ export default function AdminUsersPage() {
   }, []);
 
   const prevSearchRef = useRef(debouncedSearch);
+  const prevFiltersRef = useRef(activeFilters);
 
   useEffect(() => {
+    let shouldResetPage = false;
     if (prevSearchRef.current !== debouncedSearch) {
       prevSearchRef.current = debouncedSearch;
+      shouldResetPage = true;
+    }
+    if (JSON.stringify(prevFiltersRef.current) !== JSON.stringify(activeFilters)) {
+      prevFiltersRef.current = activeFilters;
+      shouldResetPage = true;
+    }
+
+    if (shouldResetPage) {
       if (currentPage !== 1) {
         setCurrentPage(1);
         return;
       }
     }
-    loadAdminUsers(debouncedSearch, currentPage, itemsPerPage);
-  }, [debouncedSearch, currentPage, itemsPerPage, loadAdminUsers]);
+    loadAdminUsers(debouncedSearch, currentPage, itemsPerPage, activeFilters);
+  }, [debouncedSearch, currentPage, itemsPerPage, activeFilters, loadAdminUsers]);
 
   const handleRefresh = () => {
-    loadAdminUsers(searchQuery, currentPage, itemsPerPage);
+    loadAdminUsers(searchQuery, currentPage, itemsPerPage, activeFilters);
   };
 
   // ─── Create Admin User (Bootstrap) ──────────────────────────────────────────
@@ -230,6 +252,26 @@ export default function AdminUsersPage() {
         onRefresh={handleRefresh}
         refreshDisabled={loading}
         refreshLoading={loading}
+        filterAction={
+          <div className="flex flex-wrap items-center gap-2">
+            {adminUserFilters.map((filter) => (
+              <FilterDropdown
+                key={filter.key}
+                label={filter.label}
+                type={filter.type}
+                options={filter.options}
+                placeholder={filter.placeholder}
+                value={activeFilters[filter.key]}
+                onChange={(val) =>
+                  setActiveFilters((prev) => ({
+                    ...prev,
+                    [filter.key]: val,
+                  }))
+                }
+              />
+            ))}
+          </div>
+        }
         primaryAction={
           <Button
             onClick={() => setIsAddModalOpen(true)}
@@ -417,8 +459,10 @@ export default function AdminUsersPage() {
               totalItems={total}
               itemsPerPage={itemsPerPage}
               itemLabel="administrators"
+              onFirst={() => setCurrentPage(1)}
               onPrevious={() => setCurrentPage((prev) => prev - 1)}
               onNext={() => setCurrentPage((prev) => prev + 1)}
+              onLast={() => setCurrentPage(totalPages)}
               onItemsPerPageChange={(val) => {
                 setItemsPerPage(val);
                 setCurrentPage(1);
@@ -682,3 +726,4 @@ export default function AdminUsersPage() {
     </ListingPageContainer>
   );
 }
+

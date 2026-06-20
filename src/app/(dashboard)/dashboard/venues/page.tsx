@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useDebounce } from '@/hooks/useDebounce';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle } from "@tabler/icons-react";
+import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from "@tabler/icons-react";
 import {
   ListingPageContainer,
   ListingSectionHeader,
@@ -22,6 +21,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import VenueDetailClient from "./VenueDetailClient";
 import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
 import { toast } from "sonner";
+import FilterDropdown from "@/components/common/FilterDropdown";
 
 const VenuesPage = () => {
   const router = useRouter();
@@ -29,6 +29,7 @@ const VenuesPage = () => {
   const detailVenueId = searchParams.get("id");
 
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [allVenues, setAllVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
@@ -37,49 +38,159 @@ const VenuesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalVenues, setTotalVenues] = useState(0);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const debouncedSearch = useDebounce(searchQuery, 500);
-
-
-  const loadVenues = useCallback(async (searchVal = '', pageNum = 1) => {
+  // Load all venues once (and support featured logic if activated in the future)
+  const loadAllVenues = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       let data: Venue[] = [];
       if (filterType === 'featured') {
         data = await fetchFeaturedVenues();
-        setTotalVenues(data.length);
-        setTotalPages(1);
       } else {
-        data = await fetchVenues({ search: searchVal, page: pageNum, limit: itemsPerPage });
-        setTotalVenues((data as { total?: number }).total ?? data.length);
-        setTotalPages((data as { totalPages?: number }).totalPages ?? 1);
+        // Fetch up to 100 venues in a single call to have all registered spaces
+        data = await fetchVenues({ limit: 100 });
       }
-      setVenues(data);
+      setAllVenues(data);
     } catch (err: any) {
       setError(err.message || "Failed to load venues");
       toast.error(err.message || "Failed to load venues list");
     } finally {
       setLoading(false);
     }
-  }, [filterType, itemsPerPage]);
-
-  const prevSearchRef = useRef(debouncedSearch);
+  }, [filterType]);
 
   useEffect(() => {
     if (detailVenueId) return;
+    loadAllVenues();
+  }, [loadAllVenues, detailVenueId]);
 
-    if (prevSearchRef.current !== debouncedSearch) {
-      prevSearchRef.current = debouncedSearch;
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-        return;
+  // Extract unique cities and countries from loaded dataset
+  const uniqueCities = useMemo(() => {
+    const citiesSet = new Set<string>();
+    allVenues.forEach(v => {
+      if (v.city && v.city !== 'Location') {
+        citiesSet.add(v.city);
+      }
+    });
+    return Array.from(citiesSet).sort().map(c => ({ label: c, value: c }));
+  }, [allVenues]);
+
+  const uniqueCountries = useMemo(() => {
+    const countriesSet = new Set<string>();
+    allVenues.forEach(v => {
+      if (v.country) {
+        countriesSet.add(v.country);
+      }
+    });
+    return Array.from(countriesSet).sort().map(c => ({ label: c, value: c }));
+  }, [allVenues]);
+
+  // Generate dynamic filters containing only existing locations
+  const venueFilters = useMemo(() => {
+    return [
+      { key: 'city', label: 'City', type: 'select' as const, options: uniqueCities, placeholder: 'Filter by City' },
+      { key: 'country', label: 'Country', type: 'select' as const, options: uniqueCountries, placeholder: 'Filter by Country' },
+      {
+        key: 'isVisible', label: 'Visible', type: 'boolean' as const, options: [
+          { label: 'Visible', value: true },
+          { label: 'Hidden', value: false },
+        ]
+      },
+      {
+        key: 'popularityScore', label: 'Popularity', type: 'sort' as const, options: [
+          { label: 'High to Low', value: 'desc' },
+          { label: 'Low to High', value: 'asc' },
+        ]
+      },
+    ];
+  }, [uniqueCities, uniqueCountries]);
+
+  // Client-side filtering, sorting, and pagination
+  useEffect(() => {
+    let result = [...allVenues];
+
+    // 1. Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(v =>
+        v.name.toLowerCase().includes(q) ||
+        v.city.toLowerCase().includes(q) ||
+        (v.location && v.location.toLowerCase().includes(q))
+      );
+    }
+
+    // 2. City filter
+    if (activeFilters.city) {
+      const selectedCities = Array.isArray(activeFilters.city)
+        ? activeFilters.city
+        : [activeFilters.city];
+      if (selectedCities.length > 0) {
+        result = result.filter(v =>
+          selectedCities.some((c: string) => v.city?.toLowerCase() === c.toLowerCase())
+        );
       }
     }
-    loadVenues(debouncedSearch, currentPage);
-  }, [loadVenues, debouncedSearch, currentPage, detailVenueId]);
+
+    // 3. Country filter
+    if (activeFilters.country) {
+      const selectedCountries = Array.isArray(activeFilters.country)
+        ? activeFilters.country
+        : [activeFilters.country];
+      if (selectedCountries.length > 0) {
+        result = result.filter(v =>
+          selectedCountries.some((c: string) => v.country?.toLowerCase() === c.toLowerCase())
+        );
+      }
+    }
+
+    // 4. Visibility filter
+    if (activeFilters.isVisible !== undefined && activeFilters.isVisible !== null && activeFilters.isVisible !== '') {
+      const targetVisible = activeFilters.isVisible === 'true' || activeFilters.isVisible === true;
+      result = result.filter(v => v.isVisible === targetVisible);
+    }
+
+    // 5. Popularity sort
+    if (activeFilters.popularityScore) {
+      const direction = activeFilters.popularityScore;
+      result.sort((a, b) => {
+        const scoreA = a.popularityScore ?? 0;
+        const scoreB = b.popularityScore ?? 0;
+        return direction === 'desc' ? scoreB - scoreA : scoreA - scoreB;
+      });
+    }
+
+    const totalCount = result.length;
+    const pagesCount = Math.ceil(totalCount / itemsPerPage) || 1;
+
+    setTotalVenues(totalCount);
+    setTotalPages(pagesCount);
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    setVenues(result.slice(startIndex, startIndex + itemsPerPage));
+  }, [allVenues, searchQuery, activeFilters, currentPage, itemsPerPage]);
+
+  // Reset pagination to page 1 on search or filter updates
+  const prevSearchRef = useRef(searchQuery);
+  const prevFiltersRef = useRef(activeFilters);
+
+  useEffect(() => {
+    let shouldResetPage = false;
+    if (prevSearchRef.current !== searchQuery) {
+      prevSearchRef.current = searchQuery;
+      shouldResetPage = true;
+    }
+    if (JSON.stringify(prevFiltersRef.current) !== JSON.stringify(activeFilters)) {
+      prevFiltersRef.current = activeFilters;
+      shouldResetPage = true;
+    }
+    if (shouldResetPage) {
+      setCurrentPage(1);
+    }
+  }, [searchQuery, activeFilters]);
 
   if (detailVenueId) {
     return <VenueDetailClient />;
@@ -99,17 +210,37 @@ const VenuesPage = () => {
         searchPlaceholder="Search venues..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        onRefresh={() => loadVenues(searchQuery, currentPage)}
+        onRefresh={loadAllVenues}
         refreshDisabled={loading}
         refreshLoading={loading}
+        filterAction={
+          <div className="flex flex-wrap items-center gap-2">
+            {venueFilters.map((filter) => (
+              <FilterDropdown
+                key={filter.key}
+                label={filter.label}
+                type={filter.type}
+                options={filter.options}
+                placeholder={filter.placeholder}
+                value={activeFilters[filter.key]}
+                onChange={(val) =>
+                  setActiveFilters((prev) => ({
+                    ...prev,
+                    [filter.key]: val,
+                  }))
+                }
+              />
+            ))}
+          </div>
+        }
         leadingActions={
           <div className="flex items-center bg-[#030303] border border-[#18181b] rounded-lg p-0.5">
             <button
               type="button"
               onClick={() => setViewMode('table')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'table'
-                  ? 'bg-zinc-800 text-white shadow-md'
-                  : 'text-muted-foreground hover:text-white'
+                ? 'bg-zinc-800 text-white shadow-md'
+                : 'text-muted-foreground hover:text-white'
                 }`}
             >
               <IconList size={14} />
@@ -118,8 +249,8 @@ const VenuesPage = () => {
               type="button"
               onClick={() => setViewMode('cards')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'cards'
-                  ? 'bg-zinc-800 text-white shadow-md'
-                  : 'text-muted-foreground hover:text-white'
+                ? 'bg-zinc-800 text-white shadow-md'
+                : 'text-muted-foreground hover:text-white'
                 }`}
             >
               <IconLayoutGrid size={14} />
@@ -153,7 +284,7 @@ const VenuesPage = () => {
             <p className="text-xs text-zinc-500 max-w-xs mx-auto mt-0.5 text-center">{error}</p>
           </div>
           <Button
-            onClick={() => loadVenues(searchQuery, currentPage)}
+            onClick={loadAllVenues}
             variant="outline"
             size="sm"
             className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-[#18181b] bg-zinc-900 text-white hover:bg-zinc-800"
@@ -243,10 +374,9 @@ const VenuesPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
           {venues.map((venue) => {
             const category = venue.interests && venue.interests[0] ? venue.interests[0] : "Venue";
-            const city = venue.city || "Location";
 
             // Badge mapping
-            let badgeText = "Active";
+            let badgeText = `Popularity: ${venue.popularityScore ?? 0}`;
             let badgeClass = "bg-[#2d1657]/80 text-[#d8b4fe] border border-[#6d28d9]/30 backdrop-blur-sm";
             if (venue.status === 'Occupied') {
               badgeText = "Partner";
@@ -281,23 +411,35 @@ const VenuesPage = () => {
                   {/* Deep fade-to-card gradient at bottom */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0e] via-[#0c0c0e]/30 to-transparent" />
 
-                  {/* Title + Badge overlaid on image bottom */}
+                  {/* Title + Badge overlaid on image bottom (badge commented out per user request) */}
                   <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 flex items-end justify-between gap-2">
                     <h3 className="text-sm font-bold text-white leading-snug line-clamp-2 drop-shadow-md">
                       {venue.name}
                     </h3>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${badgeClass}`}>
+                    {/* <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${badgeClass}`}>
                       {badgeText}
-                    </span>
+                    </span> */}
                   </div>
                 </div>
 
                 {/* Card Body */}
                 <div className="px-4 pt-3 pb-4 flex flex-col gap-3">
-                  {/* Category & City */}
-                  <p className="text-xs text-zinc-500 font-medium">
-                    {category} · {city}
-                  </p>
+                  {/* Category & City/Country */}
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                      {category}
+                    </p>
+                    <div className="text-xs text-zinc-400 font-medium space-y-0.5 mt-0.5">
+                      <div>
+                        <span className="text-zinc-500 font-semibold">City: </span>
+                        <span className="text-zinc-300">{venue.city || (venue.location && venue.location !== "No Location Details" ? venue.location : "") || "—"}</span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500 font-semibold">Country: </span>
+                        <span className="text-zinc-300">{venue.country || "—"}</span>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2">
@@ -327,7 +469,7 @@ const VenuesPage = () => {
           <span className="text-zinc-500">
             Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalVenues)} of {totalVenues} venues
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <select
               value={itemsPerPage}
               onChange={(e) => {
@@ -343,32 +485,18 @@ const VenuesPage = () => {
               <option value={30}>30</option>
               <option value={40}>40</option>
             </select>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-            >
-              Previous
-            </Button>
-            <span className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-            >
-              Next
-            </Button>
+            <button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage(1)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="First page"><IconChevronsLeft size={13} /></button>
+            <button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Previous page"><IconChevronLeft size={13} /></button>
+            <span className="text-[11px] text-zinc-400 px-2 font-semibold select-none whitespace-nowrap">Page {currentPage} of {totalPages}</span>
+            <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Next page"><IconChevronRight size={13} /></button>
+            <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(totalPages)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Last page"><IconChevronsRight size={13} /></button>
           </div>
         </div>
       )}
     </ListingPageContainer>
   );
-};
+}
 
 export default VenuesPage;
+
+
