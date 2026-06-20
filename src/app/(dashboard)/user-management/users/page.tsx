@@ -208,21 +208,22 @@ export default function UsersPage() {
           }
         >
           <ListingTableHead>
-            <ListingTh className="w-[20%]">Name</ListingTh>
-            <ListingTh className="w-[15%]">Phone No</ListingTh>
-            <ListingTh className="w-[12%]">Status</ListingTh>
-            <ListingTh className="w-[13%]">City</ListingTh>
-            <ListingTh className="w-[12%]">Referral Code</ListingTh>
-            <ListingTh className="w-[13%]">Medium</ListingTh>
-            <ListingTh className="w-[10%]">Score</ListingTh>
+            <ListingTh className="w-[18%]">Name</ListingTh>
+            <ListingTh className="w-[13%]">Phone No</ListingTh>
+            <ListingTh className="w-[10%]">Status</ListingTh>
+            <ListingTh className="w-[10%]">City</ListingTh>
+            <ListingTh className="w-[10%]">Country</ListingTh>
+            <ListingTh className="w-[10%]">Referral Code</ListingTh>
+            <ListingTh className="w-[10%]">Medium</ListingTh>
+            <ListingTh className="w-[9%]">Score</ListingTh>
             <ListingTh align="right" className="w-[5%]">Actions</ListingTh>
           </ListingTableHead>
           <ListingTableBody>
                 {loading ? (
-                  <ListingLoadingRow colSpan={8} message="Loading registered users..." />
+                  <ListingLoadingRow colSpan={9} message="Loading registered users..." />
                 ) : customers.length === 0 ? (
                   <ListingEmptyRow
-                    colSpan={8}
+                    colSpan={9}
                     icon={IconUser}
                     title="No registered users found"
                     description="Try modifying your search criteria"
@@ -233,6 +234,7 @@ export default function UsersPage() {
                     const profilePictureUrl = (customer as any).profilePictureUrl;
                     const cityId = (customer as any).cityId || (customer as any).city_id;
                     const cityName = (cityId && cityMap[cityId]) || (customer as any).city?.name || (customer as any).city || cityId;
+                    const country = (customer as any).country;
                     const code = (customer as any).referralCode;
                     const medium = (customer as any).referralMedium;
                     const score = customer.reliabilityScore !== undefined ? customer.reliabilityScore : 100;
@@ -293,6 +295,15 @@ export default function UsersPage() {
                               <IconMapPin size={12} className="shrink-0 text-zinc-600" />
                               <span className="truncate max-w-[120px]">{cityName}</span>
                             </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* Country */}
+                        <td className={listingStyles.cellDefault}>
+                          {country ? (
+                            <span className="text-xs text-zinc-400">{country}</span>
                           ) : (
                             <span className="text-xs text-zinc-600 select-none">—</span>
                           )}

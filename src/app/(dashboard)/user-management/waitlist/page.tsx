@@ -34,25 +34,28 @@ type WaitlistTab = 'pending' | 'rejected';
 
 const WAITLIST_TABLE_HEADERS = (
   <tr className="border-b border-[#18181b]">
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[20%]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[18%]">
       Name
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[15%]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
       Phone No
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
       Status
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
       City
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
-      Referral Code
-    </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
-      Medium
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+      Country
     </th>
     <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+      Referral Code
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+      Medium
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[9%]">
       Score
     </th>
     <th className="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[5%]">
@@ -251,7 +254,7 @@ export default function WaitlistPage() {
               <tbody className="divide-y divide-[#18181b]">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center">
+                    <td colSpan={9} className="py-20 text-center">
                       <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
                       <p className="text-xs text-zinc-500 mt-2 font-medium">
                         {isRejectedTab
@@ -262,7 +265,7 @@ export default function WaitlistPage() {
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center">
+                    <td colSpan={9} className="py-20 text-center">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <IconUser size={32} className="text-zinc-600" />
                         <p className="text-xs font-semibold text-zinc-400">
@@ -287,6 +290,7 @@ export default function WaitlistPage() {
                       (user as { city?: { name?: string } }).city?.name ||
                       (user as { city?: string }).city ||
                       cityId;
+                    const country = (user as { country?: string }).country;
                     const code = (user as { referralCode?: string }).referralCode;
                     const medium = (user as { referralMedium?: string }).referralMedium;
                     const score =
@@ -358,6 +362,14 @@ export default function WaitlistPage() {
                               <IconMapPin size={12} className="shrink-0 text-zinc-600" />
                               <span className="truncate max-w-[120px]">{cityName}</span>
                             </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        <td className="py-3 px-6">
+                          {country ? (
+                            <span className="text-xs text-zinc-400">{country}</span>
                           ) : (
                             <span className="text-xs text-zinc-600 select-none">—</span>
                           )}
