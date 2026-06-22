@@ -310,7 +310,7 @@ export default function UsersPage() {
                     const displayName = customer.name ? `${customer.name} ${customer.lastName || ''}`.trim() : 'Unnamed User';
                     const profilePictureUrl = (customer as any).profilePictureUrl;
                     const cityId = (customer as any).cityId || (customer as any).city_id;
-                    const cityName = (cityId && cityMap[cityId]) || (customer as any).city?.name || (customer as any).city || cityId;
+                    const cityName = (cityId && cityMap[cityId]) || (customer as any).location || (customer as any).city?.name || (customer as any).city || '—';
                     const country = (customer as any).country;
                     const code = (customer as any).referralCode;
                     const medium = (customer as any).referralMedium;
@@ -365,25 +365,26 @@ export default function UsersPage() {
                       />
                     </td>
 
-                        {/* Country */}
-                        <td className={listingStyles.cellDefault}>
-                          {country ? (
-                            <span className="text-xs text-zinc-400">{country}</span>
-                          ) : (
-                            <span className="text-xs text-zinc-600 select-none">—</span>
-                          )}
-                        </td>
+                    {/* City */}
+                    <td className={listingStyles.cellDefault}>
+                      {cityName ? (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                          <IconMapPin size={12} className="shrink-0 text-zinc-600" />
+                          <span className="truncate max-w-[120px]">{cityName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-zinc-600 select-none">—</span>
+                      )}
+                    </td>
 
-                        {/* Referral Code */}
-                        <td className={listingStyles.cellDefault}>
-                          {code ? (
-                            <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
-                              {code}
-                            </code>
-                          ) : (
-                            <span className="text-xs text-zinc-600 select-none">—</span>
-                          )}
-                        </td>
+                    {/* Country */}
+                    <td className={listingStyles.cellDefault}>
+                      {country ? (
+                        <span className="text-xs text-zinc-400">{country}</span>
+                      ) : (
+                        <span className="text-xs text-zinc-600 select-none">—</span>
+                      )}
+                    </td>
 
                     {/* Referral Code */}
                     <td className={listingStyles.cellDefault}>
