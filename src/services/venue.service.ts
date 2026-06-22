@@ -291,6 +291,7 @@ export async function createVenue(payload: {
   isVisible: boolean;
   coverImageS3FileName: string;
   isPartner?: boolean;
+  description?: string;
 }): Promise<Venue> {
   try {
     const res = await customAxios.post(ADMIN_VENUES_URL, payload);
@@ -318,6 +319,7 @@ export async function updateVenue(
     isVisible: boolean;
     coverImageS3FileName: string;
     isPartner: boolean;
+    description: string;
   }>
 ): Promise<Venue> {
   try {

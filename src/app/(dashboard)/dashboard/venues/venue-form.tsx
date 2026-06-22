@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconCheck, IconEdit, IconBuilding } from "@tabler/icons-react";
 import { DetailPageContainer, DetailPageHeader, detailStyles, listingStyles } from "@/components/shared/listing-page";
@@ -138,7 +139,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     loadCitiesList();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -225,6 +226,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
         isVisible: formData.isVisible !== false,
         coverImageS3FileName: coverImageS3FileName,
         isPartner: formData.isPartner || false,
+        description: formData.description.trim(),
       };
 
       if (currentMode === "edit") {
@@ -522,6 +524,18 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                 />
               </div>
 
+              <div className="grid gap-3">
+                <Label htmlFor="description" className="text-base font-bold">Venue Description</Label>
+                <Textarea 
+                  id="description" 
+                  name="description" 
+                  placeholder="Provide a detailed description of the venue, its features, and history..." 
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  readOnly={isViewing}
+                  className="min-h-32 text-base rounded-xl resize-none"
+                />
+              </div>
             </div>
 
             <div className="grid gap-6 mt-4 pt-6 border-t border-border/50">
