@@ -25,6 +25,7 @@ import {
   CheckSquare,
   Shield,
   FileText,
+  Star,
 } from 'lucide-react';
 
 import NavKeys from '@/constants/navkeys';
@@ -68,6 +69,11 @@ const sidebarGroups = [
         title: 'Profile Verification',
         url: '/user-management/profile-verification',
         icon: CheckSquare,
+      },
+      {
+        title: 'Reviews',
+        url: '/user-management/reviews',
+        icon: Star,
       },
       {
         title: 'Admin Users',

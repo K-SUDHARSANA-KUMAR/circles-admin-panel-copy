@@ -316,10 +316,10 @@ const VenuesPage = () => {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-[#18181b] bg-transparent font-sans">
-                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[30%]">Venue Information</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[30%]">Venue Name</TableHead>
                 <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[20%]">Location</TableHead>
                 <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[15%]">City</TableHead>
-                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[15%]">Manager</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[15%]">Country</TableHead>
                 <TableHead className="text-right bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[20%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -340,16 +340,7 @@ const VenuesPage = () => {
                   </TableCell>
                   <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.location || '—'}</TableCell>
                   <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.city || '—'}</TableCell>
-                  <TableCell className="py-5 px-12">
-                    {venue.manager ? (
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                        <IconUser size={12} className="text-zinc-600 shrink-0" />
-                        <span>{venue.manager}</span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-zinc-600">—</span>
-                    )}
-                  </TableCell>
+                  <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.country || '—'}</TableCell>
                   <TableCell className="text-right py-5 px-12">
                     <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-200">
                       <button
@@ -431,8 +422,12 @@ const VenuesPage = () => {
                     </p>
                     <div className="text-xs text-zinc-400 font-medium space-y-0.5 mt-0.5">
                       <div>
+                        <span className="text-zinc-500 font-semibold">Location: </span>
+                        <span className="text-zinc-300">{venue.location || "—"}</span>
+                      </div>
+                      <div>
                         <span className="text-zinc-500 font-semibold">City: </span>
-                        <span className="text-zinc-300">{venue.city || (venue.location && venue.location !== "No Location Details" ? venue.location : "") || "—"}</span>
+                        <span className="text-zinc-300">{venue.city || "—"}</span>
                       </div>
                       <div>
                         <span className="text-zinc-500 font-semibold">Country: </span>

@@ -1,8 +1,8 @@
 import { FilterField } from '../FilterDropdown';
-import { COUNTRIES_OPTIONS } from './shared';
+import { COUNTRIES_OPTIONS, CITIES_OPTIONS } from './shared';
 
 export const cityFilters: FilterField[] = [
-  { key: 'city', label: 'City', type: 'select', options: [] },
+  { key: 'city', label: 'City', type: 'select', options: CITIES_OPTIONS },
   { key: 'country', label: 'Country', type: 'select', options: COUNTRIES_OPTIONS },
   {
     key: 'status', label: 'Status', type: 'select', options: [
