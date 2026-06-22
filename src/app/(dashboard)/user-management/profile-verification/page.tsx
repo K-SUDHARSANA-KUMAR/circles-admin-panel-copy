@@ -286,25 +286,28 @@ export default function ProfileVerificationPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-[#18181b]">
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[20%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[18%]">
                     Name
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
                     Phone No
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
                     Status
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
                     City
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
-                    Referral Code
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
-                    Medium
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+                    Country
                   </th>
                   <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+                    Referral Code
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+                    Medium
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[9%]">
                     Score
                   </th>
                   <th className="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[5%]">
@@ -315,7 +318,7 @@ export default function ProfileVerificationPage() {
               <tbody className="divide-y divide-[#18181b]">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center">
+                    <td colSpan={9} className="py-20 text-center">
                       <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
                       <p className="text-xs text-zinc-500 mt-2 font-medium">Loading profile approvals...</p>
                     </td>
@@ -335,6 +338,7 @@ export default function ProfileVerificationPage() {
                     const profilePictureUrl = user.profilePictureUrl;
                     const cityId = (user as any).cityId || (user as any).city_id;
                     const cityName = (cityId && cityMap[cityId]) || user.location || (user as any).city?.name || (user as any).city || cityId;
+                    const country = (user as any).country;
                     const code = (user as any).referralCode;
                     const medium = (user as any).referralMedium;
                     const score = (user as any).reliabilityScore !== undefined ? (user as any).reliabilityScore : 100;
@@ -407,6 +411,15 @@ export default function ProfileVerificationPage() {
                               <IconMapPin size={12} className="shrink-0 text-zinc-600" />
                               <span className="truncate max-w-[120px]">{cityName}</span>
                             </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* Country */}
+                        <td className="py-3 px-6">
+                          {country ? (
+                            <span className="text-xs text-zinc-400">{country}</span>
                           ) : (
                             <span className="text-xs text-zinc-600 select-none">—</span>
                           )}
