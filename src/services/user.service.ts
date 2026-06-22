@@ -21,6 +21,44 @@ export interface CustomersResponse {
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
 export const ADMIN_CUSTOMERS_URL = `${BASE_URL}/user-service/admin/customers`;
 
+export const guessCountryFromUser = (user: any): string => {
+  const loc = (user.location || '').toLowerCase();
+  if (/india|delhi|mumbai|chennai|bangalore|hyderabad|coimbatore|indore|kolkata/i.test(loc)) return 'India';
+  if (/albania|tirana|durres|bajram curri|banaj/i.test(loc)) return 'Albania';
+  if (/portugal|lisbon|porto/i.test(loc)) return 'Portugal';
+  if (/germany|berlin|munich|frankfurt|essen|esen/i.test(loc)) return 'Germany';
+  if (/japan|tokyo|yokohama/i.test(loc)) return 'Japan';
+  if (/iceland|reykjavik|reykjavík/i.test(loc)) return 'Iceland';
+  if (/morocco|marrakech|rabat/i.test(loc)) return 'Morocco';
+  if (/vietnam|hanoi|saigon|ho chi minh/i.test(loc)) return 'Vietnam';
+  if (/austria|vienna|innsbruck/i.test(loc)) return 'Austria';
+  if (/united kingdom|london|leeds|uk/i.test(loc)) return 'United Kingdom';
+  if (/united states|new york|austin|us|usa/i.test(loc)) return 'United States';
+  if (/france|paris/i.test(loc)) return 'France';
+  if (/spain|madrid|barcelona/i.test(loc)) return 'Spain';
+  if (/italy|rome|milan/i.test(loc)) return 'Italy';
+  if (/singapore/i.test(loc)) return 'Singapore';
+
+  const phone = user.phone || '';
+  if (phone.startsWith('+91')) return 'India';
+  if (phone.startsWith('+355')) return 'Albania';
+  if (phone.startsWith('+44')) return 'United Kingdom';
+  if (phone.startsWith('+1')) return 'United States';
+  if (phone.startsWith('+351')) return 'Portugal';
+  if (phone.startsWith('+49')) return 'Germany';
+  if (phone.startsWith('+81')) return 'Japan';
+  if (phone.startsWith('+354')) return 'Iceland';
+  if (phone.startsWith('+212')) return 'Morocco';
+  if (phone.startsWith('+84')) return 'Vietnam';
+  if (phone.startsWith('+43')) return 'Austria';
+  if (phone.startsWith('+33')) return 'France';
+  if (phone.startsWith('+34')) return 'Spain';
+  if (phone.startsWith('+39')) return 'Italy';
+  if (phone.startsWith('+65')) return 'Singapore';
+
+  return user.country || '';
+};
+
 /**
  * Fetches a single customer/user by ID from the user-service.
  */
@@ -36,36 +74,70 @@ export async function fetchCustomerById(customerId: string): Promise<Customer> {
 
 /**
  * Fetches the list of customers/users from the backend user-service.
+ *
+ * Supported backend query parameters (confirmed):
+ *   - search    : partial name/phone search
+ *   - limit     : page size
+ *   - skip      : offset
+ *   - status    : user status (e.g. 'active', 'inactive')
+ *   - medium    : referral medium (e.g. 'INVITE_CODE', 'WISHLIST')
+ *   - minScore  : minimum reliability score
+ *   - maxScore  : maximum reliability score
+ *   - cityId    : filter by city UUID (snowflake)
+ *
+ * NOT supported: country, city (as string), role
  */
 export async function fetchCustomers(params?: {
   limit?: number;
   skip?: number;
   search?: string;
+  status?: string;
+  medium?: string;
+  minScore?: number;
+  maxScore?: number;
+  /** Pass the city's snowflake ID to filter by city */
+  cityId?: string;
+  city?: string;
+  score?: string | number;
+  country?: string;
 }): Promise<CustomersResponse> {
-  const originalLimit = params?.limit !== undefined ? params.limit : 10;
-  const originalSkip = params?.skip !== undefined ? params.skip : 0;
-
-  let limit = originalLimit;
-  let skip = originalSkip;
-  let backendSearch = params?.search?.trim();
-  let searchTerms: string[] = [];
-  let clientFilter = false;
-
-  if (backendSearch && backendSearch.includes(' ')) {
-    searchTerms = backendSearch.split(/\s+/);
-    // Find the longest word to send to the backend to get the most selective match
-    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
-    clientFilter = true;
-    // Request a larger page size from the backend to do client-side filtering
-    limit = 100;
-    skip = 0;
-  }
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  const backendSearch = params?.search?.trim();
 
   let url = `${ADMIN_CUSTOMERS_URL}?limit=${limit}&skip=${skip}`;
 
   if (backendSearch !== undefined && backendSearch !== '') {
     url += `&search=${encodeURIComponent(backendSearch)}`;
   }
+  if (params?.status) {
+    url += `&status=${encodeURIComponent(params.status)}`;
+  }
+  if (params?.cityId) {
+    url += `&cityId=${encodeURIComponent(params.cityId)}`;
+  }
+  if (params?.country) {
+    url += `&country=${encodeURIComponent(params.country)}`;
+  }
+  if (params?.medium) {
+    url += `&medium=${encodeURIComponent(params.medium)}`;
+  }
+  
+  let finalMinScore = params?.minScore;
+  if (finalMinScore === undefined && params?.score !== undefined) {
+    const num = Number(params.score);
+    if (!isNaN(num)) {
+      finalMinScore = num;
+    }
+  }
+  
+  if (finalMinScore !== undefined) {
+    url += `&minScore=${finalMinScore}`;
+  }
+  if (params?.maxScore !== undefined) {
+    url += `&maxScore=${params.maxScore}`;
+  }
+
 
   try {
     const res = await customAxios.get(url);
@@ -94,15 +166,6 @@ export async function fetchCustomers(params?: {
       }
     }
 
-    if (clientFilter && searchTerms.length > 0) {
-      const filtered = customersList.filter(customer => {
-        const fullName = `${customer.name || ''} ${customer.lastName || ''}`.toLowerCase();
-        return searchTerms.every(term => fullName.includes(term.toLowerCase()));
-      });
-      totalCount = filtered.length;
-      customersList = filtered.slice(originalSkip, originalSkip + originalLimit);
-    }
-
     return {
       customers: customersList,
       total: totalCount,
@@ -112,6 +175,7 @@ export async function fetchCustomers(params?: {
     throw new Error(msg);
   }
 }
+
 
 export interface WaitlistUser {
   id: string;
@@ -133,35 +197,67 @@ export interface WaitlistResponse {
 export const ADMIN_WAITLIST_URL = `${BASE_URL}/user-service/admin/waitlist`;
 
 /**
- * Fetches the waitlist/verification users from the backend user-service.
+ * Fetches the waitlist users from the backend user-service.
+ *
+ * Supported backend query parameters (confirmed):
+ *   - search   : partial name/phone search
+ *   - limit    : page size
+ *   - skip     : offset
+ *   - status   : user status (e.g. 'pending', 'rejected')
+ *   - medium   : referral medium
+ *   - minScore : minimum reliability score
+ *   - maxScore : maximum reliability score
+ *   - cityId   : filter by city UUID (snowflake)
+ *
+ * NOT supported: country, city (as string)
  */
 export async function fetchWaitlist(params?: {
   limit?: number;
   skip?: number;
   search?: string;
+  status?: string;
+  medium?: string;
+  minScore?: number;
+  maxScore?: number;
+  cityId?: string;
+  city?: string;
+  score?: string | number;
+  country?: string;
 }): Promise<WaitlistResponse> {
-  const originalLimit = params?.limit !== undefined ? params.limit : 10;
-  const originalSkip = params?.skip !== undefined ? params.skip : 0;
-
-  let limit = originalLimit;
-  let skip = originalSkip;
-  let backendSearch = params?.search?.trim();
-  let searchTerms: string[] = [];
-  let clientFilter = false;
-
-  if (backendSearch && backendSearch.includes(' ')) {
-    searchTerms = backendSearch.split(/\s+/);
-    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
-    clientFilter = true;
-    limit = 100;
-    skip = 0;
-  }
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  const backendSearch = params?.search?.trim();
 
   let url = `${ADMIN_WAITLIST_URL}?limit=${limit}&skip=${skip}`;
 
   if (backendSearch !== undefined && backendSearch !== '') {
     url += `&search=${encodeURIComponent(backendSearch)}`;
   }
+  if (params?.cityId) {
+    url += `&cityId=${encodeURIComponent(params.cityId)}`;
+  }
+  if (params?.country) {
+    url += `&country=${encodeURIComponent(params.country)}`;
+  }
+  if (params?.medium) {
+    url += `&medium=${encodeURIComponent(params.medium)}`;
+  }
+  
+  let finalMinScore = params?.minScore;
+  if (finalMinScore === undefined && params?.score !== undefined) {
+    const num = Number(params.score);
+    if (!isNaN(num)) {
+      finalMinScore = num;
+    }
+  }
+  
+  if (finalMinScore !== undefined) {
+    url += `&minScore=${finalMinScore}`;
+  }
+  if (params?.maxScore !== undefined) {
+    url += `&maxScore=${params.maxScore}`;
+  }
+
 
   try {
     const res = await customAxios.get(url);
@@ -190,15 +286,6 @@ export async function fetchWaitlist(params?: {
       }
     }
 
-    if (clientFilter && searchTerms.length > 0) {
-      const filtered = waitlistList.filter(user => {
-        const fullName = `${user.name || ''} ${user.lastName || ''}`.toLowerCase();
-        return searchTerms.every(term => fullName.includes(term.toLowerCase()));
-      });
-      totalCount = filtered.length;
-      waitlistList = filtered.slice(originalSkip, originalSkip + originalLimit);
-    }
-
     return {
       users: waitlistList,
       total: totalCount,
@@ -209,52 +296,66 @@ export async function fetchWaitlist(params?: {
   }
 }
 
+
 /**
- * Fetches the rejected waitlist users from the standalone backend endpoint.
+ * Fetches rejected waitlist users.
+ *
+ * Same supported params as fetchWaitlist.
  */
 export async function fetchRejectedWaitlist(params?: {
   limit?: number;
   skip?: number;
   search?: string;
+  status?: string;
+  medium?: string;
+  minScore?: number;
+  maxScore?: number;
+  cityId?: string;
+  city?: string;
+  score?: string | number;
+  country?: string;
 }): Promise<WaitlistResponse> {
-  const originalLimit = params?.limit !== undefined ? params.limit : 10;
-  const originalSkip = params?.skip !== undefined ? params.skip : 0;
-
-  let limit = originalLimit;
-  let skip = originalSkip;
-  let backendSearch = params?.search?.trim();
-  let searchTerms: string[] = [];
-  let clientFilter = false;
-
-  if (backendSearch && backendSearch.includes(' ')) {
-    searchTerms = backendSearch.split(/\s+/);
-    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
-    clientFilter = true;
-    limit = 100;
-    skip = 0;
-  }
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  const backendSearch = params?.search?.trim();
 
   let url = `${ADMIN_WAITLIST_URL}/rejected?limit=${limit}&skip=${skip}`;
 
   if (backendSearch !== undefined && backendSearch !== '') {
     url += `&search=${encodeURIComponent(backendSearch)}`;
   }
+  if (params?.cityId) {
+    url += `&cityId=${encodeURIComponent(params.cityId)}`;
+  }
+  if (params?.country) {
+    url += `&country=${encodeURIComponent(params.country)}`;
+  }
+  if (params?.medium) {
+    url += `&medium=${encodeURIComponent(params.medium)}`;
+  }
+  
+  let finalMinScore = params?.minScore;
+  if (finalMinScore === undefined && params?.score !== undefined) {
+    const num = Number(params.score);
+    if (!isNaN(num)) {
+      finalMinScore = num;
+    }
+  }
+  
+  if (finalMinScore !== undefined) {
+    url += `&minScore=${finalMinScore}`;
+  }
+  if (params?.maxScore !== undefined) {
+    url += `&maxScore=${params.maxScore}`;
+  }
+
 
   try {
     const res = await customAxios.get(url);
     const data = res.data?.data;
 
-    let usersList = data?.items || [];
-    let totalCount = data?.totalItems || 0;
-
-    if (clientFilter && searchTerms.length > 0) {
-      const filtered = usersList.filter((user: any) => {
-        const fullName = `${user.name || ''} ${user.lastName || ''}`.toLowerCase();
-        return searchTerms.every((term: string) => fullName.includes(term.toLowerCase()));
-      });
-      totalCount = filtered.length;
-      usersList = filtered.slice(originalSkip, originalSkip + originalLimit);
-    }
+    const usersList = data?.items || [];
+    const totalCount = data?.totalItems || 0;
 
     return {
       users: usersList,
@@ -265,6 +366,7 @@ export async function fetchRejectedWaitlist(params?: {
     throw new Error(msg);
   }
 }
+
 
 /**
  * Updates a waitlist user's status.
@@ -366,34 +468,66 @@ export const ADMIN_PROFILE_USERS_URL = `${BASE_URL}/user-service/admin/customers
 
 /**
  * Fetches the list of profile users for verification.
+ *
+ * Supported backend query parameters (confirmed):
+ *   - search   : partial name/phone search
+ *   - limit    : page size
+ *   - skip     : offset
+ *   - status   : user status
+ *   - medium   : referral medium
+ *   - minScore : minimum reliability score
+ *   - maxScore : maximum reliability score
+ *   - cityId   : filter by city UUID (snowflake)
+ *
+ * NOT supported: country, city (as string)
  */
 export async function fetchProfileUsersGetAll(params?: {
   limit?: number;
   skip?: number;
   search?: string;
+  status?: string;
+  medium?: string;
+  minScore?: number;
+  maxScore?: number;
+  cityId?: string;
+  city?: string;
+  score?: string | number;
+  country?: string;
 }): Promise<ProfileUsersResponse> {
-  const originalLimit = params?.limit !== undefined ? params.limit : 10;
-  const originalSkip = params?.skip !== undefined ? params.skip : 0;
-
-  let limit = originalLimit;
-  let skip = originalSkip;
-  let backendSearch = params?.search?.trim();
-  let searchTerms: string[] = [];
-  let clientFilter = false;
-
-  if (backendSearch && backendSearch.includes(' ')) {
-    searchTerms = backendSearch.split(/\s+/);
-    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
-    clientFilter = true;
-    limit = 100;
-    skip = 0;
-  }
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  const backendSearch = params?.search?.trim();
 
   let url = `${ADMIN_PROFILE_USERS_URL}?limit=${limit}&skip=${skip}`;
 
   if (backendSearch !== undefined && backendSearch !== '') {
     url += `&search=${encodeURIComponent(backendSearch)}`;
   }
+  if (params?.cityId) {
+    url += `&cityId=${encodeURIComponent(params.cityId)}`;
+  }
+  if (params?.country) {
+    url += `&country=${encodeURIComponent(params.country)}`;
+  }
+  if (params?.medium) {
+    url += `&medium=${encodeURIComponent(params.medium)}`;
+  }
+  
+  let finalMinScore = params?.minScore;
+  if (finalMinScore === undefined && params?.score !== undefined) {
+    const num = Number(params.score);
+    if (!isNaN(num)) {
+      finalMinScore = num;
+    }
+  }
+  
+  if (finalMinScore !== undefined) {
+    url += `&minScore=${finalMinScore}`;
+  }
+  if (params?.maxScore !== undefined) {
+    url += `&maxScore=${params.maxScore}`;
+  }
+
 
   try {
     const res = await customAxios.get(url);
@@ -419,15 +553,6 @@ export async function fetchProfileUsersGetAll(params?: {
       }
     }
 
-    if (clientFilter && searchTerms.length > 0) {
-      const filtered = usersList.filter(user => {
-        const fullName = `${user.name || ''} ${user.lastName || ''}`.toLowerCase();
-        return searchTerms.every(term => fullName.includes(term.toLowerCase()));
-      });
-      totalCount = filtered.length;
-      usersList = filtered.slice(originalSkip, originalSkip + originalLimit);
-    }
-
     return {
       users: usersList,
       total: totalCount,
@@ -438,6 +563,7 @@ export async function fetchProfileUsersGetAll(params?: {
   }
 }
 
+
 /**
  * Approves or rejects a profile verification image.
  */
@@ -447,7 +573,7 @@ export async function verifyProfileImage(
   verified: boolean
 ): Promise<any> {
   const url = `${BASE_URL}/user-service/admin/customers/${userId}/profile-verification/images/${imageId}`;
-  
+
   try {
     const res = await customAxios.patch(url, { verified });
     return res.data?.result?.data ?? res.data?.data ?? res.data;

@@ -40,6 +40,7 @@ import {
 } from '@/components/shared/listing-page';
 
 
+
 interface GroupStyle {
   border: string;
   text: string;
@@ -90,11 +91,12 @@ export default function InterestsPage() {
   const debouncedSearch = useDebounce(searchQuery, 500);
 
 
+
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupColor, setNewGroupColor] = useState<GroupColor>('blue');
-  const [newSubGroupName, setNewSubGroupName] = useState(''); 
+  const [newSubGroupName, setNewSubGroupName] = useState('');
   const [subInputs, setSubInputs] = useState<Record<string, string>>({});
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -311,6 +313,7 @@ export default function InterestsPage() {
         onRefresh={() => loadGroups(searchQuery)}
         refreshDisabled={loading}
         refreshLoading={loading}
+
         primaryAction={
           <Button
             onClick={() => setIsCreating(!isCreating)}
@@ -391,11 +394,10 @@ export default function InterestsPage() {
                 <div
                   key={group.id}
                   onClick={() => setActiveGroupId(isActive ? null : group.id)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 border select-none ${
-                    isActive
-                      ? 'bg-primary/10 border-primary/30 shadow-sm shadow-primary/10'
-                      : 'bg-[#09090b] border-[#18181b] hover:border-zinc-700 hover:bg-zinc-900/30'
-                  }`}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 border select-none ${isActive
+                    ? 'bg-primary/10 border-primary/30 shadow-sm shadow-primary/10'
+                    : 'bg-[#09090b] border-[#18181b] hover:border-zinc-700 hover:bg-zinc-900/30'
+                    }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${style.bg} ${style.text}`}>
@@ -491,11 +493,10 @@ export default function InterestsPage() {
                     activeGroup.subInterests.map((sub) => (
                       <span
                         key={sub.id}
-                        className={`group/tag inline-flex items-center gap-1.5 border text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${
-                          debouncedSearch.trim() && sub.name.toLowerCase().includes(debouncedSearch.toLowerCase())
-                            ? 'bg-zinc-900 border-amber-400 text-zinc-300'
-                            : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'
-                        }`}
+                        className={`group/tag inline-flex items-center gap-1.5 border text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${debouncedSearch.trim() && sub.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+                          ? 'bg-zinc-900 border-amber-400 text-zinc-300'
+                          : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'
+                          }`}
                       >
                         <HighlightText text={sub.name} query={debouncedSearch} />
                         <button
@@ -520,7 +521,7 @@ export default function InterestsPage() {
                 </div>
               </div>
 
-        
+
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-3 bg-[#09090b] border border-[#18181b] rounded-xl py-20 text-center">

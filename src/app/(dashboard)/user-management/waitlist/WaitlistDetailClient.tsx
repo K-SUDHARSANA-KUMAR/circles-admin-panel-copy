@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { fetchCustomerById, approveWaitlistUser, rejectWaitlistUser } from '@/services/user.service';
+import { fetchCustomerById, approveWaitlistUser } from '@/services/user.service';
 import { fetchInterestGroups } from '@/services/interest.service';
 import { fetchCities } from '@/services/cities.service';
-import { IconLoader, IconCheck, IconX, IconShieldCheck } from '@tabler/icons-react';
+import { IconLoader, IconCheck, IconShieldCheck } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import UserDetailsView, { type DetailedUser } from '@/components/shared/UserDetailsView';
@@ -28,7 +28,7 @@ export default function WaitlistDetailClient() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [interestMap, setInterestMap] = useState<Record<string, string>>({});
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
-  const [processing, setProcessing] = useState<'approve' | 'reject' | null>(null);
+  const [processing, setProcessing] = useState<'approve' | null>(null);
 
   const loadCities = async () => {
     try {
@@ -108,11 +108,9 @@ export default function WaitlistDetailClient() {
       const name = `${user.name || ''} ${user.lastName || ''}`.trim() || 'User';
       toast.success(`Successfully approved ${name}`);
       const params = new URLSearchParams();
-      if (searchParams.get('tab') === 'rejected') {
-        params.set('tab', 'rejected');
-      }
+      params.set('tab', 'approved');
       const query = params.toString();
-      router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
+      router.push(`/user-management/waitlist?${query}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to approve user.';
       toast.error(message);
@@ -121,46 +119,19 @@ export default function WaitlistDetailClient() {
     }
   };
 
-  const handleReject = async () => {
-    if (!user) return;
-    setProcessing('reject');
-    try {
-      await rejectWaitlistUser(user.id);
-      const name = `${user.name || ''} ${user.lastName || ''}`.trim() || 'User';
-      toast.success(`Successfully rejected ${name}`);
-      await loadUserDetails();
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to reject user.';
-      toast.error(message);
-    } finally {
-      setProcessing(null);
-    }
-  };
-
   const handleBack = () => {
     const params = new URLSearchParams();
-    if (searchParams.get('tab') === 'rejected') {
-      params.set('tab', 'rejected');
+    if (searchParams.get('tab') === 'approved') {
+      params.set('tab', 'approved');
     }
     const query = params.toString();
     router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
   };
 
-  const headerActions = user ? (
+  const isPending = user && !(user.status === 'active' || user.status === 'approved' || user.status === 'verified');
+
+  const headerActions = isPending ? (
     <div className="flex gap-3 shrink-0 flex-wrap">
-      <Button
-        variant="destructive"
-        disabled={processing !== null}
-        onClick={handleReject}
-        className="h-8 px-5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-      >
-        {processing === 'reject' ? (
-          <IconLoader size={12} className="animate-spin" />
-        ) : (
-          <IconX size={14} />
-        )}
-        <span>Reject</span>
-      </Button>
       <Button
         disabled={processing !== null}
         onClick={handleApprove}

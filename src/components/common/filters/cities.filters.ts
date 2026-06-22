@@ -1,0 +1,14 @@
+import { FilterField } from '../FilterDropdown';
+import { COUNTRIES_OPTIONS } from './shared';
+
+export const cityFilters: FilterField[] = [
+  { key: 'city', label: 'City', type: 'select', options: [] },
+  { key: 'country', label: 'Country', type: 'select', options: COUNTRIES_OPTIONS },
+  {
+    key: 'status', label: 'Status', type: 'select', options: [
+      { label: 'Active', value: 'active' },
+      { label: 'Inactive', value: 'inactive' },
+    ]
+  },
+];
+

@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import UserDetailClient from './UserDetailClient';
 import { fetchCustomers, updateCustomerStatus, type Customer } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
-import { 
-  IconRefresh, 
-  IconUser, 
-  IconPhone, 
+import {
+  IconRefresh,
+  IconUser,
+  IconPhone,
   IconAward,
   IconPencil,
   IconX,
@@ -33,6 +33,9 @@ import {
   listingStyles,
 } from '@/components/shared/listing-page';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import FilterDropdown from '@/components/common/FilterDropdown';
+import { userFilters } from '@/components/common/filters/users.filters';
+import { guessCountryFromUser } from '@/components/common/filters/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -49,6 +52,7 @@ export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
   // Modal and status update states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,19 +62,29 @@ export default function UsersPage() {
   });
   const [saving, setSaving] = useState(false);
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
+  const [cityToCountryMap, setCityToCountryMap] = useState<Record<string, string>>({});
+  const [cityNameToIdMap, setCityNameToIdMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadCities() {
       try {
-        const cities = await fetchCities();
+        const cities = await fetchCities({ limit: 100 });
         const mapping: Record<string, string> = {};
+        const countryMapping: Record<string, string> = {};
+        const nameToIdMapping: Record<string, string> = {};
         cities.forEach(city => {
           const id = city.cityId || city.city_id || city.id;
           if (id) {
             mapping[id] = city.name;
+            nameToIdMapping[city.name.toLowerCase()] = id;
+            if (city.country?.name) {
+              countryMapping[id] = city.country.name;
+            }
           }
         });
         setCityMap(mapping);
+        setCityToCountryMap(countryMapping);
+        setCityNameToIdMap(nameToIdMapping);
       } catch (err) {
         console.error('Failed to load cities list:', err);
       }
@@ -90,13 +104,38 @@ export default function UsersPage() {
   const debouncedSearch = useDebounce(searchQuery, 500);
 
 
-  const loadCustomers = useCallback(async (searchVal = '', pageNum = 1, limitNum = 10) => {
+  const loadCustomers = useCallback(async (searchVal = '', pageNum = 1, limitNum = 10, filters: Record<string, any> = {}) => {
     setLoading(true);
     setError(null);
     try {
       const skip = (pageNum - 1) * limitNum;
-      const response = await fetchCustomers({ search: searchVal, limit: limitNum, skip });
-      setCustomers(response.customers);
+      
+      // Resolve city name to cityId if needed (handling array or string safely)
+      let cityId: string | undefined = undefined;
+      if (filters.city) {
+        if (Array.isArray(filters.city)) {
+          if (filters.city.length > 0) {
+            cityId = cityNameToIdMap[filters.city[0].toLowerCase()];
+          }
+        } else if (typeof filters.city === 'string') {
+          cityId = cityNameToIdMap[filters.city.toLowerCase()];
+        }
+      }
+      
+      const response = await fetchCustomers({
+        search: searchVal,
+        limit: limitNum,
+        skip,
+        status: filters.status,
+        cityId: cityId,
+        city: filters.city, // filters.city is now the city name directly
+        medium: filters.medium,
+        country: filters.country,
+      });
+
+
+
+      setCustomers(response.customers || []);
       setTotal(response.total);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch users. Please try again.';
@@ -105,20 +144,36 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cityMap, cityToCountryMap]);
 
-  // Reset page index when search query changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch]);
+  const prevSearchRef = useRef(debouncedSearch);
+  const prevFiltersRef = useRef(activeFilters);
 
   useEffect(() => {
     if (detailUserId) return;
-    loadCustomers(debouncedSearch, currentPage, itemsPerPage);
-  }, [debouncedSearch, currentPage, itemsPerPage, loadCustomers, detailUserId]);
+
+    let shouldResetPage = false;
+    if (prevSearchRef.current !== debouncedSearch) {
+      prevSearchRef.current = debouncedSearch;
+      shouldResetPage = true;
+    }
+    if (JSON.stringify(prevFiltersRef.current) !== JSON.stringify(activeFilters)) {
+      prevFiltersRef.current = activeFilters;
+      shouldResetPage = true;
+    }
+
+    if (shouldResetPage) {
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+        return;
+      }
+    }
+
+    loadCustomers(debouncedSearch, currentPage, itemsPerPage, activeFilters);
+  }, [debouncedSearch, currentPage, itemsPerPage, activeFilters, loadCustomers, detailUserId]);
 
   const handleRefresh = () => {
-    loadCustomers(searchQuery, currentPage, itemsPerPage);
+    loadCustomers(searchQuery, currentPage, itemsPerPage, activeFilters);
   };
 
   const handleOpenEdit = (customer: Customer) => {
@@ -179,6 +234,26 @@ export default function UsersPage() {
         onRefresh={handleRefresh}
         refreshDisabled={loading}
         refreshLoading={loading}
+        filterAction={
+          <div className="flex flex-wrap items-center gap-2">
+            {userFilters.map((filter) => (
+              <FilterDropdown
+                key={filter.key}
+                label={filter.label}
+                type={filter.type}
+                options={filter.options}
+                placeholder={filter.placeholder}
+                value={activeFilters[filter.key]}
+                onChange={(val) =>
+                  setActiveFilters((prev) => ({
+                    ...prev,
+                    [filter.key]: val,
+                  }))
+                }
+              />
+            ))}
+          </div>
+        }
       />
 
       {error ? (
@@ -197,8 +272,10 @@ export default function UsersPage() {
                 totalItems={total}
                 itemsPerPage={itemsPerPage}
                 itemLabel="users"
+                onFirst={() => setCurrentPage(1)}
                 onPrevious={() => setCurrentPage((prev) => prev - 1)}
                 onNext={() => setCurrentPage((prev) => prev + 1)}
+                onLast={() => setCurrentPage(totalPages)}
                 onItemsPerPageChange={(val) => {
                   setItemsPerPage(val);
                   setCurrentPage(1);
@@ -233,135 +310,135 @@ export default function UsersPage() {
                     const displayName = customer.name ? `${customer.name} ${customer.lastName || ''}`.trim() : 'Unnamed User';
                     const profilePictureUrl = (customer as any).profilePictureUrl;
                     const cityId = (customer as any).cityId || (customer as any).city_id;
-                    const cityName = (cityId && cityMap[cityId]) || (customer as any).city?.name || (customer as any).city || cityId;
+                    const cityName = (cityId && cityMap[cityId]) || (customer as any).location || (customer as any).city?.name || (customer as any).city || '—';
                     const country = (customer as any).country;
                     const code = (customer as any).referralCode;
                     const medium = (customer as any).referralMedium;
                     const score = customer.reliabilityScore !== undefined ? customer.reliabilityScore : 100;
                     const status = (customer.status || 'active').toLowerCase();
 
-                    return (
-                      <tr
-                        key={customer.id}
-                        className={listingStyles.tableRow}
-                      >
-                        {/* Name */}
-                        <td className={listingStyles.cellDefault}>
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 overflow-hidden">
-                              {profilePictureUrl ? (
-                                <img 
-                                  src={profilePictureUrl} 
-                                  alt={displayName} 
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                customer.name ? customer.name.charAt(0).toUpperCase() : 'U'
-                              )}
-                            </div>
-                            <span className="text-sm font-semibold text-white truncate max-w-[160px]">
-                              {displayName}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Phone */}
-                        <td className={listingStyles.cellDefault}>
-                          {customer.phone ? (
-                            <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                              <IconPhone size={12} className="shrink-0 text-zinc-600" />
-                              <span>{customer.phone}</span>
-                            </div>
+                return (
+                  <tr
+                    key={customer.id}
+                    className={listingStyles.tableRow}
+                  >
+                    {/* Name */}
+                    <td className={listingStyles.cellDefault}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 overflow-hidden">
+                          {profilePictureUrl ? (
+                            <img
+                              src={profilePictureUrl}
+                              alt={displayName}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
                           ) : (
-                            <span className="text-xs text-zinc-600">—</span>
+                            customer.name ? customer.name.charAt(0).toUpperCase() : 'U'
                           )}
-                        </td>
+                        </div>
+                        <span className="text-sm font-semibold text-white truncate max-w-[160px]">
+                          {displayName}
+                        </span>
+                      </div>
+                    </td>
 
-                        {/* Status Badge */}
-                        <td className={listingStyles.cellDefault}>
-                          <ListingStatusBadge
-                            variant={status === 'active' ? 'active' : 'inactive'}
-                            label={status === 'active' ? 'Active' : 'Inactive'}
-                          />
-                        </td>
+                    {/* Phone */}
+                    <td className={listingStyles.cellDefault}>
+                      {customer.phone ? (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                          <IconPhone size={12} className="shrink-0 text-zinc-600" />
+                          <span>{customer.phone}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-zinc-600">—</span>
+                      )}
+                    </td>
 
-                        {/* City */}
-                        <td className={listingStyles.cellDefault}>
-                          {cityName ? (
-                            <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                              <IconMapPin size={12} className="shrink-0 text-zinc-600" />
-                              <span className="truncate max-w-[120px]">{cityName}</span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-zinc-600 select-none">—</span>
-                          )}
-                        </td>
+                    {/* Status Badge */}
+                    <td className={listingStyles.cellDefault}>
+                      <ListingStatusBadge
+                        variant={status === 'active' ? 'active' : 'inactive'}
+                        label={status === 'active' ? 'Active' : 'Inactive'}
+                      />
+                    </td>
 
-                        {/* Country */}
-                        <td className={listingStyles.cellDefault}>
-                          {country ? (
-                            <span className="text-xs text-zinc-400">{country}</span>
-                          ) : (
-                            <span className="text-xs text-zinc-600 select-none">—</span>
-                          )}
-                        </td>
+                    {/* City */}
+                    <td className={listingStyles.cellDefault}>
+                      {cityName ? (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                          <IconMapPin size={12} className="shrink-0 text-zinc-600" />
+                          <span className="truncate max-w-[120px]">{cityName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-zinc-600 select-none">—</span>
+                      )}
+                    </td>
 
-                        {/* Referral Code */}
-                        <td className={listingStyles.cellDefault}>
-                          {code ? (
-                            <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
-                              {code}
-                            </code>
-                          ) : (
-                            <span className="text-xs text-zinc-600 select-none">—</span>
-                          )}
-                        </td>
+                    {/* Country */}
+                    <td className={listingStyles.cellDefault}>
+                      {country ? (
+                        <span className="text-xs text-zinc-400">{country}</span>
+                      ) : (
+                        <span className="text-xs text-zinc-600 select-none">—</span>
+                      )}
+                    </td>
 
-                        {/* Referral Medium */}
-                        <td className={listingStyles.cellDefault}>
-                          {medium ? (
-                            <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 select-none">
-                              {medium}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-zinc-600 select-none">—</span>
-                          )}
-                        </td>
+                    {/* Referral Code */}
+                    <td className={listingStyles.cellDefault}>
+                      {code ? (
+                        <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
+                          {code}
+                        </code>
+                      ) : (
+                        <span className="text-xs text-zinc-600 select-none">—</span>
+                      )}
+                    </td>
 
-                        {/* Reliability Score */}
-                        <td className={listingStyles.cellDefault}>
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}>
-                            <IconAward size={12} className="shrink-0" />
-                            <span>{score}%</span>
-                          </span>
-                        </td>
+                    {/* Referral Medium */}
+                    <td className={listingStyles.cellDefault}>
+                      {medium ? (
+                        <span className="inline-flex text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 select-none">
+                          {medium}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-zinc-600 select-none">—</span>
+                      )}
+                    </td>
 
-                        {/* Actions */}
-                        <td className={`${listingStyles.cellDefault} text-right`} onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-2.5">
-                            <button
-                              onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
-                              className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
-                              title="Verify Details"
-                            >
-                              <IconUser size={15} className="cursor-pointer" />
-                            </button>
-                            <button
-                              onClick={() => handleOpenEdit(customer)}
-                              className="text-zinc-500 hover:text-white hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
-                              title="Edit Status"
-                            >
-                              <IconPencil size={15} className="cursor-pointer" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
+                    {/* Reliability Score */}
+                    <td className={listingStyles.cellDefault}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}>
+                        <IconAward size={12} className="shrink-0" />
+                        <span>{score}%</span>
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className={`${listingStyles.cellDefault} text-right`} onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-2.5">
+                        <button
+                          onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
+                          className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
+                          title="Verify Details"
+                        >
+                          <IconUser size={15} className="cursor-pointer" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenEdit(customer)}
+                          className="text-zinc-500 hover:text-white hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
+                          title="Edit Status"
+                        >
+                          <IconPencil size={15} className="cursor-pointer" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </ListingTableBody>
         </ListingTableWrapper>
       )}
@@ -370,7 +447,7 @@ export default function UsersPage() {
       {isModalOpen && editingCustomer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
           <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 rounded-xl animate-in zoom-in-95 duration-200">
-            
+
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
@@ -396,7 +473,7 @@ export default function UsersPage() {
             </div>
 
             <form onSubmit={handleSaveStatus} className="space-y-5">
-              
+
               {/* User Details Readonly */}
               <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-3.5 space-y-2.5">
                 <div className="flex items-center gap-3">
@@ -423,11 +500,10 @@ export default function UsersPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ status: 'active' })}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-lg border text-xs font-bold transition-all ${
-                      formData.status === 'active'
-                        ? 'bg-purple-950/20 border-purple-500 text-[#d8b4fe] shadow-lg shadow-purple-500/10'
-                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
-                    }`}
+                    className={`flex items-center justify-center gap-2 py-3 rounded-lg border text-xs font-bold transition-all ${formData.status === 'active'
+                      ? 'bg-purple-950/20 border-purple-500 text-[#d8b4fe] shadow-lg shadow-purple-500/10'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
+                      }`}
                   >
                     <div className={`w-2 h-2 rounded-full ${formData.status === 'active' ? 'bg-[#c084fc] animate-pulse' : 'bg-zinc-500'}`} />
                     <span>Active</span>
@@ -435,11 +511,10 @@ export default function UsersPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ status: 'inactive' })}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-lg border text-xs font-bold transition-all ${
-                      formData.status === 'inactive'
-                        ? 'bg-rose-500/10 border-rose-500 text-rose-400 shadow-lg shadow-rose-500/10'
-                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
-                    }`}
+                    className={`flex items-center justify-center gap-2 py-3 rounded-lg border text-xs font-bold transition-all ${formData.status === 'inactive'
+                      ? 'bg-rose-500/10 border-rose-500 text-rose-400 shadow-lg shadow-rose-500/10'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
+                      }`}
                   >
                     <div className={`w-2 h-2 rounded-full ${formData.status === 'inactive' ? 'bg-rose-400 animate-pulse' : 'bg-zinc-500'}`} />
                     <span>Inactive</span>
@@ -475,3 +550,7 @@ export default function UsersPage() {
     </ListingPageContainer>
   );
 }
+
+
+
+
