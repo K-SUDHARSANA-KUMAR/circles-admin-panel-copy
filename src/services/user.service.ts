@@ -75,7 +75,7 @@ export async function fetchCustomerById(customerId: string): Promise<Customer> {
 /**
  * Fetches the list of customers/users from the backend user-service.
  *
- * Supported backend query parameters (confirmed):
+ * Supported backend query parameters:
  *   - search    : partial name/phone search
  *   - limit     : page size
  *   - skip      : offset
@@ -83,9 +83,8 @@ export async function fetchCustomerById(customerId: string): Promise<Customer> {
  *   - medium    : referral medium (e.g. 'INVITE_CODE', 'WISHLIST')
  *   - minScore  : minimum reliability score
  *   - maxScore  : maximum reliability score
- *   - cityId    : filter by city UUID (snowflake)
- *
- * NOT supported: country, city (as string), role
+ *   - cityIds   : filter by one or more city names (multi-select array)
+ *   - countries : filter by one or more country names (multi-select array)
  */
 export async function fetchCustomers(params?: {
   limit?: number;
@@ -95,49 +94,39 @@ export async function fetchCustomers(params?: {
   medium?: string;
   minScore?: number;
   maxScore?: number;
-  /** Pass the city's snowflake ID to filter by city */
-  cityId?: string;
-  city?: string;
+  /** Array of city names for multi-select filter */
+  cityIds?: string[];
+  /** Array of country names for multi-select filter */
+  countries?: string[];
   score?: string | number;
-  country?: string;
 }): Promise<CustomersResponse> {
   const limit = params?.limit !== undefined ? params.limit : 10;
   const skip = params?.skip !== undefined ? params.skip : 0;
   const backendSearch = params?.search?.trim();
 
-  let url = `${ADMIN_CUSTOMERS_URL}?limit=${limit}&skip=${skip}`;
+  // Build URLSearchParams to correctly handle repeated array params
+  const qs = new URLSearchParams();
+  qs.set('limit', String(limit));
+  qs.set('skip', String(skip));
 
-  if (backendSearch !== undefined && backendSearch !== '') {
-    url += `&search=${encodeURIComponent(backendSearch)}`;
-  }
-  if (params?.status) {
-    url += `&status=${encodeURIComponent(params.status)}`;
-  }
-  if (params?.cityId) {
-    url += `&cityId=${encodeURIComponent(params.cityId)}`;
-  }
-  if (params?.country) {
-    url += `&country=${encodeURIComponent(params.country)}`;
-  }
-  if (params?.medium) {
-    url += `&medium=${encodeURIComponent(params.medium)}`;
-  }
-  
+  if (backendSearch) qs.set('search', backendSearch);
+  if (params?.status) qs.set('status', params.status);
+  if (params?.medium) qs.set('medium', params.medium);
+
+  // Multi-select arrays: send as repeated query params
+  // e.g. cityIds=London&cityIds=Mumbai  or  countries=India&countries=Albania
+  (params?.cityIds ?? []).forEach((c) => qs.append('cityIds', c));
+  (params?.countries ?? []).forEach((c) => qs.append('countries', c));
+
   let finalMinScore = params?.minScore;
   if (finalMinScore === undefined && params?.score !== undefined) {
     const num = Number(params.score);
-    if (!isNaN(num)) {
-      finalMinScore = num;
-    }
+    if (!isNaN(num)) finalMinScore = num;
   }
-  
-  if (finalMinScore !== undefined) {
-    url += `&minScore=${finalMinScore}`;
-  }
-  if (params?.maxScore !== undefined) {
-    url += `&maxScore=${params.maxScore}`;
-  }
+  if (finalMinScore !== undefined) qs.set('minScore', String(finalMinScore));
+  if (params?.maxScore !== undefined) qs.set('maxScore', String(params.maxScore));
 
+  const url = `${ADMIN_CUSTOMERS_URL}?${qs.toString()}`;
 
   try {
     const res = await customAxios.get(url);

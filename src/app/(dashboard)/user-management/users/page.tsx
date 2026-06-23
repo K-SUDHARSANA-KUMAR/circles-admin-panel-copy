@@ -63,7 +63,6 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false);
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
   const [cityToCountryMap, setCityToCountryMap] = useState<Record<string, string>>({});
-  const [cityNameToIdMap, setCityNameToIdMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadCities() {
@@ -71,12 +70,10 @@ export default function UsersPage() {
         const cities = await fetchCities({ limit: 100 });
         const mapping: Record<string, string> = {};
         const countryMapping: Record<string, string> = {};
-        const nameToIdMapping: Record<string, string> = {};
         cities.forEach(city => {
           const id = city.cityId || city.city_id || city.id;
           if (id) {
             mapping[id] = city.name;
-            nameToIdMapping[city.name.toLowerCase()] = id;
             if (city.country?.name) {
               countryMapping[id] = city.country.name;
             }
@@ -84,7 +81,6 @@ export default function UsersPage() {
         });
         setCityMap(mapping);
         setCityToCountryMap(countryMapping);
-        setCityNameToIdMap(nameToIdMapping);
       } catch (err) {
         console.error('Failed to load cities list:', err);
       }
@@ -109,31 +105,30 @@ export default function UsersPage() {
     setError(null);
     try {
       const skip = (pageNum - 1) * limitNum;
-      
-      // Resolve city name to cityId if needed (handling array or string safely)
-      let cityId: string | undefined = undefined;
-      if (filters.city) {
-        if (Array.isArray(filters.city)) {
-          if (filters.city.length > 0) {
-            cityId = cityNameToIdMap[filters.city[0].toLowerCase()];
-          }
-        } else if (typeof filters.city === 'string') {
-          cityId = cityNameToIdMap[filters.city.toLowerCase()];
-        }
-      }
-      
+
+      // city filter is an array of city names (multi-select)
+      const cityIds: string[] = Array.isArray(filters.city)
+        ? filters.city.filter(Boolean)
+        : filters.city
+          ? [filters.city]
+          : [];
+
+      // country filter is an array of country names (multi-select)
+      const countries: string[] = Array.isArray(filters.country)
+        ? filters.country.filter(Boolean)
+        : filters.country
+          ? [filters.country]
+          : [];
+
       const response = await fetchCustomers({
         search: searchVal,
         limit: limitNum,
         skip,
         status: filters.status,
-        cityId: cityId,
-        city: filters.city, // filters.city is now the city name directly
+        cityIds: cityIds.length > 0 ? cityIds : undefined,
+        countries: countries.length > 0 ? countries : undefined,
         medium: filters.medium,
-        country: filters.country,
       });
-
-
 
       setCustomers(response.customers || []);
       setTotal(response.total);
