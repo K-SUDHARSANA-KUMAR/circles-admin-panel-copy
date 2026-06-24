@@ -221,22 +221,28 @@ export async function fetchVenues(params?: {
   page?: number;
   limit?: number;
   cityId?: string;
+  cityNames?: string[];
+  countries?: string[];
 }): Promise<Venue[]> {
   try {
-    const queryParams: Record<string, unknown> = {};
-    if (params?.page !== undefined) queryParams.page = params.page;
-    if (params?.limit !== undefined) queryParams.limit = params.limit;
-    if (params?.search?.trim()) queryParams.search = params.search.trim();
-    if (params?.cityId?.trim()) queryParams.cityId = params.cityId.trim();
+    const qs = new URLSearchParams();
+    if (params?.page !== undefined) qs.set('page', String(params.page));
+    if (params?.limit !== undefined) qs.set('limit', String(params.limit));
+    if (params?.search?.trim()) qs.set('search', params.search.trim());
+    if (params?.cityId?.trim()) qs.set('cityId', params.cityId.trim());
 
-    const res = await customAxios.get(VENUES_URL, { params: queryParams });
+    (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
+    (params?.countries ?? []).forEach((c) => qs.append('countries', c));
+
+    const url = `${ADMIN_VENUES_URL}?${qs.toString()}`;
+    const res = await customAxios.get(url);
     let rawData = res.data;
     let venuesList = extractVenuesArray(rawData);
 
     // Fallback if no array extracted and no parameters provided
     if (venuesList.length === 0 && !params?.search && !params?.page) {
       try {
-        const fallbackRes = await customAxios.get(`${VENUES_URL}/`, { params: queryParams });
+        const fallbackRes = await customAxios.get(`${VENUES_URL}/?${qs.toString()}`);
         const fallbackList = extractVenuesArray(fallbackRes.data);
         if (fallbackList.length > 0) {
           venuesList = fallbackList;

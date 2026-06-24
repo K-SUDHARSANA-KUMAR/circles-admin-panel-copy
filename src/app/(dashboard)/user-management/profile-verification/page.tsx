@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
-import { guessCountryFromUser } from '@/components/common/filters/shared';
 
 import {
   IconRefresh,
@@ -47,8 +46,6 @@ export default function ProfileVerificationPage() {
   const [limit, setLimit] = useState(10);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
-  const [cityToCountryMap, setCityToCountryMap] = useState<Record<string, string>>({});
-  const [cityNameToIdMap, setCityNameToIdMap] = useState<Record<string, string>>({});
 
   const debouncedSearch = useDebounce(searchQuery, 500);
 
@@ -62,21 +59,13 @@ export default function ProfileVerificationPage() {
       try {
         const cities = await fetchCities({ limit: 100 });
         const mapping: Record<string, string> = {};
-        const countryMapping: Record<string, string> = {};
-        const nameToIdMapping: Record<string, string> = {};
         cities.forEach(city => {
           const id = city.cityId || city.city_id || city.id;
           if (id) {
             mapping[id] = city.name;
-            nameToIdMapping[city.name.toLowerCase()] = id;
-            if (city.country?.name) {
-              countryMapping[id] = city.country.name;
-            }
           }
         });
         setCityMap(mapping);
-        setCityToCountryMap(countryMapping);
-        setCityNameToIdMap(nameToIdMapping);
       } catch (err) {
         console.error('Failed to load cities list:', err);
       }
@@ -90,63 +79,36 @@ export default function ProfileVerificationPage() {
     try {
       const skip = (currentPage - 1) * limit;
 
-      // Fetch a larger list to support client-side filtering
+      // City filter: pass city names directly to backend (backend resolves to IDs via cities table join)
+      const cityNames: string[] | undefined = filters.city
+        ? (Array.isArray(filters.city) ? filters.city.filter(Boolean) : [filters.city])
+        : undefined;
+
+      // Country filter: pass country names directly to backend
+      const countries: string[] | undefined = filters.country
+        ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
+        : undefined;
+
+      // Map UI status to AdminAccountStatus
+      let statusParam: string | undefined = undefined;
+      if (filters.status === 'verified') {
+        statusParam = 'active';
+      } else if (filters.status === 'pending') {
+        statusParam = 'inactive';
+      }
+
       const response = await fetchProfileUsersGetAll({
         search: searchVal,
-        limit: 100, // Fetch up to 100 pending verification requests to cover pagination and client-side filters
-        skip: 0,
+        limit: limit,
+        skip,
+        cityNames: cityNames?.length ? cityNames : undefined,
+        countries: countries?.length ? countries : undefined,
+        medium: filters.medium,
+        status: statusParam,
       });
 
-      const allUsers = response.users || [];
-
-      // Filter client-side
-      const filteredUsers = allUsers.filter((user) => {
-        // 1. Filter by status
-        if (filters.status) {
-          const userStatus = (user.status || 'pending').toLowerCase();
-          const isUserVerified = userStatus === 'verified' || userStatus === 'approved' || userStatus === 'active';
-          
-          if (filters.status === 'verified' && !isUserVerified) {
-            return false;
-          }
-          if (filters.status === 'pending' && isUserVerified) {
-            return false;
-          }
-        }
-
-        // 2. Filter by country
-        if (filters.country) {
-          const userCountry = guessCountryFromUser(user, cityToCountryMap);
-          if (userCountry.toLowerCase() !== filters.country.toLowerCase()) {
-            return false;
-          }
-        }
-
-        // 3. Filter by city (can be an array of selected city names from multiselect)
-        if (filters.city && (Array.isArray(filters.city) ? filters.city.length > 0 : true)) {
-          const userCityId = user.cityId || (user as any).city_id;
-          const userCityName = (userCityId && cityMap[userCityId]) || (user as any).city?.name || (user as any).city;
-          if (!userCityName) return false;
-          
-          const selectedCities = Array.isArray(filters.city) ? filters.city : [filters.city];
-          const hasMatch = selectedCities.some(cName => cName.toLowerCase() === userCityName.toLowerCase());
-          if (!hasMatch) return false;
-        }
-
-        // 4. Filter by medium
-        if (filters.medium) {
-          const userMedium = (user as any).referralMedium;
-          if (!userMedium || userMedium.toLowerCase() !== filters.medium.toLowerCase()) {
-            return false;
-          }
-        }
-
-        return true;
-      });
-
-      const paginatedUsers = filteredUsers.slice(skip, skip + limit);
-      setUsers(paginatedUsers);
-      setTotal(filteredUsers.length);
+      setUsers(response.users || []);
+      setTotal(response.total || 0);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch users.';
       setError(msg);
@@ -154,7 +116,7 @@ export default function ProfileVerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, [limit, cityMap, cityToCountryMap, cityNameToIdMap]);
+  }, [limit]);
 
 
   const prevSearchRef = useRef(debouncedSearch);

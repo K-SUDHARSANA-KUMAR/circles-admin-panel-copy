@@ -107,7 +107,7 @@ export default function UsersPage() {
       const skip = (pageNum - 1) * limitNum;
 
       // city filter is an array of city names (multi-select)
-      const cityIds: string[] = Array.isArray(filters.city)
+      const cityNames: string[] = Array.isArray(filters.city)
         ? filters.city.filter(Boolean)
         : filters.city
           ? [filters.city]
@@ -125,7 +125,7 @@ export default function UsersPage() {
         limit: limitNum,
         skip,
         status: filters.status,
-        cityIds: cityIds.length > 0 ? cityIds : undefined,
+        cityNames: cityNames.length > 0 ? cityNames : undefined,
         countries: countries.length > 0 ? countries : undefined,
         medium: filters.medium,
       });

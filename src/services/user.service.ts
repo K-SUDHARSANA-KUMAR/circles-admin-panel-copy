@@ -95,7 +95,7 @@ export async function fetchCustomers(params?: {
   minScore?: number;
   maxScore?: number;
   /** Array of city names for multi-select filter */
-  cityIds?: string[];
+  cityNames?: string[];
   /** Array of country names for multi-select filter */
   countries?: string[];
   score?: string | number;
@@ -114,8 +114,8 @@ export async function fetchCustomers(params?: {
   if (params?.medium) qs.set('medium', params.medium);
 
   // Multi-select arrays: send as repeated query params
-  // e.g. cityIds=London&cityIds=Mumbai  or  countries=India&countries=Albania
-  (params?.cityIds ?? []).forEach((c) => qs.append('cityIds', c));
+  // e.g. cityNames=London&cityNames=Mumbai  or  countries=India&countries=Albania
+  (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
   (params?.countries ?? []).forEach((c) => qs.append('countries', c));
 
   let finalMinScore = params?.minScore;
@@ -208,44 +208,36 @@ export async function fetchWaitlist(params?: {
   medium?: string;
   minScore?: number;
   maxScore?: number;
-  cityId?: string;
-  city?: string;
+  /** Array of city names for multi-select filter */
+  cityNames?: string[];
+  /** Array of country names for multi-select filter */
+  countries?: string[];
   score?: string | number;
-  country?: string;
 }): Promise<WaitlistResponse> {
   const limit = params?.limit !== undefined ? params.limit : 10;
   const skip = params?.skip !== undefined ? params.skip : 0;
   const backendSearch = params?.search?.trim();
 
-  let url = `${ADMIN_WAITLIST_URL}?limit=${limit}&skip=${skip}`;
+  const qs = new URLSearchParams();
+  qs.set('limit', String(limit));
+  qs.set('skip', String(skip));
 
-  if (backendSearch !== undefined && backendSearch !== '') {
-    url += `&search=${encodeURIComponent(backendSearch)}`;
-  }
-  if (params?.cityId) {
-    url += `&cityId=${encodeURIComponent(params.cityId)}`;
-  }
-  if (params?.country) {
-    url += `&country=${encodeURIComponent(params.country)}`;
-  }
-  if (params?.medium) {
-    url += `&medium=${encodeURIComponent(params.medium)}`;
-  }
-  
+  if (backendSearch) qs.set('search', backendSearch);
+  if (params?.status) qs.set('status', params.status);
+  if (params?.medium) qs.set('medium', params.medium);
+
+  (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
+  (params?.countries ?? []).forEach((c) => qs.append('countries', c));
+
   let finalMinScore = params?.minScore;
   if (finalMinScore === undefined && params?.score !== undefined) {
     const num = Number(params.score);
-    if (!isNaN(num)) {
-      finalMinScore = num;
-    }
+    if (!isNaN(num)) finalMinScore = num;
   }
-  
-  if (finalMinScore !== undefined) {
-    url += `&minScore=${finalMinScore}`;
-  }
-  if (params?.maxScore !== undefined) {
-    url += `&maxScore=${params.maxScore}`;
-  }
+  if (finalMinScore !== undefined) qs.set('minScore', String(finalMinScore));
+  if (params?.maxScore !== undefined) qs.set('maxScore', String(params.maxScore));
+
+  const url = `${ADMIN_WAITLIST_URL}?${qs.toString()}`;
 
 
   try {
@@ -299,44 +291,36 @@ export async function fetchRejectedWaitlist(params?: {
   medium?: string;
   minScore?: number;
   maxScore?: number;
-  cityId?: string;
-  city?: string;
+  /** Array of city names for multi-select filter */
+  cityNames?: string[];
+  /** Array of country names for multi-select filter */
+  countries?: string[];
   score?: string | number;
-  country?: string;
 }): Promise<WaitlistResponse> {
   const limit = params?.limit !== undefined ? params.limit : 10;
   const skip = params?.skip !== undefined ? params.skip : 0;
   const backendSearch = params?.search?.trim();
 
-  let url = `${ADMIN_WAITLIST_URL}/rejected?limit=${limit}&skip=${skip}`;
+  const qs = new URLSearchParams();
+  qs.set('limit', String(limit));
+  qs.set('skip', String(skip));
 
-  if (backendSearch !== undefined && backendSearch !== '') {
-    url += `&search=${encodeURIComponent(backendSearch)}`;
-  }
-  if (params?.cityId) {
-    url += `&cityId=${encodeURIComponent(params.cityId)}`;
-  }
-  if (params?.country) {
-    url += `&country=${encodeURIComponent(params.country)}`;
-  }
-  if (params?.medium) {
-    url += `&medium=${encodeURIComponent(params.medium)}`;
-  }
-  
+  if (backendSearch) qs.set('search', backendSearch);
+  if (params?.status) qs.set('status', params.status);
+  if (params?.medium) qs.set('medium', params.medium);
+
+  (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
+  (params?.countries ?? []).forEach((c) => qs.append('countries', c));
+
   let finalMinScore = params?.minScore;
   if (finalMinScore === undefined && params?.score !== undefined) {
     const num = Number(params.score);
-    if (!isNaN(num)) {
-      finalMinScore = num;
-    }
+    if (!isNaN(num)) finalMinScore = num;
   }
-  
-  if (finalMinScore !== undefined) {
-    url += `&minScore=${finalMinScore}`;
-  }
-  if (params?.maxScore !== undefined) {
-    url += `&maxScore=${params.maxScore}`;
-  }
+  if (finalMinScore !== undefined) qs.set('minScore', String(finalMinScore));
+  if (params?.maxScore !== undefined) qs.set('maxScore', String(params.maxScore));
+
+  const url = `${ADMIN_WAITLIST_URL}/rejected?${qs.toString()}`;
 
 
   try {
@@ -478,44 +462,36 @@ export async function fetchProfileUsersGetAll(params?: {
   medium?: string;
   minScore?: number;
   maxScore?: number;
-  cityId?: string;
-  city?: string;
+  /** Array of city names for multi-select filter */
+  cityNames?: string[];
+  /** Array of country names for multi-select filter */
+  countries?: string[];
   score?: string | number;
-  country?: string;
 }): Promise<ProfileUsersResponse> {
   const limit = params?.limit !== undefined ? params.limit : 10;
   const skip = params?.skip !== undefined ? params.skip : 0;
   const backendSearch = params?.search?.trim();
 
-  let url = `${ADMIN_PROFILE_USERS_URL}?limit=${limit}&skip=${skip}`;
+  const qs = new URLSearchParams();
+  qs.set('limit', String(limit));
+  qs.set('skip', String(skip));
 
-  if (backendSearch !== undefined && backendSearch !== '') {
-    url += `&search=${encodeURIComponent(backendSearch)}`;
-  }
-  if (params?.cityId) {
-    url += `&cityId=${encodeURIComponent(params.cityId)}`;
-  }
-  if (params?.country) {
-    url += `&country=${encodeURIComponent(params.country)}`;
-  }
-  if (params?.medium) {
-    url += `&medium=${encodeURIComponent(params.medium)}`;
-  }
-  
+  if (backendSearch) qs.set('search', backendSearch);
+  if (params?.status) qs.set('status', params.status);
+  if (params?.medium) qs.set('medium', params.medium);
+
+  (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
+  (params?.countries ?? []).forEach((c) => qs.append('countries', c));
+
   let finalMinScore = params?.minScore;
   if (finalMinScore === undefined && params?.score !== undefined) {
     const num = Number(params.score);
-    if (!isNaN(num)) {
-      finalMinScore = num;
-    }
+    if (!isNaN(num)) finalMinScore = num;
   }
-  
-  if (finalMinScore !== undefined) {
-    url += `&minScore=${finalMinScore}`;
-  }
-  if (params?.maxScore !== undefined) {
-    url += `&maxScore=${params.maxScore}`;
-  }
+  if (finalMinScore !== undefined) qs.set('minScore', String(finalMinScore));
+  if (params?.maxScore !== undefined) qs.set('maxScore', String(params.maxScore));
+
+  const url = `${ADMIN_PROFILE_USERS_URL}?${qs.toString()}`;
 
 
   try {

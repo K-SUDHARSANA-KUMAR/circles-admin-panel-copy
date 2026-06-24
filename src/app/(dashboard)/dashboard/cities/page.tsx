@@ -90,9 +90,7 @@ export default function CitiesPage() {
   const [currentCountryPage, setCurrentCountryPage] = useState(1);
   const [itemsPerCountryPage, setItemsPerCountryPage] = useState(10);
   const [activeFiltersCity, setActiveFiltersCity] = useState<Record<string, any>>({});
-  const [activeFiltersCountry, setActiveFiltersCountry] = useState<Record<string, any>>({});
-  // Ref holding the full country list for country-name → countryId lookup (never stale)
-  const allCountriesRef = React.useRef<Country[]>([]);
+  const [activeFiltersCountry, setActiveFiltersCountry] = useState<Record<string, any>>();
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
   const getCityStatus = (city: City): 'active' | 'waitlist' | 'inactive' => {
@@ -143,37 +141,32 @@ export default function CitiesPage() {
     try {
       const skip = (pageNum - 1) * itemsPerPage;
 
-      // Resolve country name → countryId and countryCode using the preloaded allCountriesRef
-      let selectedCountryId: string | undefined = undefined;
-      let countryCode: string | undefined = undefined;
-      if (filters.country) {
-        const matched = allCountriesRef.current.find(
-          (c) => c.name === filters.country
-        );
-        if (matched) {
-          selectedCountryId = matched.countryId ?? matched.country_id ?? matched.id;
-          countryCode = matched.code;
-        }
-      }
+      // Pass country names directly as array to backend (backend resolves via cities→countries join)
+      const countries: string[] | undefined = filters.country
+        ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
+        : undefined;
+
+      // Pass city names directly as array to backend (backend resolves via cities table)
+      const cityNames: string[] | undefined = filters.city
+        ? (Array.isArray(filters.city) ? filters.city.filter(Boolean) : [filters.city])
+        : undefined;
 
       // Map status string → isActive boolean
       let isActive: boolean | undefined = undefined;
-      let statusStr: string | undefined = undefined;
       if (filters.status === 'active') {
         isActive = true;
-        statusStr = 'Active';
       } else if (filters.status === 'inactive') {
         isActive = false;
-        statusStr = 'Inactive';
       }
 
-      const finalSearch = filters.city || searchVal?.trim() || undefined;
-      
+      const finalSearch = (!cityNames?.length && !countries?.length) ? (searchVal?.trim() || undefined) : undefined;
+
       const data = await fetchCities({
         limit: itemsPerPage,
         skip,
         search: finalSearch,
-        countryId: selectedCountryId,
+        countries: countries?.length ? countries : undefined,
+        cityNames: cityNames?.length ? cityNames : undefined,
         isActive,
       });
 
@@ -250,31 +243,6 @@ export default function CitiesPage() {
       setCountriesLoading(false);
     }
   }, [itemsPerCountryPage]);
-
-  // ─── Preload all countries for city filter country lookup ──────────
-  const preloadAllCountries = useCallback(async () => {
-    try {
-      let all: Country[] = [];
-      let skip = 0;
-      const limit = 100;
-      while (true) {
-        const data = await fetchCountries({ limit, skip });
-        all = all.concat(data);
-        const totalItems = (data as any).totalItems ?? data.length;
-        if (data.length < limit || all.length >= totalItems) {
-          break;
-        }
-        skip += limit;
-      }
-      allCountriesRef.current = all;
-    } catch (err) {
-      console.error('Failed to preload countries for city filter:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    preloadAllCountries();
-  }, [preloadAllCountries]);
 
   const prevSearchCountryRef = useRef(debouncedSearchCountry);
   const prevFiltersCountryRef = useRef(activeFiltersCountry);
