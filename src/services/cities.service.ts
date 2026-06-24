@@ -26,11 +26,14 @@ export const CITIES_URL = apiEndPoint.CITIES_ENDPOINT as string;
  * Fetches the list of cities.
  *
  * Supported backend query parameters (confirmed via API):
- *   - search    : partial name search
- *   - limit     : page size
- *   - skip      : offset
- *   - countryId : filter by country UUID (snowflake)
- *   - isActive  : filter by active status (boolean)
+ *   - search      : partial name search
+ *   - limit       : page size
+ *   - skip        : offset
+ *   - countryId   : filter by country UUID (snowflake)
+ *   - countryIds  : filter by multiple country UUIDs
+ *   - countries   : filter by country names (multi-select, sent as repeated params)
+ *   - cityNames   : filter by city names (multi-select, sent as repeated params)
+ *   - isActive    : filter by active status (boolean)
  *
  * NOT supported (returns 400): country, countryCode, city, status
  */
@@ -38,8 +41,12 @@ export async function fetchCities(params?: {
   search?: string;
   limit?: number;
   skip?: number;
-  /** Pass the backend countryId (UUID/snowflake) to filter by country */
-  countryId?: string;
+  /** Pass the backend countryIds (UUID/snowflake array) to filter by country */
+  countryIds?: string[];
+  /** Pass country names array to filter by country name (multi-select) */
+  countries?: string[];
+  /** Pass city names array to filter by city name (multi-select) */
+  cityNames?: string[];
   /** Pass true/false to filter active/inactive cities */
   isActive?: boolean;
   countryCode?: string;
@@ -48,15 +55,18 @@ export async function fetchCities(params?: {
   status?: string;
 }): Promise<City[]> {
   try {
-    const queryParams: Record<string, any> = {};
-    if (params?.limit !== undefined) queryParams.limit = params.limit;
-    if (params?.skip !== undefined) queryParams.skip = params.skip;
-    if (params?.search?.trim()) queryParams.search = params.search.trim();
-    if (params?.countryId?.trim()) queryParams.countryId = params.countryId.trim();
-    if (params?.isActive !== undefined) queryParams.isActive = params.isActive ? 'true' : '';
+    const qs = new URLSearchParams();
+    if (params?.limit !== undefined) qs.set('limit', String(params.limit));
+    if (params?.skip !== undefined) qs.set('skip', String(params.skip));
+    if (params?.search?.trim()) qs.set('search', params.search.trim());
+    if (params?.isActive !== undefined) qs.set('isActive', params.isActive ? 'true' : 'false');
 
+    (params?.countryIds ?? []).forEach((id) => qs.append('countryIds', id));
+    (params?.countries ?? []).forEach((c) => qs.append('countries', c));
+    (params?.cityNames ?? []).forEach((n) => qs.append('cityNames', n));
 
-    const res = await customAxios.get(CITIES_URL, { params: queryParams });
+    const url = `${CITIES_URL}?${qs.toString()}`;
+    const res = await customAxios.get(url);
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
     const cities =
       res?.data?.result?.data?.items ??

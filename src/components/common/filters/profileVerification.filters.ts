@@ -8,7 +8,7 @@ export const profileVerificationFilters: FilterField[] = [
       { label: 'Verified', value: 'verified' },
     ]
   },
-  { key: 'country', label: 'Country', type: 'select', options: COUNTRIES_OPTIONS },
+  { key: 'country', label: 'Country', type: 'multiselect', options: COUNTRIES_OPTIONS },
   { key: 'city', label: 'City', type: 'multiselect', options: CITIES_OPTIONS },
   { key: 'medium', label: 'Medium', type: 'select', options: MEDIUM_OPTIONS },
 ];

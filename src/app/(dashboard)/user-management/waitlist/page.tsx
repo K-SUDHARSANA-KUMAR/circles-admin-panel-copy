@@ -9,6 +9,8 @@ import {
   type WaitlistUser,
 } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
+import FilterDropdown from '@/components/common/FilterDropdown';
+import { waitlistFilters } from '@/components/common/filters/waitlist.filters';
 
 import {
   IconUser,
@@ -29,9 +31,6 @@ import {
   listingStyles,
 } from '@/components/shared/listing-page';
 import { toast } from 'sonner';
-import FilterDropdown from '@/components/common/FilterDropdown';
-import { waitlistFilters } from '@/components/common/filters/waitlist.filters';
-import { guessCountryFromUser } from '@/components/common/filters/shared';
 
 type WaitlistTab = 'pending' | 'approved';
 
@@ -82,32 +81,21 @@ export default function WaitlistPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
-  const [cityMap, setCityMap] = useState<Record<string, string>>({});
-  const [cityToCountryMap, setCityToCountryMap] = useState<Record<string, string>>({});
-  const [cityNameToIdMap, setCityNameToIdMap] = useState<Record<string, string>>({});
-
   const debouncedSearch = useDebounce(searchQuery, 500);
+  const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadCities() {
       try {
         const cities = await fetchCities({ limit: 100 });
         const mapping: Record<string, string> = {};
-        const countryMapping: Record<string, string> = {};
-        const nameToIdMapping: Record<string, string> = {};
         cities.forEach(city => {
           const id = city.cityId || city.city_id || city.id;
           if (id) {
             mapping[id] = city.name;
-            nameToIdMapping[city.name.toLowerCase()] = id;
-            if (city.country?.name) {
-              countryMapping[id] = city.country.name;
-            }
           }
         });
         setCityMap(mapping);
-        setCityToCountryMap(countryMapping);
-        setCityNameToIdMap(nameToIdMapping);
       } catch (err) {
         console.error('Failed to load cities list:', err);
       }
@@ -131,59 +119,45 @@ export default function WaitlistPage() {
     setError(null);
     try {
       const skip = (currentPage - 1) * itemsPerPage;
-      
-      // Resolve city name to cityId if needed (handling array or string safely)
-      let cityId: string | undefined = undefined;
-      if (filters.city) {
-        if (Array.isArray(filters.city)) {
-          if (filters.city.length > 0) {
-            cityId = cityNameToIdMap[filters.city[0].toLowerCase()];
-          }
-        } else if (typeof filters.city === 'string') {
-          cityId = cityNameToIdMap[filters.city.toLowerCase()];
-        }
-      }
-      
+
+      // City filter: pass city names directly to backend (backend resolves to IDs via cities table join)
+      const cityNames: string[] | undefined = filters.city
+        ? (Array.isArray(filters.city) ? filters.city.filter(Boolean) : [filters.city])
+        : undefined;
+
+      // Country filter: pass country names directly to backend (backend resolves via cities→countries join)
+      const countries: string[] | undefined = filters.country
+        ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
+        : undefined;
+
       // Extract score value
       const scoreVal = filters.score?.min !== undefined ? filters.score.min : (typeof filters.score === 'number' ? filters.score : undefined);
 
       const filterParams = {
         search: debouncedSearch,
-        limit: 100, // Fetch all waitlist users to filter client-side
-        skip: 0,
+        limit: itemsPerPage,
+        skip,
         medium: filters.medium,
         minScore: filters.score?.min,
         maxScore: filters.score?.max,
-        cityId: cityId,
-        city: filters.city,
+        cityNames: cityNames?.length ? cityNames : undefined,
+        countries: countries?.length ? countries : undefined,
         score: scoreVal,
       };
 
       const response = await fetchWaitlist(filterParams);
       const allUsers = response.users || [];
       const filteredUsers = allUsers.filter((user) => {
-        // Status filter
+        // Status filter (client-side tab logic)
         const currentStatus = filters.status || activeTab;
         const matchesStatus = currentStatus === 'approved'
           ? user.status === 'active'
           : (user.status === 'waitlisted' || !user.status);
-        if (!matchesStatus) return false;
-
-        // Country filter client-side (backend country query parameter is not reliable/returns 0)
-        if (filters.country) {
-          const userCountry = guessCountryFromUser(user, cityToCountryMap);
-          if (userCountry.toLowerCase() !== filters.country.toLowerCase()) {
-            return false;
-          }
-        }
-
-        return true;
+        return matchesStatus;
       });
 
-      const paginatedUsers = filteredUsers.slice(skip, skip + itemsPerPage);
-
-      setUsers(paginatedUsers);
-      setTotal(filteredUsers.length);
+      setUsers(filteredUsers);
+      setTotal(response.total || filteredUsers.length);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch waitlist users. Please try again.';
       setError(msg);
@@ -191,7 +165,7 @@ export default function WaitlistPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, currentPage, debouncedSearch, itemsPerPage, cityMap, cityToCountryMap, cityNameToIdMap]);
+  }, [activeTab, currentPage, debouncedSearch, itemsPerPage]);
 
 
   const prevSearchRef = useRef(debouncedSearch);

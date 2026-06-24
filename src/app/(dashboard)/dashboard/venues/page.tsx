@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -22,6 +23,7 @@ import VenueDetailClient from "./VenueDetailClient";
 import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
 import { toast } from "sonner";
 import FilterDropdown from "@/components/common/FilterDropdown";
+import { venueFilters } from "@/components/common/filters/venues.filters";
 
 const VenuesPage = () => {
   const router = useRouter();
@@ -29,7 +31,6 @@ const VenuesPage = () => {
   const detailVenueId = searchParams.get("id");
 
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [allVenues, setAllVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
@@ -42,145 +43,71 @@ const VenuesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Load all venues once (and support featured logic if activated in the future)
-  const loadAllVenues = useCallback(async () => {
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Load venues based on filters, search query and pagination
+  const loadAllVenues = useCallback(async (searchVal = searchQuery, pageNum = currentPage, filters = activeFilters) => {
     setLoading(true);
     setError(null);
     try {
-      let data: Venue[] = [];
-      if (filterType === 'featured') {
-        data = await fetchFeaturedVenues();
-      } else {
-        // Fetch up to 100 venues in a single call to have all registered spaces
-        data = await fetchVenues({ limit: 100 });
+      const cityNames: string[] | undefined = filters.city
+        ? (Array.isArray(filters.city) ? filters.city.filter(Boolean) : [filters.city])
+        : undefined;
+
+      const countries: string[] | undefined = filters.country
+        ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
+        : undefined;
+
+      const data = await fetchVenues({
+        search: searchVal,
+        page: pageNum,
+        limit: itemsPerPage,
+        cityNames: cityNames?.length ? cityNames : undefined,
+        countries: countries?.length ? countries : undefined,
+      });
+
+      let result = [...data];
+
+      // 1. Visibility filter (client-side only)
+      if (filters.isVisible !== undefined && filters.isVisible !== null && filters.isVisible !== '') {
+        const targetVisible = filters.isVisible === 'true' || filters.isVisible === true;
+        result = result.filter(v => v.isVisible === targetVisible);
       }
-      setAllVenues(data);
+
+      // 2. Popularity sort (client-side only)
+      if (filters.popularityScore) {
+        const direction = filters.popularityScore;
+        result.sort((a, b) => {
+          const scoreA = a.popularityScore ?? 0;
+          const scoreB = b.popularityScore ?? 0;
+          return direction === 'desc' ? scoreB - scoreA : scoreA - scoreB;
+        });
+      }
+
+      setVenues(result);
+      setTotalVenues((data as any).total ?? data.length);
+      setTotalPages((data as any).totalPages ?? 1);
     } catch (err: any) {
       setError(err.message || "Failed to load venues");
       toast.error(err.message || "Failed to load venues list");
     } finally {
       setLoading(false);
     }
-  }, [filterType]);
+  }, [currentPage, itemsPerPage, searchQuery, activeFilters]);
 
   useEffect(() => {
     if (detailVenueId) return;
-    loadAllVenues();
-  }, [loadAllVenues, detailVenueId]);
-
-  // Extract unique cities and countries from loaded dataset
-  const uniqueCities = useMemo(() => {
-    const citiesSet = new Set<string>();
-    allVenues.forEach(v => {
-      if (v.city && v.city !== 'Location') {
-        citiesSet.add(v.city);
-      }
-    });
-    return Array.from(citiesSet).sort().map(c => ({ label: c, value: c }));
-  }, [allVenues]);
-
-  const uniqueCountries = useMemo(() => {
-    const countriesSet = new Set<string>();
-    allVenues.forEach(v => {
-      if (v.country) {
-        countriesSet.add(v.country);
-      }
-    });
-    return Array.from(countriesSet).sort().map(c => ({ label: c, value: c }));
-  }, [allVenues]);
-
-  // Generate dynamic filters containing only existing locations
-  const venueFilters = useMemo(() => {
-    return [
-      { key: 'city', label: 'City', type: 'select' as const, options: uniqueCities, placeholder: 'Filter by City' },
-      { key: 'country', label: 'Country', type: 'select' as const, options: uniqueCountries, placeholder: 'Filter by Country' },
-      {
-        key: 'isVisible', label: 'Visible', type: 'boolean' as const, options: [
-          { label: 'Visible', value: true },
-          { label: 'Hidden', value: false },
-        ]
-      },
-      {
-        key: 'popularityScore', label: 'Popularity', type: 'sort' as const, options: [
-          { label: 'High to Low', value: 'desc' },
-          { label: 'Low to High', value: 'asc' },
-        ]
-      },
-    ];
-  }, [uniqueCities, uniqueCountries]);
-
-  // Client-side filtering, sorting, and pagination
-  useEffect(() => {
-    let result = [...allVenues];
-
-    // 1. Search filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(v =>
-        v.name.toLowerCase().includes(q) ||
-        v.city.toLowerCase().includes(q) ||
-        (v.location && v.location.toLowerCase().includes(q))
-      );
-    }
-
-    // 2. City filter
-    if (activeFilters.city) {
-      const selectedCities = Array.isArray(activeFilters.city)
-        ? activeFilters.city
-        : [activeFilters.city];
-      if (selectedCities.length > 0) {
-        result = result.filter(v =>
-          selectedCities.some((c: string) => v.city?.toLowerCase() === c.toLowerCase())
-        );
-      }
-    }
-
-    // 3. Country filter
-    if (activeFilters.country) {
-      const selectedCountries = Array.isArray(activeFilters.country)
-        ? activeFilters.country
-        : [activeFilters.country];
-      if (selectedCountries.length > 0) {
-        result = result.filter(v =>
-          selectedCountries.some((c: string) => v.country?.toLowerCase() === c.toLowerCase())
-        );
-      }
-    }
-
-    // 4. Visibility filter
-    if (activeFilters.isVisible !== undefined && activeFilters.isVisible !== null && activeFilters.isVisible !== '') {
-      const targetVisible = activeFilters.isVisible === 'true' || activeFilters.isVisible === true;
-      result = result.filter(v => v.isVisible === targetVisible);
-    }
-
-    // 5. Popularity sort
-    if (activeFilters.popularityScore) {
-      const direction = activeFilters.popularityScore;
-      result.sort((a, b) => {
-        const scoreA = a.popularityScore ?? 0;
-        const scoreB = b.popularityScore ?? 0;
-        return direction === 'desc' ? scoreB - scoreA : scoreA - scoreB;
-      });
-    }
-
-    const totalCount = result.length;
-    const pagesCount = Math.ceil(totalCount / itemsPerPage) || 1;
-
-    setTotalVenues(totalCount);
-    setTotalPages(pagesCount);
-
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    setVenues(result.slice(startIndex, startIndex + itemsPerPage));
-  }, [allVenues, searchQuery, activeFilters, currentPage, itemsPerPage]);
+    loadAllVenues(debouncedSearch, currentPage, activeFilters);
+  }, [debouncedSearch, currentPage, activeFilters, itemsPerPage, loadAllVenues, detailVenueId]);
 
   // Reset pagination to page 1 on search or filter updates
-  const prevSearchRef = useRef(searchQuery);
+  const prevSearchRef = useRef(debouncedSearch);
   const prevFiltersRef = useRef(activeFilters);
 
   useEffect(() => {
     let shouldResetPage = false;
-    if (prevSearchRef.current !== searchQuery) {
-      prevSearchRef.current = searchQuery;
+    if (prevSearchRef.current !== debouncedSearch) {
+      prevSearchRef.current = debouncedSearch;
       shouldResetPage = true;
     }
     if (JSON.stringify(prevFiltersRef.current) !== JSON.stringify(activeFilters)) {
@@ -190,7 +117,7 @@ const VenuesPage = () => {
     if (shouldResetPage) {
       setCurrentPage(1);
     }
-  }, [searchQuery, activeFilters]);
+  }, [debouncedSearch, activeFilters]);
 
   if (detailVenueId) {
     return <VenueDetailClient />;
