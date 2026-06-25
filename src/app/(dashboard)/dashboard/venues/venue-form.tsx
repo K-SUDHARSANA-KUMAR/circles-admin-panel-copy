@@ -9,6 +9,7 @@ import { DetailPageContainer, DetailPageHeader, detailStyles, listingStyles } fr
 import { useRouter, useSearchParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
 import { fetchCities, type City } from "@/services/cities.service";
+import { fetchCountries, type Country } from "@/services/countries.service";
 import { createVenue, updateVenue } from "@/services/venue.service";
 import { toast } from "sonner";
 import { useFileUpload } from "@/features/common/hooks/useFileUpload";
@@ -81,6 +82,8 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   
   const [cities, setCities] = useState<City[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Map state
@@ -95,7 +98,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     city: initialData?.city || "",
     cityId: initialData?.cityId || "",
     region: initialData?.region || "",
-    country: initialData?.country || "IN",
+    country: initialData?.country || "",
     postalCode: initialData?.postalCode || "",
     latitude: initialData?.latitude || "",
     longitude: initialData?.longitude || "",
@@ -124,18 +127,44 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   };
 
   useEffect(() => {
-    const loadCitiesList = async () => {
+    const loadCities = async () => {
       setLoadingCities(true);
       try {
         const data = await fetchCities();
         setCities(data);
       } catch (err: any) {
-        console.error("Failed to load cities for dropdown:", err);
+        console.error("Failed to load cities:", err);
       } finally {
         setLoadingCities(false);
       }
     };
-    loadCitiesList();
+    const loadCountries = async () => {
+      setLoadingCountries(true);
+      try {
+        let allCountries: Country[] = [];
+        let skip = 0;
+        const limit = 100;
+        let hasMore = true;
+
+        while (hasMore) {
+          const data = await fetchCountries({ limit, skip });
+          allCountries = [...allCountries, ...data];
+          const totalItems = (data as any).totalItems ?? data.length;
+          if (data.length < limit || allCountries.length >= totalItems) {
+            hasMore = false;
+          } else {
+            skip += limit;
+          }
+        }
+        setCountries(allCountries);
+      } catch (err: any) {
+        console.error("Failed to load countries:", err);
+      } finally {
+        setLoadingCountries(false);
+      }
+    };
+    loadCities();
+    loadCountries();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -584,16 +613,38 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                   )}
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="region" className="font-bold">Region / State</Label>
-                  <Input 
-                    id="region" 
-                    name="region" 
-                    placeholder="e.g. Maharashtra" 
-                    value={formData.region}
-                    onChange={handleInputChange}
-                    readOnly={isViewing}
-                    className="rounded-xl h-11"
-                  />
+                  <Label htmlFor="country" className="font-bold">Country</Label>
+                  {isViewing ? (
+                    <Input 
+                      id="country" 
+                      value={countries.find(c => c.code === formData.country)?.name || formData.country || "Not Specified"}
+                      readOnly
+                      className="rounded-xl h-11"
+                    />
+                  ) : (
+                    <select
+                      id="country"
+                      name="country"
+                      value={formData.country || ""}
+                      onChange={(e) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          country: e.target.value,
+                        }));
+                      }}
+                      className="flex h-11 w-full rounded-xl border border-border/50 bg-[#171717] px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="" disabled className="bg-[#171717]">Select country...</option>
+                      {countries.map((c) => {
+                        const cid = c.countryId ?? c.country_id ?? c.id;
+                        return (
+                          <option key={cid} value={c.code} className="bg-[#171717] text-white">
+                            {c.name} ({c.code})
+                          </option>
+                        );
+                      })}
+                    </select>
+                  )}
                 </div>
               </div>
 

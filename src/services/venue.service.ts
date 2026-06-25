@@ -165,21 +165,39 @@ function extractVenuesArray(resData: any): ApiVenue[] {
 /**
  * Fetches all venues.
  */
-export async function fetchVenues(params?: { search?: string; page?: number; limit?: number }): Promise<Venue[]> {
+export async function fetchVenues(params?: {
+  search?: string;
+  page?: number;
+  limit?: number;
+  cityId?: string;
+  cityNames?: string[];
+  countries?: string[];
+}): Promise<Venue[]> {
   try {
-    const queryParams: Record<string, unknown> = {};
-    if (params?.page !== undefined) queryParams.page = params.page;
-    if (params?.limit !== undefined) queryParams.limit = params.limit;
-    if (params?.search?.trim()) queryParams.search = params.search.trim();
+    const qs = new URLSearchParams();
+    if (params?.page !== undefined) qs.set('page', String(params.page));
+    if (params?.limit !== undefined) qs.set('limit', String(params.limit));
+    if (typeof params?.search === 'string' && params.search.trim()) qs.set('search', params.search.trim());
+    if (params?.cityId?.trim()) qs.set('cityId', params.cityId.trim());
 
-    const res = await customAxios.get(VENUES_URL, { params: queryParams });
+    (params?.cityNames ?? []).forEach((c: string) => qs.append('cityNames', c));
+    (params?.countries ?? []).forEach((c: string) => qs.append('countries', c));
+
+    const url = `${ADMIN_VENUES_URL}?${qs.toString()}`;
+    const res = await customAxios.get(url);
     let rawData = res.data;
     let venuesList = extractVenuesArray(rawData);
     
     // Fallback if no array extracted and no parameters provided
     if (venuesList.length === 0 && !params?.search && !params?.page) {
       try {
-        const fallbackRes = await customAxios.get(`${VENUES_URL}/`, { params: queryParams });
+        const fallbackParams: Record<string, any> = {};
+        if (params?.page !== undefined) fallbackParams.page = params.page;
+        if (params?.limit !== undefined) fallbackParams.limit = params.limit;
+        if (params?.search?.trim()) fallbackParams.search = params.search.trim();
+        if (params?.cityId?.trim()) fallbackParams.cityId = params.cityId.trim();
+
+        const fallbackRes = await customAxios.get(`${VENUES_URL}/`, { params: fallbackParams });
         const fallbackList = extractVenuesArray(fallbackRes.data);
         if (fallbackList.length > 0) {
           venuesList = fallbackList;
@@ -206,7 +224,7 @@ export async function fetchVenues(params?: { search?: string; page?: number; lim
  */
 export async function fetchVenueById(id: string): Promise<Venue> {
   try {
-    const res = await customAxios.get(`${VENUES_URL}/${id}`);
+    const res = await customAxios.get(`${ADMIN_VENUES_URL}/${id}`);
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
     
     if (!data || typeof data !== 'object') {
