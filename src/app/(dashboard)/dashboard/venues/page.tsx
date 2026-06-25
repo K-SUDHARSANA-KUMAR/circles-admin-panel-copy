@@ -137,7 +137,7 @@ const VenuesPage = () => {
         searchPlaceholder="Search venues..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        onRefresh={loadAllVenues}
+        onRefresh={() => loadAllVenues()}
         refreshDisabled={loading}
         refreshLoading={loading}
         filterAction={
@@ -211,7 +211,7 @@ const VenuesPage = () => {
             <p className="text-xs text-zinc-500 max-w-xs mx-auto mt-0.5 text-center">{error}</p>
           </div>
           <Button
-            onClick={loadAllVenues}
+            onClick={() => loadAllVenues()}
             variant="outline"
             size="sm"
             className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-[#18181b] bg-zinc-900 text-white hover:bg-zinc-800"

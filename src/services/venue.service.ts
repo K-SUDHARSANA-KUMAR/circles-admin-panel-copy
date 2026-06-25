@@ -228,7 +228,7 @@ export async function fetchVenues(params?: {
     const qs = new URLSearchParams();
     if (params?.page !== undefined) qs.set('page', String(params.page));
     if (params?.limit !== undefined) qs.set('limit', String(params.limit));
-    if (params?.search?.trim()) qs.set('search', params.search.trim());
+    if (typeof params?.search === 'string' && params.search.trim()) qs.set('search', params.search.trim());
     if (params?.cityId?.trim()) qs.set('cityId', params.cityId.trim());
 
     (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
@@ -269,7 +269,7 @@ export async function fetchVenues(params?: {
  */
 export async function fetchVenueById(id: string): Promise<Venue> {
   try {
-    const res = await customAxios.get(`${VENUES_URL}/${id}`);
+    const res = await customAxios.get(`${ADMIN_VENUES_URL}/${id}`);
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
     if (!data || typeof data !== 'object') {
