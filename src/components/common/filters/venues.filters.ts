@@ -16,11 +16,11 @@ export const venueFilters: FilterField[] = [
   //     { label: 'Not Featured', value: false },
   //   ]
   // },
-  {
-    key: 'popularityScore', label: 'Popularity', type: 'sort', options: [
-      { label: 'High to Low', value: 'desc' },
-      { label: 'Low to High', value: 'asc' },
-    ]
-  },
+  // {
+  //   key: 'popularityScore', label: 'Popularity', type: 'sort', options: [
+  //     { label: 'High to Low', value: 'desc' },
+  //     { label: 'Low to High', value: 'asc' },
+  //   ]
+  // },
 ];
 
