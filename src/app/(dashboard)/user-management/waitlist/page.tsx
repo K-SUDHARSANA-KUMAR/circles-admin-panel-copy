@@ -6,17 +6,19 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import WaitlistDetailClient from './WaitlistDetailClient';
 import {
   fetchWaitlist,
-  fetchRejectedWaitlist,
   type WaitlistUser,
 } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
+import FilterDropdown from '@/components/common/FilterDropdown';
+import { waitlistFilters } from '@/components/common/filters/waitlist.filters';
+
 import {
   IconUser,
   IconPhone,
   IconMapPin,
   IconAward,
   IconShieldCheck,
-  IconUserX,
+  IconUserCheck,
   IconUserSearch,
 } from '@tabler/icons-react';
 import {
@@ -30,29 +32,32 @@ import {
 } from '@/components/shared/listing-page';
 import { toast } from 'sonner';
 
-type WaitlistTab = 'pending' | 'rejected';
+type WaitlistTab = 'pending' | 'approved';
 
 const WAITLIST_TABLE_HEADERS = (
   <tr className="border-b border-[#18181b]">
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[20%]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[18%]">
       Name
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[15%]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
       Phone No
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
       Status
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
       City
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
-      Referral Code
-    </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
-      Medium
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+      Country
     </th>
     <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+      Referral Code
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+      Medium
+    </th>
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[9%]">
       Score
     </th>
     <th className="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[5%]">
@@ -66,7 +71,7 @@ export default function WaitlistPage() {
   const searchParams = useSearchParams();
   const detailUserId = searchParams.get('id');
   const activeTab: WaitlistTab =
-    searchParams.get('tab') === 'rejected' ? 'rejected' : 'pending';
+    searchParams.get('tab') === 'approved' ? 'approved' : 'pending';
 
   const [users, setUsers] = useState<WaitlistUser[]>([]);
   const [total, setTotal] = useState(0);
@@ -75,14 +80,16 @@ export default function WaitlistPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const loadCities = async () => {
+    async function loadCities() {
       try {
-        const cities = await fetchCities();
+        const cities = await fetchCities({ limit: 100 });
         const mapping: Record<string, string> = {};
-        cities.forEach((city) => {
+        cities.forEach(city => {
           const id = city.cityId || city.city_id || city.id;
           if (id) {
             mapping[id] = city.name;
@@ -92,19 +99,14 @@ export default function WaitlistPage() {
       } catch (err) {
         console.error('Failed to load cities list:', err);
       }
-    };
+    }
     loadCities();
   }, []);
 
-  const debouncedSearch = useDebounce(searchQuery, 500);
-
-
-  // Removed separate currentPage reset hook to integrate it in the fetch effect below
-
   const handleTabChange = (tab: WaitlistTab) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (tab === 'rejected') {
-      params.set('tab', 'rejected');
+    if (tab === 'approved') {
+      params.set('tab', 'approved');
     } else {
       params.delete('tab');
     }
@@ -112,62 +114,93 @@ export default function WaitlistPage() {
     router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
   };
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (filters: Record<string, any> = {}) => {
     setLoading(true);
     setError(null);
     try {
       const skip = (currentPage - 1) * itemsPerPage;
-      const response =
-        activeTab === 'rejected'
-          ? await fetchRejectedWaitlist({
-              search: debouncedSearch,
-              limit: itemsPerPage,
-              skip,
-            })
-          : await fetchWaitlist({
-              search: debouncedSearch,
-              limit: itemsPerPage,
-              skip,
-            });
-      setUsers(response.users);
-      setTotal(response.total);
+
+      // City filter: pass city names directly to backend (backend resolves to IDs via cities table join)
+      const cityNames: string[] | undefined = filters.city
+        ? (Array.isArray(filters.city) ? filters.city.filter(Boolean) : [filters.city])
+        : undefined;
+
+      // Country filter: pass country names directly to backend (backend resolves via cities→countries join)
+      const countries: string[] | undefined = filters.country
+        ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
+        : undefined;
+
+      // Extract score value
+      const scoreVal = filters.score?.min !== undefined ? filters.score.min : (typeof filters.score === 'number' ? filters.score : undefined);
+
+      const filterParams = {
+        search: debouncedSearch,
+        limit: itemsPerPage,
+        skip,
+        medium: filters.medium,
+        minScore: filters.score?.min,
+        maxScore: filters.score?.max,
+        cityNames: cityNames?.length ? cityNames : undefined,
+        countries: countries?.length ? countries : undefined,
+        score: scoreVal,
+      };
+
+      const response = await fetchWaitlist(filterParams);
+      const allUsers = response.users || [];
+      const filteredUsers = allUsers.filter((user) => {
+        // Status filter (client-side tab logic)
+        const currentStatus = filters.status || activeTab;
+        const matchesStatus = currentStatus === 'approved'
+          ? user.status === 'active'
+          : (user.status === 'waitlisted' || !user.status);
+        return matchesStatus;
+      });
+
+      setUsers(filteredUsers);
+      setTotal(response.total || filteredUsers.length);
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : activeTab === 'rejected'
-            ? 'Failed to fetch rejected users. Please try again.'
-            : 'Failed to fetch waitlist users. Please try again.';
+      const msg = err instanceof Error ? err.message : 'Failed to fetch waitlist users. Please try again.';
       setError(msg);
-      toast.error(
-        activeTab === 'rejected'
-          ? 'Failed to load rejected users'
-          : 'Failed to load waitlist users',
-      );
+      toast.error('Failed to load waitlist users');
     } finally {
       setLoading(false);
     }
   }, [activeTab, currentPage, debouncedSearch, itemsPerPage]);
 
+
   const prevSearchRef = useRef(debouncedSearch);
   const prevTabRef = useRef(activeTab);
+  const prevFiltersRef = useRef(activeFilters);
 
   useEffect(() => {
     if (detailUserId) return;
 
-    if (prevSearchRef.current !== debouncedSearch || prevTabRef.current !== activeTab) {
+    let shouldResetPage = false;
+    if (prevSearchRef.current !== debouncedSearch) {
       prevSearchRef.current = debouncedSearch;
+      shouldResetPage = true;
+    }
+    if (prevTabRef.current !== activeTab) {
       prevTabRef.current = activeTab;
+      shouldResetPage = true;
+    }
+    if (JSON.stringify(prevFiltersRef.current) !== JSON.stringify(activeFilters)) {
+      prevFiltersRef.current = activeFilters;
+      shouldResetPage = true;
+    }
+
+    if (shouldResetPage) {
       if (currentPage !== 1) {
         setCurrentPage(1);
         return;
       }
     }
-    loadUsers();
-  }, [debouncedSearch, currentPage, activeTab, loadUsers, detailUserId]);
+
+    loadUsers(activeFilters);
+  }, [debouncedSearch, currentPage, activeTab, activeFilters, loadUsers, detailUserId]);
 
   const handleRefresh = () => {
-    loadUsers();
+    loadUsers(activeFilters);
   };
 
   const getScoreStyle = (score: number) => {
@@ -183,14 +216,14 @@ export default function WaitlistPage() {
   const getDetailUrl = (userId: string) => {
     const params = new URLSearchParams();
     params.set('id', userId);
-    if (activeTab === 'rejected') {
-      params.set('tab', 'rejected');
+    if (activeTab === 'approved') {
+      params.set('tab', 'approved');
     }
     return `/user-management/waitlist?${params.toString()}`;
   };
 
   const totalPages = Math.ceil(total / itemsPerPage);
-  const isRejectedTab = activeTab === 'rejected';
+  const isApprovedTab = activeTab === 'approved';
 
   if (detailUserId) {
     return <WaitlistDetailClient />;
@@ -202,8 +235,8 @@ export default function WaitlistPage() {
         icon={IconShieldCheck}
         title="Waitlist Management"
         subtitle={
-          isRejectedTab
-            ? `${total} rejected applicants`
+          isApprovedTab
+            ? `${total} approved applicants`
             : `${total} applicants pending review`
         }
         trailing={
@@ -212,7 +245,7 @@ export default function WaitlistPage() {
             onTabChange={handleTabChange}
             tabs={[
               { id: 'pending', label: 'Pending', icon: IconShieldCheck },
-              { id: 'rejected', label: 'Rejected', icon: IconUserX },
+              { id: 'approved', label: 'Approved', icon: IconUserCheck },
             ]}
           />
         }
@@ -220,8 +253,8 @@ export default function WaitlistPage() {
 
       <ListingToolbar
         countLabel={
-          isRejectedTab
-            ? `${total} Rejected Users`
+          isApprovedTab
+            ? `${total} Approved Users`
             : `${total} Pending Verification`
         }
         showCount={!loading && !error}
@@ -231,13 +264,48 @@ export default function WaitlistPage() {
         onRefresh={handleRefresh}
         refreshDisabled={loading}
         refreshLoading={loading}
+        filterAction={
+          <div className="flex flex-wrap items-center gap-2">
+            {waitlistFilters.map((filter) => {
+              const isStatus = filter.key === 'status';
+              const filterValue = activeFilters[filter.key];
+              const handleFilterChange = (val: any) => {
+                setActiveFilters((prev) => ({
+                  ...prev,
+                  [filter.key]: val,
+                }));
+                if (isStatus) {
+                  if (val === 'approved') {
+                    handleTabChange('approved');
+                  } else if (val === 'pending') {
+                    handleTabChange('pending');
+                  } else {
+                    handleTabChange('pending');
+                  }
+                }
+              };
+
+              return (
+                <FilterDropdown
+                  key={filter.key}
+                  label={filter.label}
+                  type={filter.type}
+                  options={filter.options}
+                  placeholder={filter.placeholder}
+                  value={filterValue}
+                  onChange={handleFilterChange}
+                />
+              );
+            })}
+          </div>
+        }
       />
 
       {error ? (
         <ListingErrorPanel
           title={
-            isRejectedTab
-              ? 'Failed to load rejected users'
+            isApprovedTab
+              ? 'Failed to load approved users'
               : 'Failed to load verification queue'
           }
           message={error}
@@ -251,23 +319,23 @@ export default function WaitlistPage() {
               <tbody className="divide-y divide-[#18181b]">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center">
+                    <td colSpan={9} className="py-20 text-center">
                       <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
                       <p className="text-xs text-zinc-500 mt-2 font-medium">
-                        {isRejectedTab
-                          ? 'Loading rejected users...'
+                        {isApprovedTab
+                          ? 'Loading approved users...'
                           : 'Loading waitlist users...'}
                       </p>
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center">
+                    <td colSpan={9} className="py-20 text-center">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <IconUser size={32} className="text-zinc-600" />
                         <p className="text-xs font-semibold text-zinc-400">
-                          {isRejectedTab
-                            ? 'No rejected users found'
+                          {isApprovedTab
+                            ? 'No approved users found'
                             : 'No waitlisted users found'}
                         </p>
                       </div>
@@ -284,9 +352,11 @@ export default function WaitlistPage() {
                       (user as { cityId?: string; city_id?: string }).city_id;
                     const cityName =
                       (cityId && cityMap[cityId]) ||
+                      (user as { location?: string }).location ||
                       (user as { city?: { name?: string } }).city?.name ||
                       (user as { city?: string }).city ||
                       cityId;
+                    const country = (user as { country?: string }).country;
                     const code = (user as { referralCode?: string }).referralCode;
                     const medium = (user as { referralMedium?: string }).referralMedium;
                     const score =
@@ -364,6 +434,14 @@ export default function WaitlistPage() {
                         </td>
 
                         <td className="py-3 px-6">
+                          {country ? (
+                            <span className="text-xs text-zinc-400">{country}</span>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        <td className="py-3 px-6">
                           {code ? (
                             <code className="text-xs font-mono font-bold text-white bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 rounded">
                               {code}
@@ -398,8 +476,8 @@ export default function WaitlistPage() {
                               type="button"
                               onClick={() => router.push(getDetailUrl(user.id))}
                               className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
-                              title={isRejectedTab ? 'View Applicant' : 'Review & Verify User'}
-                              aria-label={isRejectedTab ? 'View applicant' : 'Review and verify user'}
+                              title={isApprovedTab ? 'View Applicant' : 'Review & Verify User'}
+                              aria-label={isApprovedTab ? 'View applicant' : 'Review and verify user'}
                             >
                               <IconUserSearch size={20} className="cursor-pointer" />
                             </button>
@@ -420,8 +498,10 @@ export default function WaitlistPage() {
               totalItems={total}
               itemsPerPage={itemsPerPage}
               itemLabel="applicants"
+              onFirst={() => setCurrentPage(1)}
               onPrevious={() => setCurrentPage((prev) => prev - 1)}
               onNext={() => setCurrentPage((prev) => prev + 1)}
+              onLast={() => setCurrentPage(totalPages)}
               onItemsPerPageChange={(val) => {
                 setItemsPerPage(val);
                 setCurrentPage(1);
@@ -433,3 +513,6 @@ export default function WaitlistPage() {
     </ListingPageContainer>
   );
 }
+
+
+

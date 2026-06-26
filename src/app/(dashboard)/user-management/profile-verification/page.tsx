@@ -4,9 +4,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
-import { 
-  IconRefresh, 
-  IconUser, 
+
+import {
+  IconRefresh,
+  IconUser,
   IconShieldCheck,
   IconUserCheck,
   IconX,
@@ -30,6 +31,10 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/ca
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import FilterDropdown from '@/components/common/FilterDropdown';
+import { profileVerificationFilters } from '@/components/common/filters/profileVerification.filters';
+
+
 
 export default function ProfileVerificationPage() {
   const [users, setUsers] = useState<ProfileVerificationUser[]>([]);
@@ -39,17 +44,20 @@ export default function ProfileVerificationPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [cityMap, setCityMap] = useState<Record<string, string>>({});
+
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
   // Modal and verification states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [verifyingUser, setVerifyingUser] = useState<ProfileVerificationUser | null>(null);
   const [saving, setSaving] = useState(false);
-  const [cityMap, setCityMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadCities() {
       try {
-        const cities = await fetchCities();
+        const cities = await fetchCities({ limit: 100 });
         const mapping: Record<string, string> = {};
         cities.forEach(city => {
           const id = city.cityId || city.city_id || city.id;
@@ -65,17 +73,42 @@ export default function ProfileVerificationPage() {
     loadCities();
   }, []);
 
-  const debouncedSearch = useDebounce(searchQuery, 500);
-
-
-  const loadUsers = useCallback(async (searchVal = '', currentPage = 1) => {
+  const loadUsers = useCallback(async (searchVal = '', currentPage = 1, filters: Record<string, any> = {}) => {
     setLoading(true);
     setError(null);
     try {
       const skip = (currentPage - 1) * limit;
-      const response = await fetchProfileUsersGetAll({ search: searchVal, limit, skip });
-      setUsers(response.users);
-      setTotal(response.total);
+
+      // City filter: pass city names directly to backend (backend resolves to IDs via cities table join)
+      const cityNames: string[] | undefined = filters.city
+        ? (Array.isArray(filters.city) ? filters.city.filter(Boolean) : [filters.city])
+        : undefined;
+
+      // Country filter: pass country names directly to backend
+      const countries: string[] | undefined = filters.country
+        ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
+        : undefined;
+
+      // Map UI status to AdminAccountStatus
+      let statusParam: string | undefined = undefined;
+      if (filters.status === 'verified') {
+        statusParam = 'active';
+      } else if (filters.status === 'pending') {
+        statusParam = 'inactive';
+      }
+
+      const response = await fetchProfileUsersGetAll({
+        search: searchVal,
+        limit: limit,
+        skip,
+        cityNames: cityNames?.length ? cityNames : undefined,
+        countries: countries?.length ? countries : undefined,
+        medium: filters.medium,
+        status: statusParam,
+      });
+
+      setUsers(response.users || []);
+      setTotal(response.total || 0);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch users.';
       setError(msg);
@@ -85,22 +118,32 @@ export default function ProfileVerificationPage() {
     }
   }, [limit]);
 
+
   const prevSearchRef = useRef(debouncedSearch);
+  const prevFiltersRef = useRef(activeFilters);
 
   useEffect(() => {
-    // If search query changed, reset page to 1
+    let shouldResetPage = false;
     if (prevSearchRef.current !== debouncedSearch) {
       prevSearchRef.current = debouncedSearch;
+      shouldResetPage = true;
+    }
+    if (JSON.stringify(prevFiltersRef.current) !== JSON.stringify(activeFilters)) {
+      prevFiltersRef.current = activeFilters;
+      shouldResetPage = true;
+    }
+
+    if (shouldResetPage) {
       if (page !== 1) {
         setPage(1);
-        return; // Skip loading on this render to let page reset first
+        return;
       }
     }
-    loadUsers(debouncedSearch, page);
-  }, [debouncedSearch, page, loadUsers]);
+    loadUsers(debouncedSearch, page, activeFilters);
+  }, [debouncedSearch, page, activeFilters, loadUsers]);
 
   const handleRefresh = () => {
-    loadUsers(searchQuery, page);
+    loadUsers(searchQuery, page, activeFilters);
   };
 
   const handleOpenVerify = (user: ProfileVerificationUser) => {
@@ -116,9 +159,9 @@ export default function ProfileVerificationPage() {
   const handleVerifyAction = async (action: 'approve' | 'reject') => {
     if (!verifyingUser) return;
 
-    const docImage = verifyingUser.verificationImages?.find(img => img.type === 'profile') || 
-                     verifyingUser.verificationImages?.find(img => img.type === 'selfie') || 
-                     verifyingUser.verificationImages?.[0];
+    const docImage = verifyingUser.verificationImages?.find(img => img.type === 'profile') ||
+      verifyingUser.verificationImages?.find(img => img.type === 'selfie') ||
+      verifyingUser.verificationImages?.[0];
     const imageId = docImage?.id;
     if (!imageId) {
       toast.error('No verification image found for this user.');
@@ -129,10 +172,10 @@ export default function ProfileVerificationPage() {
     try {
       const isApproved = action === 'approve';
       await verifyProfileImage(verifyingUser.id, imageId, isApproved);
-      
+
       const displayName = verifyingUser.name ? `${verifyingUser.name} ${verifyingUser.lastName || ''}`.trim() : 'User';
       toast.success(`Successfully ${action === 'approve' ? 'approved' : 'rejected'} ${displayName}'s profile`);
-      
+
       handleCloseModal();
       await loadUsers(debouncedSearch, page);
     } catch (err: unknown) {
@@ -171,6 +214,26 @@ export default function ProfileVerificationPage() {
         onRefresh={handleRefresh}
         refreshDisabled={loading}
         refreshLoading={loading}
+        filterAction={
+          <div className="flex flex-wrap items-center gap-2">
+            {profileVerificationFilters.map((filter) => (
+              <FilterDropdown
+                key={filter.key}
+                label={filter.label}
+                type={filter.type}
+                options={filter.options}
+                placeholder={filter.placeholder}
+                value={activeFilters[filter.key]}
+                onChange={(val) =>
+                  setActiveFilters((prev) => ({
+                    ...prev,
+                    [filter.key]: val,
+                  }))
+                }
+              />
+            ))}
+          </div>
+        }
       />
 
       {error ? (
@@ -185,25 +248,28 @@ export default function ProfileVerificationPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-[#18181b]">
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[20%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[18%]">
                     Name
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
                     Phone No
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
                     Status
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
                     City
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
-                    Referral Code
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[13%]">
-                    Medium
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+                    Country
                   </th>
                   <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+                    Referral Code
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+                    Medium
+                  </th>
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[9%]">
                     Score
                   </th>
                   <th className="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[5%]">
@@ -214,7 +280,7 @@ export default function ProfileVerificationPage() {
               <tbody className="divide-y divide-[#18181b]">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center">
+                    <td colSpan={9} className="py-20 text-center">
                       <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
                       <p className="text-xs text-zinc-500 mt-2 font-medium">Loading profile approvals...</p>
                     </td>
@@ -233,7 +299,8 @@ export default function ProfileVerificationPage() {
                     const displayName = user.name ? `${user.name} ${user.lastName || ''}`.trim() : 'Unnamed User';
                     const profilePictureUrl = user.profilePictureUrl;
                     const cityId = (user as any).cityId || (user as any).city_id;
-                    const cityName = (cityId && cityMap[cityId]) || (user as any).city?.name || (user as any).city || cityId;
+                    const cityName = (cityId && cityMap[cityId]) || user.location || (user as any).city?.name || (user as any).city || cityId;
+                    const country = (user as any).country;
                     const code = (user as any).referralCode;
                     const medium = (user as any).referralMedium;
                     const score = (user as any).reliabilityScore !== undefined ? (user as any).reliabilityScore : 100;
@@ -249,9 +316,9 @@ export default function ProfileVerificationPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/40 overflow-hidden">
                               {profilePictureUrl ? (
-                                <img 
-                                  src={profilePictureUrl} 
-                                  alt={displayName} 
+                                <img
+                                  src={profilePictureUrl}
+                                  alt={displayName}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
                                     e.currentTarget.style.display = 'none';
@@ -306,6 +373,15 @@ export default function ProfileVerificationPage() {
                               <IconMapPin size={12} className="shrink-0 text-zinc-600" />
                               <span className="truncate max-w-[120px]">{cityName}</span>
                             </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">—</span>
+                          )}
+                        </td>
+
+                        {/* Country */}
+                        <td className="py-3 px-6">
+                          {country ? (
+                            <span className="text-xs text-zinc-400">{country}</span>
                           ) : (
                             <span className="text-xs text-zinc-600 select-none">—</span>
                           )}
@@ -368,8 +444,10 @@ export default function ProfileVerificationPage() {
               totalItems={total}
               itemsPerPage={limit}
               itemLabel="profiles"
+              onFirst={() => setPage(1)}
               onPrevious={() => setPage((prev) => prev - 1)}
               onNext={() => setPage((prev) => prev + 1)}
+              onLast={() => setPage(totalPages)}
               onItemsPerPageChange={(val) => {
                 setLimit(val);
                 setPage(1);
@@ -383,7 +461,7 @@ export default function ProfileVerificationPage() {
       {isModalOpen && verifyingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300 p-4">
           <Card className="w-full max-w-4xl border-white/10 bg-zinc-950/95 p-6 shadow-2xl rounded-xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-            
+
             <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
@@ -410,30 +488,30 @@ export default function ProfileVerificationPage() {
 
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6 pb-4">
               <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-4 flex items-center gap-4">
-                 {verifyingUser.profilePictureUrl ? (
-                    <img 
-                      src={verifyingUser.profilePictureUrl} 
-                      alt="Profile"
-                      className="w-12 h-12 rounded-full object-cover border-2 border-purple-900/40"
-                    />
-                 ) : (
-                   <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-purple-950/20 text-[#d8b4fe] border-2 border-purple-900/40">
-                     {verifyingUser.name ? verifyingUser.name.charAt(0).toUpperCase() : 'U'}
-                   </div>
-                 )}
-                 <div>
-                   <h4 className="text-sm font-bold text-white">
-                     {verifyingUser.name ? `${verifyingUser.name} ${verifyingUser.lastName || ''}`.trim() : 'Unnamed User'}
-                   </h4>
-                   <p className="text-xs text-zinc-500">{verifyingUser.email}</p>
-                 </div>
+                {verifyingUser.profilePictureUrl ? (
+                  <img
+                    src={verifyingUser.profilePictureUrl}
+                    alt="Profile"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-purple-900/40"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-purple-950/20 text-[#d8b4fe] border-2 border-purple-900/40">
+                    {verifyingUser.name ? verifyingUser.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-sm font-bold text-white">
+                    {verifyingUser.name ? `${verifyingUser.name} ${verifyingUser.lastName || ''}`.trim() : 'Unnamed User'}
+                  </h4>
+                  <p className="text-xs text-zinc-500">{verifyingUser.email}</p>
+                </div>
               </div>
 
               {(() => {
-                const selfieImg = verifyingUser.verificationImages?.find(img => img.type === 'selfie') || 
-                                  (verifyingUser.selfieImageUrl ? { url: verifyingUser.selfieImageUrl } : null);
-                const docImg = verifyingUser.verificationImages?.find(img => img.type === 'profile') || 
-                               verifyingUser.verificationImages?.[0];
+                const selfieImg = verifyingUser.verificationImages?.find(img => img.type === 'selfie') ||
+                  (verifyingUser.selfieImageUrl ? { url: verifyingUser.selfieImageUrl } : null);
+                const docImg = verifyingUser.verificationImages?.find(img => img.type === 'profile') ||
+                  verifyingUser.verificationImages?.[0];
 
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -441,9 +519,9 @@ export default function ProfileVerificationPage() {
                       <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">Selfie Image</h3>
                       <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
                         {selfieImg?.url ? (
-                          <img 
-                            src={selfieImg.url} 
-                            alt="Selfie" 
+                          <img
+                            src={selfieImg.url}
+                            alt="Selfie"
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
@@ -459,9 +537,9 @@ export default function ProfileVerificationPage() {
                       <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">Verification Document</h3>
                       <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
                         {docImg?.url ? (
-                          <img 
-                            src={docImg.url} 
-                            alt="Verification Document" 
+                          <img
+                            src={docImg.url}
+                            alt="Verification Document"
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
@@ -513,3 +591,4 @@ export default function ProfileVerificationPage() {
     </ListingPageContainer>
   );
 }
+

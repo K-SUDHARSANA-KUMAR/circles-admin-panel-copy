@@ -15,6 +15,10 @@ import {
   IconTrash,
   IconX,
   IconWorld,
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
 } from '@tabler/icons-react';
 import { fetchCities, createCity, updateCity, deleteCity, type City } from '@/services/cities.service';
 import { fetchCountries, createCountry, updateCountry, deleteCountry, type Country } from '@/services/countries.service';
@@ -26,6 +30,9 @@ import {
   ListingToolbar,
   listingStyles,
 } from '@/components/shared/listing-page';
+import FilterDropdown from '@/components/common/FilterDropdown';
+import { cityFilters } from '@/components/common/filters/cities.filters';
+import { countryFilters } from '@/components/common/filters/countries.filters';
 
 export default function CitiesPage() {
   const [activeTab, setActiveTab] = useState<'cities' | 'countries'>('cities');
@@ -62,9 +69,11 @@ export default function CitiesPage() {
 
   // Countries states
   const [countries, setCountries] = useState<Country[]>([]);
+  const [totalCountries, setTotalCountries] = useState(0);
   const [countriesLoading, setCountriesLoading] = useState(true);
   const [countriesError, setCountriesError] = useState<string | null>(null);
   const [searchQueryCountry, setSearchQueryCountry] = useState('');
+  const debouncedSearchCountry = useDebounce(searchQueryCountry, 500);
 
   // Countries Modal & Action states
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
@@ -80,16 +89,90 @@ export default function CitiesPage() {
   // Countries Pagination state
   const [currentCountryPage, setCurrentCountryPage] = useState(1);
   const [itemsPerCountryPage, setItemsPerCountryPage] = useState(10);
+  const [activeFiltersCity, setActiveFiltersCity] = useState<Record<string, any>>({});
+  const [activeFiltersCountry, setActiveFiltersCountry] = useState<Record<string, any>>();
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+  const getCityStatus = (city: City): 'active' | 'waitlist' | 'inactive' => {
+    if ((city as any).status) {
+      const s = (city as any).status.toLowerCase();
+      if (s === 'active') return 'active';
+      if (s === 'waitlist') return 'waitlist';
+      if (s === 'inactive') return 'inactive';
+    }
+
+    if (city.is_active || city.isActive) {
+      return 'active';
+    }
+
+    const waitlistCities = ['reykjavík', 'reykjavik', 'marrakech', 'hanoi'];
+    if (waitlistCities.includes(city.name.toLowerCase())) {
+      return 'waitlist';
+    }
+    return 'inactive';
+  };
+
+  const getCountryName = (city: City): string => {
+    const code = (city.country?.code ?? city.country_code ?? '').trim().toUpperCase();
+    const matched = countries.find(c => c.code.toUpperCase() === code);
+    if (matched) return matched.name;
+
+    const map: Record<string, string> = {
+      'PT': 'Portugal',
+      'DE': 'Germany',
+      'JP': 'Japan',
+      'IS': 'Iceland',
+      'MA': 'Morocco',
+      'VN': 'Vietnam',
+      'AT': 'Austria',
+      'US': 'United States',
+      'GB': 'United Kingdom',
+      'FR': 'France',
+      'ES': 'Spain',
+      'IT': 'Italy',
+    };
+    return map[code] ?? city.country?.name ?? code ?? '—';
+  };
 
   // ─── Fetch Cities ──────────────────────────────────────────────────────────
-  const loadCities = useCallback(async (searchVal = '', pageNum = 1) => {
+  const loadCities = useCallback(async (searchVal = '', pageNum = 1, filters: Record<string, any> = {}) => {
     setLoading(true);
     setError(null);
     try {
       const skip = (pageNum - 1) * itemsPerPage;
-      const data = await fetchCities({ limit: itemsPerPage, skip, search: searchVal });
+
+      // Pass country names directly as array to backend (backend resolves via cities→countries join)
+      const countries: string[] | undefined = filters.country
+        ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
+        : undefined;
+
+      // Pass city names directly as array to backend (backend resolves via cities table)
+      const cityNames: string[] | undefined = filters.city
+        ? (Array.isArray(filters.city) ? filters.city.filter(Boolean) : [filters.city])
+        : undefined;
+
+      // Map status string → isActive boolean
+      let isActive: boolean | undefined = undefined;
+      if (filters.status === 'active') {
+        isActive = true;
+      } else if (filters.status === 'inactive') {
+        isActive = false;
+      }
+
+      const finalSearch = (!cityNames?.length && !countries?.length) ? (searchVal?.trim() || undefined) : undefined;
+
+      const data = await fetchCities({
+        limit: itemsPerPage,
+        skip,
+        search: finalSearch,
+        countries: countries?.length ? countries : undefined,
+        cityNames: cityNames?.length ? cityNames : undefined,
+        isActive,
+      });
+
       setCities(data);
-      setTotalCities((data as { totalItems?: number }).totalItems ?? data.length);
+      const backendTotal = (data as any).totalItems ?? data.length;
+      setTotalCities(backendTotal);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load cities. Please try again.';
       setError(msg);
@@ -100,25 +183,58 @@ export default function CitiesPage() {
   }, [itemsPerPage]);
 
   const prevSearchRef = useRef(debouncedSearch);
+  const prevFiltersRef = useRef(activeFiltersCity);
 
   useEffect(() => {
+    let shouldResetPage = false;
     if (prevSearchRef.current !== debouncedSearch) {
       prevSearchRef.current = debouncedSearch;
+      shouldResetPage = true;
+    }
+    if (JSON.stringify(prevFiltersRef.current) !== JSON.stringify(activeFiltersCity)) {
+      prevFiltersRef.current = activeFiltersCity;
+      shouldResetPage = true;
+    }
+
+    if (shouldResetPage) {
       if (currentPage !== 1) {
         setCurrentPage(1);
         return;
       }
     }
-    loadCities(debouncedSearch, currentPage);
-  }, [debouncedSearch, currentPage, loadCities]);
+    loadCities(debouncedSearch, currentPage, activeFiltersCity);
+  }, [debouncedSearch, currentPage, activeFiltersCity, loadCities]);
 
   // ─── Fetch Countries ───────────────────────────────────────────────────────
-  const loadCountries = useCallback(async () => {
+  const loadCountries = useCallback(async (searchVal = '', pageNum = 1, filters: Record<string, any> = {}) => {
     setCountriesLoading(true);
     setCountriesError(null);
     try {
-      const data = await fetchCountries();
+      const skip = (pageNum - 1) * itemsPerCountryPage;
+
+      // Map status string → isActive boolean
+      let isActive: boolean | undefined = undefined;
+      let statusStr: string | undefined = undefined;
+      if (filters.status === 'active') {
+        isActive = true;
+        statusStr = 'Active';
+      } else if (filters.status === 'inactive') {
+        isActive = false;
+        statusStr = 'Inactive';
+      }
+
+      const finalSearch = filters.name || filters.code || searchVal?.trim() || undefined;
+      const data = await fetchCountries({
+        limit: itemsPerCountryPage,
+        skip,
+        search: finalSearch,
+        isActive,
+      });
+
+
       setCountries(data);
+      const backendTotal = (data as any).totalItems ?? data.length;
+      setTotalCountries(backendTotal);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load countries. Please try again.';
       setCountriesError(msg);
@@ -126,11 +242,30 @@ export default function CitiesPage() {
     } finally {
       setCountriesLoading(false);
     }
-  }, []);
+  }, [itemsPerCountryPage]);
+
+  const prevSearchCountryRef = useRef(debouncedSearchCountry);
+  const prevFiltersCountryRef = useRef(activeFiltersCountry);
 
   useEffect(() => {
-    loadCountries();
-  }, [loadCountries]);
+    let shouldResetPage = false;
+    if (prevSearchCountryRef.current !== debouncedSearchCountry) {
+      prevSearchCountryRef.current = debouncedSearchCountry;
+      shouldResetPage = true;
+    }
+    if (JSON.stringify(prevFiltersCountryRef.current) !== JSON.stringify(activeFiltersCountry)) {
+      prevFiltersCountryRef.current = activeFiltersCountry;
+      shouldResetPage = true;
+    }
+
+    if (shouldResetPage) {
+      if (currentCountryPage !== 1) {
+        setCurrentCountryPage(1);
+        return;
+      }
+    }
+    loadCountries(debouncedSearchCountry, currentCountryPage, activeFiltersCountry);
+  }, [debouncedSearchCountry, currentCountryPage, activeFiltersCountry, loadCountries]);
 
   // ─── Handle Save City (Create / Update) ───────────────────────────────────
   const handleSaveCity = async (e: React.FormEvent) => {
@@ -159,7 +294,7 @@ export default function CitiesPage() {
       }
 
       handleCloseModal();
-      await loadCities(searchQuery, currentPage);
+      await loadCities(searchQuery, currentPage, activeFiltersCity);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save city.';
       toast.error(msg);
@@ -181,7 +316,7 @@ export default function CitiesPage() {
       await deleteCity(cityId);
       toast.success(`Successfully deleted city: ${deleteTarget.name}`);
       setDeleteTarget(null);
-      await loadCities(searchQuery, currentPage);
+      await loadCities(searchQuery, currentPage, activeFiltersCity);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete city.';
       toast.error(msg);
@@ -234,7 +369,8 @@ export default function CitiesPage() {
       }
 
       handleCloseCountryModal();
-      await loadCountries();
+      await loadCountries(searchQueryCountry, currentCountryPage, activeFiltersCountry);
+      preloadAllCountries();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save country.';
       toast.error(msg);
@@ -256,7 +392,8 @@ export default function CitiesPage() {
       await deleteCountry(countryId);
       toast.success(`Successfully deleted country: ${deleteCountryTarget.name}`);
       setDeleteCountryTarget(null);
-      await loadCountries();
+      await loadCountries(searchQueryCountry, currentCountryPage, activeFiltersCountry);
+      preloadAllCountries();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete country.';
       toast.error(msg);
@@ -286,63 +423,11 @@ export default function CitiesPage() {
   const paginatedCities = filteredCities;
 
   // ─── Filtering & Pagination for Countries ──────────────────────────────────
-  const filteredCountries = countries.filter((c) => {
-    const nameMatch = (c.name || '').toLowerCase().includes(searchQueryCountry.toLowerCase());
-    const codeMatch = (c.code || '').toLowerCase().includes(searchQueryCountry.toLowerCase());
-    return nameMatch || codeMatch;
-  });
+  const filteredCountries = countries;
+  const totalCountryPages = Math.ceil(totalCountries / itemsPerCountryPage);
+  const paginatedCountries = countries;
 
-  useEffect(() => {
-    setCurrentCountryPage(1);
-  }, [searchQueryCountry]);
 
-  const totalCountryPages = Math.ceil(filteredCountries.length / itemsPerCountryPage);
-  const paginatedCountries = filteredCountries.slice(
-    (currentCountryPage - 1) * itemsPerCountryPage,
-    currentCountryPage * itemsPerCountryPage
-  );
-
-  // ─── Helpers ───────────────────────────────────────────────────────────────
-  const getCityStatus = (city: City): 'active' | 'waitlist' | 'inactive' => {
-    if ((city as any).status) {
-      const s = (city as any).status.toLowerCase();
-      if (s === 'active') return 'active';
-      if (s === 'waitlist') return 'waitlist';
-      if (s === 'inactive') return 'inactive';
-    }
-
-    if (city.is_active || city.isActive) {
-      return 'active';
-    }
-
-    const waitlistCities = ['reykjavík', 'reykjavik', 'marrakech', 'hanoi'];
-    if (waitlistCities.includes(city.name.toLowerCase())) {
-      return 'waitlist';
-    }
-    return 'inactive';
-  };
-
-  const getCountryName = (city: City): string => {
-    const code = (city.country?.code ?? city.country_code ?? '').trim().toUpperCase();
-    const matched = countries.find(c => c.code.toUpperCase() === code);
-    if (matched) return matched.name;
-
-    const map: Record<string, string> = {
-      'PT': 'Portugal',
-      'DE': 'Germany',
-      'JP': 'Japan',
-      'IS': 'Iceland',
-      'MA': 'Morocco',
-      'VN': 'Vietnam',
-      'AT': 'Austria',
-      'US': 'United States',
-      'GB': 'United Kingdom',
-      'FR': 'France',
-      'ES': 'Spain',
-      'IT': 'Italy',
-    };
-    return map[code] ?? city.country?.name ?? code ?? '—';
-  };
 
   return (
     <ListingPageContainer>
@@ -370,9 +455,29 @@ export default function CitiesPage() {
             searchPlaceholder="Search by city name or country..."
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
-            onRefresh={() => loadCities(searchQuery, currentPage)}
+            onRefresh={() => loadCities(searchQuery, currentPage, activeFiltersCity)}
             refreshDisabled={loading}
             refreshLoading={loading}
+            filterAction={
+              <div className="flex flex-wrap items-center gap-2">
+                {cityFilters.map((filter) => (
+                  <FilterDropdown
+                    key={filter.key}
+                    label={filter.label}
+                    type={filter.type}
+                    options={filter.options}
+                    placeholder={filter.placeholder}
+                    value={activeFiltersCity[filter.key]}
+                    onChange={(val) =>
+                      setActiveFiltersCity((prev) => ({
+                        ...prev,
+                        [filter.key]: val,
+                      }))
+                    }
+                  />
+                ))}
+              </div>
+            }
             primaryAction={
               <Button onClick={() => setIsModalOpen(true)} className={listingStyles.primaryButton}>
                 <IconPlus size={14} />
@@ -392,7 +497,7 @@ export default function CitiesPage() {
                 <p className="text-xs text-zinc-500 max-w-xs mx-auto mt-0.5">{error}</p>
               </div>
               <Button
-                onClick={() => loadCities(searchQuery, currentPage)}
+                onClick={() => loadCities(searchQuery, currentPage, activeFiltersCity)}
                 variant="outline"
                 size="sm"
                 className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800"
@@ -504,7 +609,7 @@ export default function CitiesPage() {
                   <div className="text-[11px] text-zinc-500 text-left">
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalCities)} of {totalCities} cities
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <select
                       value={itemsPerPage}
                       onChange={(e) => {
@@ -520,27 +625,11 @@ export default function CitiesPage() {
                       <option value={30}>30</option>
                       <option value={40}>40</option>
                     </select>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(prev => prev - 1)}
-                      className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-                    >
-                      Previous
-                    </Button>
-                    <div className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
-                      Page {currentPage} of {totalPages}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                      className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-                    >
-                      Next
-                    </Button>
+                    <button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage(1)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="First page"><IconChevronsLeft size={13} /></button>
+                    <button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage(prev => prev - 1)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Previous page"><IconChevronLeft size={13} /></button>
+                    <div className="text-[11px] text-zinc-400 px-2 font-semibold select-none whitespace-nowrap">Page {currentPage} of {totalPages}</div>
+                    <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(prev => prev + 1)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Next page"><IconChevronRight size={13} /></button>
+                    <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(totalPages)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Last page"><IconChevronsRight size={13} /></button>
                   </div>
                 </div>
               )}
@@ -550,14 +639,34 @@ export default function CitiesPage() {
       ) : (
         <>
           <ListingToolbar
-            countLabel={`${countries.length} Supported Countries`}
+            countLabel={`${totalCountries} Supported Countries`}
             showCount={!countriesLoading}
             searchPlaceholder="Search by country name or code..."
             searchValue={searchQueryCountry}
             onSearchChange={setSearchQueryCountry}
-            onRefresh={loadCountries}
+            onRefresh={() => loadCountries(searchQueryCountry, currentCountryPage, activeFiltersCountry)}
             refreshDisabled={countriesLoading}
             refreshLoading={countriesLoading}
+            filterAction={
+              <div className="flex flex-wrap items-center gap-2">
+                {countryFilters.map((filter) => (
+                  <FilterDropdown
+                    key={filter.key}
+                    label={filter.label}
+                    type={filter.type}
+                    options={filter.options}
+                    placeholder={filter.placeholder}
+                    value={activeFiltersCountry[filter.key]}
+                    onChange={(val) =>
+                      setActiveFiltersCountry((prev) => ({
+                        ...prev,
+                        [filter.key]: val,
+                      }))
+                    }
+                  />
+                ))}
+              </div>
+            }
             primaryAction={
               <Button onClick={() => setIsCountryModalOpen(true)} className={listingStyles.primaryButton}>
                 <IconPlus size={14} />
@@ -577,7 +686,7 @@ export default function CitiesPage() {
                 <p className="text-xs text-zinc-500 max-w-xs mx-auto mt-0.5">{countriesError}</p>
               </div>
               <Button
-                onClick={loadCountries}
+                onClick={() => loadCountries(searchQueryCountry, currentCountryPage, activeFiltersCountry)}
                 variant="outline"
                 size="sm"
                 className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800"
@@ -678,12 +787,12 @@ export default function CitiesPage() {
               </div>
 
               {/* Country Pagination Controls */}
-              {!countriesLoading && filteredCountries.length > 0 && (
+              {!countriesLoading && totalCountries > 0 && (
                 <div className="flex items-center justify-between border-t border-[#18181b] px-12 py-4">
                   <div className="text-[11px] text-zinc-500 text-left">
-                    Showing {(currentCountryPage - 1) * itemsPerCountryPage + 1} to {Math.min(currentCountryPage * itemsPerCountryPage, filteredCountries.length)} of {filteredCountries.length} countries
+                    Showing {(currentCountryPage - 1) * itemsPerCountryPage + 1} to {Math.min(currentCountryPage * itemsPerCountryPage, totalCountries)} of {totalCountries} countries
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <select
                       value={itemsPerCountryPage}
                       onChange={(e) => {
@@ -699,27 +808,11 @@ export default function CitiesPage() {
                       <option value={30}>30</option>
                       <option value={40}>40</option>
                     </select>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={currentCountryPage === 1}
-                      onClick={() => setCurrentCountryPage(prev => prev - 1)}
-                      className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-                    >
-                      Previous
-                    </Button>
-                    <div className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
-                      Page {currentCountryPage} of {totalCountryPages}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={currentCountryPage === totalCountryPages}
-                      onClick={() => setCurrentCountryPage(prev => prev + 1)}
-                      className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-                    >
-                      Next
-                    </Button>
+                    <button type="button" disabled={currentCountryPage <= 1} onClick={() => setCurrentCountryPage(1)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="First page"><IconChevronsLeft size={13} /></button>
+                    <button type="button" disabled={currentCountryPage <= 1} onClick={() => setCurrentCountryPage(prev => prev - 1)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Previous page"><IconChevronLeft size={13} /></button>
+                    <div className="text-[11px] text-zinc-400 px-2 font-semibold select-none whitespace-nowrap">Page {currentCountryPage} of {totalCountryPages}</div>
+                    <button type="button" disabled={currentCountryPage >= totalCountryPages} onClick={() => setCurrentCountryPage(prev => prev + 1)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Next page"><IconChevronRight size={13} /></button>
+                    <button type="button" disabled={currentCountryPage >= totalCountryPages} onClick={() => setCurrentCountryPage(totalCountryPages)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Last page"><IconChevronsRight size={13} /></button>
                   </div>
                 </div>
               )}

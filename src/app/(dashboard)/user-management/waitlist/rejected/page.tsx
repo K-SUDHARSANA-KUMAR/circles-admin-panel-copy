@@ -8,7 +8,7 @@ export default function RejectedWaitlistRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/user-management/waitlist?tab=rejected');
+    router.replace('/user-management/waitlist');
   }, [router]);
 
   return (
