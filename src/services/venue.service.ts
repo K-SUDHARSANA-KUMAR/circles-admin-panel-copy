@@ -223,6 +223,7 @@ export async function fetchVenues(params?: {
   cityId?: string;
   cityNames?: string[];
   countries?: string[];
+  isVisible?: boolean;
 }): Promise<Venue[]> {
   try {
     const qs = new URLSearchParams();
@@ -230,6 +231,7 @@ export async function fetchVenues(params?: {
     if (params?.limit !== undefined) qs.set('limit', String(params.limit));
     if (typeof params?.search === 'string' && params.search.trim()) qs.set('search', params.search.trim());
     if (params?.cityId?.trim()) qs.set('cityId', params.cityId.trim());
+    if (params?.isVisible !== undefined) qs.set('isVisible', String(params.isVisible));
 
     (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
     (params?.countries ?? []).forEach((c) => qs.append('countries', c));

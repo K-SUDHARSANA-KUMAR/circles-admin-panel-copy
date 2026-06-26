@@ -58,23 +58,24 @@ const VenuesPage = () => {
         ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
         : undefined;
 
+      // Resolve isVisible filter value (could be boolean, string, or undefined)
+      let isVisible: boolean | undefined;
+      if (filters.isVisible !== undefined && filters.isVisible !== null && filters.isVisible !== '') {
+        isVisible = filters.isVisible === 'true' || filters.isVisible === true;
+      }
+
       const data = await fetchVenues({
         search: searchVal,
         page: pageNum,
         limit: itemsPerPage,
         cityNames: cityNames?.length ? cityNames : undefined,
         countries: countries?.length ? countries : undefined,
+        isVisible,
       });
 
       let result = [...data];
 
-      // 1. Visibility filter (client-side only)
-      if (filters.isVisible !== undefined && filters.isVisible !== null && filters.isVisible !== '') {
-        const targetVisible = filters.isVisible === 'true' || filters.isVisible === true;
-        result = result.filter(v => v.isVisible === targetVisible);
-      }
-
-      // 2. Popularity sort (client-side only)
+      // Popularity sort (client-side only)
       if (filters.popularityScore) {
         const direction = filters.popularityScore;
         result.sort((a, b) => {
