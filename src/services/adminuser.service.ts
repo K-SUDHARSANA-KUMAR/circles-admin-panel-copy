@@ -30,33 +30,27 @@ export async function fetchAdminUsers(params?: {
   limit?: number;
   skip?: number;
   search?: string;
+  status?: string;
+  email?: string;
+  country?: string;
+  role?: string;
 }): Promise<AdminUsersResponse> {
-  const originalLimit = params?.limit !== undefined ? params.limit : 10;
-  const originalSkip = params?.skip !== undefined ? params.skip : 0;
-
-  let limit = originalLimit;
-  let skip = originalSkip;
-  let backendSearch = params?.search?.trim();
-  let searchTerms: string[] = [];
-  let clientFilter = false;
-
-  if (backendSearch && backendSearch.includes(' ')) {
-    searchTerms = backendSearch.split(/\s+/);
-    backendSearch = searchTerms.reduce((longest, current) => current.length > longest.length ? current : longest, '');
-    clientFilter = true;
-    limit = 100;
-    skip = 0;
-  }
+  const limit = params?.limit !== undefined ? params.limit : 10;
+  const skip = params?.skip !== undefined ? params.skip : 0;
+  const backendSearch = params?.search?.trim();
 
   let url = `${ADMIN_USERS_URL}?limit=${limit}&skip=${skip}`;
 
   if (backendSearch !== undefined && backendSearch !== '') {
     url += `&search=${encodeURIComponent(backendSearch)}`;
   }
+  if (params?.status) {
+    url += `&status=${encodeURIComponent(params.status)}`;
+  }
 
   try {
     const res = await customAxios.get(url);
-    
+
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
 
     let usersList: AdminUser[] = [];
@@ -83,14 +77,7 @@ export async function fetchAdminUsers(params?: {
       throw new Error('Unexpected response format from admin users API');
     }
 
-    if (clientFilter && searchTerms.length > 0) {
-      const filtered = usersList.filter(user => {
-        const fullName = `${user.name || ''} ${user.lastName || ''}`.toLowerCase();
-        return searchTerms.every(term => fullName.includes(term.toLowerCase()));
-      });
-      totalCount = filtered.length;
-      usersList = filtered.slice(originalSkip, originalSkip + originalLimit);
-    }
+
 
     return {
       users: usersList,
@@ -148,3 +135,4 @@ export async function createAdminUser(payload: {
     throw new Error(msg);
   }
 }
+

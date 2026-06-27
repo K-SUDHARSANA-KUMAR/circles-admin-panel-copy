@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { IconAlertCircle, IconArrowLeft, IconRefresh, IconSearch } from '@tabler/icons-react';
+import { IconAlertCircle, IconArrowLeft, IconRefresh, IconSearch, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { TablerIcon } from '@tabler/icons-react';
@@ -151,6 +151,7 @@ type ListingToolbarProps = {
   refreshLoading?: boolean;
   primaryAction?: React.ReactNode;
   leadingActions?: React.ReactNode;
+  filterAction?: React.ReactNode;
 };
 
 export const ListingToolbar = ({
@@ -164,6 +165,7 @@ export const ListingToolbar = ({
   refreshLoading = false,
   primaryAction,
   leadingActions,
+  filterAction,
 }: ListingToolbarProps) => (
   <div className={listingStyles.toolbar}>
     <div className="flex items-center gap-3 flex-wrap">
@@ -173,7 +175,7 @@ export const ListingToolbar = ({
       {leadingActions}
     </div>
 
-    <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+    <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
       {onSearchChange !== undefined ? (
         <div className="relative flex-1 sm:flex-initial sm:w-64">
           <IconSearch
@@ -189,6 +191,7 @@ export const ListingToolbar = ({
           />
         </div>
       ) : null}
+      {filterAction ? filterAction : null}
       {onRefresh ? (
         <Button
           variant="outline"
@@ -358,10 +361,15 @@ type ListingPaginationProps = {
   totalItems: number;
   itemsPerPage: number;
   itemLabel?: string;
+  onFirst?: () => void;
   onPrevious: () => void;
   onNext: () => void;
+  onLast?: () => void;
   onItemsPerPageChange?: (value: number) => void;
 };
+
+const paginationBtnCls =
+  'h-7 w-7 p-0 flex items-center justify-center text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800 hover:text-white rounded-lg transition-all';
 
 export const ListingPagination = ({
   currentPage,
@@ -369,21 +377,25 @@ export const ListingPagination = ({
   totalItems,
   itemsPerPage,
   itemLabel = 'entries',
+  onFirst,
   onPrevious,
   onNext,
+  onLast,
   onItemsPerPageChange,
 }: ListingPaginationProps) => {
   if (totalItems === 0) return null;
 
   const start = (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(currentPage * itemsPerPage, totalItems);
+  const isFirst = currentPage <= 1;
+  const isLast = currentPage >= totalPages;
 
   return (
     <div className={listingStyles.pagination}>
       <div className={listingStyles.paginationText}>
         Showing {start} to {end} of {totalItems} {itemLabel}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {onItemsPerPageChange && (
           <select
             value={itemsPerPage}
@@ -398,27 +410,55 @@ export const ListingPagination = ({
             <option value={40}>40</option>
           </select>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={currentPage === 1}
-          onClick={onPrevious}
-          className={listingStyles.paginationButton}
+
+        {/* First Page */}
+        <button
+          type="button"
+          disabled={isFirst}
+          onClick={onFirst}
+          aria-label="First page"
+          className={paginationBtnCls}
         >
-          Previous
-        </Button>
-        <div className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
+          <IconChevronsLeft size={13} />
+        </button>
+
+        {/* Previous Page */}
+        <button
+          type="button"
+          disabled={isFirst}
+          onClick={onPrevious}
+          aria-label="Previous page"
+          className={paginationBtnCls}
+        >
+          <IconChevronLeft size={13} />
+        </button>
+
+        {/* Page indicator */}
+        <div className="text-[11px] text-zinc-400 px-2 font-semibold select-none whitespace-nowrap">
           Page {currentPage} of {totalPages}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={currentPage === totalPages}
+
+        {/* Next Page */}
+        <button
+          type="button"
+          disabled={isLast}
           onClick={onNext}
-          className={listingStyles.paginationButton}
+          aria-label="Next page"
+          className={paginationBtnCls}
         >
-          Next
-        </Button>
+          <IconChevronRight size={13} />
+        </button>
+
+        {/* Last Page */}
+        <button
+          type="button"
+          disabled={isLast}
+          onClick={onLast}
+          aria-label="Last page"
+          className={paginationBtnCls}
+        >
+          <IconChevronsRight size={13} />
+        </button>
       </div>
     </div>
   );

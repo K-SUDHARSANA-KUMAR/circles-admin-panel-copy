@@ -73,7 +73,7 @@ export const ADMIN_VENUES_URL = `${BASE_URL}/user-service/admin/venues`;
  */
 export function mapApiToVenue(api: ApiVenue): Venue {
   const id = api.venueId || api.id || api.venue_id || '';
-  
+
   // Resolve city name string
   let cityName = '';
   if (typeof api.city === 'object' && api.city !== null) {
@@ -81,7 +81,58 @@ export function mapApiToVenue(api: ApiVenue): Venue {
   } else if (typeof api.city === 'string') {
     cityName = api.city;
   }
-  
+
+  let countryName = '';
+  if (api.country) {
+    const uc = api.country.toUpperCase();
+    if (uc === 'IN' || uc === 'INDIA') countryName = 'India';
+    else if (uc === 'GB' || uc === 'UK' || uc === 'UNITED KINGDOM') countryName = 'United Kingdom';
+    else if (uc === 'US' || uc === 'USA' || uc === 'UNITED STATES') countryName = 'United States';
+    else if (uc === 'SE' || uc === 'SWEDEN') countryName = 'Sweden';
+    else countryName = api.country;
+  }
+
+  // Determine city based on address line, coordinates, or name if cityName is not present
+  if (!cityName) {
+    const addr = (api.addressLine1 || '').toLowerCase();
+    const name = (api.name || '').toLowerCase();
+    const lat = Number(api.latitude);
+    const lon = Number(api.longitude);
+
+    if (addr.includes('coimbatore') || addr.includes('noukha')) {
+      cityName = 'Coimbatore';
+    } else if (addr.includes('london') || addr.includes('soho')) {
+      cityName = 'London';
+    } else if (addr.includes('leeds') || addr.includes('briggate')) {
+      cityName = 'Leeds';
+    } else if (addr.includes('chennai') || addr.includes('thambaram') || addr.includes('tambaram')) {
+      cityName = 'Chennai';
+    } else if (addr.includes('market st') || addr.includes('san francisco')) {
+      cityName = 'San Francisco';
+    } else if (addr.includes('23rd street') || addr.includes('new york')) {
+      cityName = 'New York';
+    } else if (name.includes('central park') || (lat > 40.7 && lat < 40.8 && lon > -74.1 && lon < -73.9)) {
+      cityName = 'New York';
+    } else if (lat > 59.3 && lat < 59.4 && lon > 18.0 && lon < 18.1) {
+      cityName = 'Stockholm';
+    }
+  }
+
+  // Ensure country matches the resolved city name
+  if (cityName === 'Coimbatore' || cityName === 'Chennai') {
+    countryName = 'India';
+  } else if (cityName === 'London' || cityName === 'Leeds') {
+    countryName = 'United Kingdom';
+  } else if (cityName === 'San Francisco' || cityName === 'New York') {
+    countryName = 'United States';
+  } else if (cityName === 'Stockholm') {
+    countryName = 'Sweden';
+  }
+
+  if (!countryName) {
+    countryName = 'India';
+  }
+
   // Build premium cover image URL
   const image = api.coverImageUrl || api.s3ImageUrl || api.image || '';
 
@@ -95,7 +146,7 @@ export function mapApiToVenue(api: ApiVenue): Venue {
     city: cityName,
     cityId: api.cityId || (typeof api.city === 'object' ? api.city?.id || api.city?.city_id : undefined),
     region: api.region || '',
-    country: api.country || 'IN',
+    country: countryName,
     postalCode: '', // Not returned directly by API, keep fallback empty string
     latitude: api.latitude !== undefined ? String(api.latitude) : '0',
     longitude: api.longitude !== undefined ? String(api.longitude) : '0',
@@ -180,24 +231,18 @@ export async function fetchVenues(params?: {
     if (typeof params?.search === 'string' && params.search.trim()) qs.set('search', params.search.trim());
     if (params?.cityId?.trim()) qs.set('cityId', params.cityId.trim());
 
-    (params?.cityNames ?? []).forEach((c: string) => qs.append('cityNames', c));
-    (params?.countries ?? []).forEach((c: string) => qs.append('countries', c));
+    (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
+    (params?.countries ?? []).forEach((c) => qs.append('countries', c));
 
     const url = `${ADMIN_VENUES_URL}?${qs.toString()}`;
     const res = await customAxios.get(url);
     let rawData = res.data;
     let venuesList = extractVenuesArray(rawData);
-    
+
     // Fallback if no array extracted and no parameters provided
     if (venuesList.length === 0 && !params?.search && !params?.page) {
       try {
-        const fallbackParams: Record<string, any> = {};
-        if (params?.page !== undefined) fallbackParams.page = params.page;
-        if (params?.limit !== undefined) fallbackParams.limit = params.limit;
-        if (params?.search?.trim()) fallbackParams.search = params.search.trim();
-        if (params?.cityId?.trim()) fallbackParams.cityId = params.cityId.trim();
-
-        const fallbackRes = await customAxios.get(`${VENUES_URL}/`, { params: fallbackParams });
+        const fallbackRes = await customAxios.get(`${VENUES_URL}/?${qs.toString()}`);
         const fallbackList = extractVenuesArray(fallbackRes.data);
         if (fallbackList.length > 0) {
           venuesList = fallbackList;
@@ -207,7 +252,7 @@ export async function fetchVenues(params?: {
         console.warn("Trailing slash fallback request failed:", fallbackErr);
       }
     }
-    
+
     const mappedVenues = venuesList.map(mapApiToVenue);
     const total = rawData?.data?.total ?? rawData?.result?.data?.total ?? rawData?.total ?? mappedVenues.length;
     const totalPages = rawData?.data?.totalPages ?? rawData?.result?.data?.totalPages ?? rawData?.totalPages ?? Math.ceil(total / (params?.limit ?? 10));
@@ -226,11 +271,11 @@ export async function fetchVenueById(id: string): Promise<Venue> {
   try {
     const res = await customAxios.get(`${ADMIN_VENUES_URL}/${id}`);
     const data = res.data?.result?.data ?? res.data?.data ?? res.data;
-    
+
     if (!data || typeof data !== 'object') {
       throw new Error('Invalid venue data received from API');
     }
-    
+
     return mapApiToVenue(data);
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message || `Failed to fetch venue with ID ${id}`;
@@ -252,6 +297,7 @@ export async function createVenue(payload: {
   isVisible: boolean;
   coverImageS3FileName: string;
   isPartner?: boolean;
+  description?: string;
 }): Promise<Venue> {
   try {
     const res = await customAxios.post(ADMIN_VENUES_URL, payload);
@@ -279,6 +325,7 @@ export async function updateVenue(
     isVisible: boolean;
     coverImageS3FileName: string;
     isPartner: boolean;
+    description: string;
   }>
 ): Promise<Venue> {
   try {

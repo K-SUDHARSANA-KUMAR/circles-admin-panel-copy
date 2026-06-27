@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useDebounce } from '@/hooks/useDebounce';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle } from "@tabler/icons-react";
+import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from "@tabler/icons-react";
 import {
   ListingPageContainer,
   ListingSectionHeader,
@@ -22,6 +22,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import VenueDetailClient from "./VenueDetailClient";
 import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
 import { toast } from "sonner";
+import FilterDropdown from "@/components/common/FilterDropdown";
+import { venueFilters } from "@/components/common/filters/venues.filters";
 
 const VenuesPage = () => {
   const router = useRouter();
@@ -37,49 +39,85 @@ const VenuesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalVenues, setTotalVenues] = useState(0);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const debouncedSearch = useDebounce(searchQuery, 500);
 
-
-  const loadVenues = useCallback(async (searchVal = '', pageNum = 1) => {
+  // Load venues based on filters, search query and pagination
+  const loadAllVenues = useCallback(async (searchVal = searchQuery, pageNum = currentPage, filters = activeFilters) => {
     setLoading(true);
     setError(null);
     try {
-      let data: Venue[] = [];
-      if (filterType === 'featured') {
-        data = await fetchFeaturedVenues();
-        setTotalVenues(data.length);
-        setTotalPages(1);
-      } else {
-        data = await fetchVenues({ search: searchVal, page: pageNum, limit: itemsPerPage });
-        setTotalVenues((data as { total?: number }).total ?? data.length);
-        setTotalPages((data as { totalPages?: number }).totalPages ?? 1);
+      const cityNames: string[] | undefined = filters.city
+        ? (Array.isArray(filters.city) ? filters.city.filter(Boolean) : [filters.city])
+        : undefined;
+
+      const countries: string[] | undefined = filters.country
+        ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
+        : undefined;
+
+      const data = await fetchVenues({
+        search: searchVal,
+        page: pageNum,
+        limit: itemsPerPage,
+        cityNames: cityNames?.length ? cityNames : undefined,
+        countries: countries?.length ? countries : undefined,
+      });
+
+      let result = [...data];
+
+      // 1. Visibility filter (client-side only)
+      if (filters.isVisible !== undefined && filters.isVisible !== null && filters.isVisible !== '') {
+        const targetVisible = filters.isVisible === 'true' || filters.isVisible === true;
+        result = result.filter(v => v.isVisible === targetVisible);
       }
-      setVenues(data);
+
+      // 2. Popularity sort (client-side only)
+      if (filters.popularityScore) {
+        const direction = filters.popularityScore;
+        result.sort((a, b) => {
+          const scoreA = a.popularityScore ?? 0;
+          const scoreB = b.popularityScore ?? 0;
+          return direction === 'desc' ? scoreB - scoreA : scoreA - scoreB;
+        });
+      }
+
+      setVenues(result);
+      setTotalVenues((data as any).total ?? data.length);
+      setTotalPages((data as any).totalPages ?? 1);
     } catch (err: any) {
       setError(err.message || "Failed to load venues");
       toast.error(err.message || "Failed to load venues list");
     } finally {
       setLoading(false);
     }
-  }, [filterType, itemsPerPage]);
-
-  const prevSearchRef = useRef(debouncedSearch);
+  }, [currentPage, itemsPerPage, searchQuery, activeFilters]);
 
   useEffect(() => {
     if (detailVenueId) return;
+    loadAllVenues(debouncedSearch, currentPage, activeFilters);
+  }, [debouncedSearch, currentPage, activeFilters, itemsPerPage, loadAllVenues, detailVenueId]);
 
+  // Reset pagination to page 1 on search or filter updates
+  const prevSearchRef = useRef(debouncedSearch);
+  const prevFiltersRef = useRef(activeFilters);
+
+  useEffect(() => {
+    let shouldResetPage = false;
     if (prevSearchRef.current !== debouncedSearch) {
       prevSearchRef.current = debouncedSearch;
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-        return;
-      }
+      shouldResetPage = true;
     }
-    loadVenues(debouncedSearch, currentPage);
-  }, [loadVenues, debouncedSearch, currentPage, detailVenueId]);
+    if (JSON.stringify(prevFiltersRef.current) !== JSON.stringify(activeFilters)) {
+      prevFiltersRef.current = activeFilters;
+      shouldResetPage = true;
+    }
+    if (shouldResetPage) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearch, activeFilters]);
 
   if (detailVenueId) {
     return <VenueDetailClient />;
@@ -99,17 +137,37 @@ const VenuesPage = () => {
         searchPlaceholder="Search venues..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        onRefresh={() => loadVenues(searchQuery, currentPage)}
+        onRefresh={() => loadAllVenues()}
         refreshDisabled={loading}
         refreshLoading={loading}
+        filterAction={
+          <div className="flex flex-wrap items-center gap-2">
+            {venueFilters.map((filter) => (
+              <FilterDropdown
+                key={filter.key}
+                label={filter.label}
+                type={filter.type}
+                options={filter.options}
+                placeholder={filter.placeholder}
+                value={activeFilters[filter.key]}
+                onChange={(val) =>
+                  setActiveFilters((prev) => ({
+                    ...prev,
+                    [filter.key]: val,
+                  }))
+                }
+              />
+            ))}
+          </div>
+        }
         leadingActions={
           <div className="flex items-center bg-[#030303] border border-[#18181b] rounded-lg p-0.5">
             <button
               type="button"
               onClick={() => setViewMode('table')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'table'
-                  ? 'bg-zinc-800 text-white shadow-md'
-                  : 'text-muted-foreground hover:text-white'
+                ? 'bg-zinc-800 text-white shadow-md'
+                : 'text-muted-foreground hover:text-white'
                 }`}
             >
               <IconList size={14} />
@@ -118,8 +176,8 @@ const VenuesPage = () => {
               type="button"
               onClick={() => setViewMode('cards')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'cards'
-                  ? 'bg-zinc-800 text-white shadow-md'
-                  : 'text-muted-foreground hover:text-white'
+                ? 'bg-zinc-800 text-white shadow-md'
+                : 'text-muted-foreground hover:text-white'
                 }`}
             >
               <IconLayoutGrid size={14} />
@@ -153,7 +211,7 @@ const VenuesPage = () => {
             <p className="text-xs text-zinc-500 max-w-xs mx-auto mt-0.5 text-center">{error}</p>
           </div>
           <Button
-            onClick={() => loadVenues(searchQuery, currentPage)}
+            onClick={() => loadAllVenues()}
             variant="outline"
             size="sm"
             className="mt-1 gap-1.5 text-[10px] font-bold uppercase tracking-wider h-8 border-[#18181b] bg-zinc-900 text-white hover:bg-zinc-800"
@@ -185,10 +243,10 @@ const VenuesPage = () => {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-[#18181b] bg-transparent font-sans">
-                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[30%]">Venue Information</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[30%]">Venue Name</TableHead>
                 <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[20%]">Location</TableHead>
                 <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[15%]">City</TableHead>
-                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[15%]">Manager</TableHead>
+                <TableHead className="bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[15%]">Country</TableHead>
                 <TableHead className="text-right bg-transparent text-zinc-500 font-bold text-[10px] uppercase tracking-widest py-4 px-12 border-b border-[#18181b] w-[20%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -209,16 +267,7 @@ const VenuesPage = () => {
                   </TableCell>
                   <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.location || '—'}</TableCell>
                   <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.city || '—'}</TableCell>
-                  <TableCell className="py-5 px-12">
-                    {venue.manager ? (
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                        <IconUser size={12} className="text-zinc-600 shrink-0" />
-                        <span>{venue.manager}</span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-zinc-600">—</span>
-                    )}
-                  </TableCell>
+                  <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.country || '—'}</TableCell>
                   <TableCell className="text-right py-5 px-12">
                     <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-200">
                       <button
@@ -243,10 +292,9 @@ const VenuesPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
           {venues.map((venue) => {
             const category = venue.interests && venue.interests[0] ? venue.interests[0] : "Venue";
-            const city = venue.city || "Location";
 
             // Badge mapping
-            let badgeText = "Active";
+            let badgeText = `Popularity: ${venue.popularityScore ?? 0}`;
             let badgeClass = "bg-[#2d1657]/80 text-[#d8b4fe] border border-[#6d28d9]/30 backdrop-blur-sm";
             if (venue.status === 'Occupied') {
               badgeText = "Partner";
@@ -281,23 +329,39 @@ const VenuesPage = () => {
                   {/* Deep fade-to-card gradient at bottom */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0e] via-[#0c0c0e]/30 to-transparent" />
 
-                  {/* Title + Badge overlaid on image bottom */}
+                  {/* Title + Badge overlaid on image bottom (badge commented out per user request) */}
                   <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 flex items-end justify-between gap-2">
                     <h3 className="text-sm font-bold text-white leading-snug line-clamp-2 drop-shadow-md">
                       {venue.name}
                     </h3>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${badgeClass}`}>
+                    {/* <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${badgeClass}`}>
                       {badgeText}
-                    </span>
+                    </span> */}
                   </div>
                 </div>
 
                 {/* Card Body */}
                 <div className="px-4 pt-3 pb-4 flex flex-col gap-3">
-                  {/* Category & City */}
-                  <p className="text-xs text-zinc-500 font-medium">
-                    {category} · {city}
-                  </p>
+                  {/* Category & City/Country */}
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                      {category}
+                    </p>
+                    <div className="text-xs text-zinc-400 font-medium space-y-0.5 mt-0.5">
+                      <div>
+                        <span className="text-zinc-500 font-semibold">Location: </span>
+                        <span className="text-zinc-300">{venue.location || "—"}</span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500 font-semibold">City: </span>
+                        <span className="text-zinc-300">{venue.city || "—"}</span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500 font-semibold">Country: </span>
+                        <span className="text-zinc-300">{venue.country || "—"}</span>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2">
@@ -327,7 +391,7 @@ const VenuesPage = () => {
           <span className="text-zinc-500">
             Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalVenues)} of {totalVenues} venues
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <select
               value={itemsPerPage}
               onChange={(e) => {
@@ -343,32 +407,18 @@ const VenuesPage = () => {
               <option value={30}>30</option>
               <option value={40}>40</option>
             </select>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-            >
-              Previous
-            </Button>
-            <span className="text-[11px] text-zinc-400 px-1 font-semibold select-none">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              className="h-7 px-3 text-[11px] bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all"
-            >
-              Next
-            </Button>
+            <button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage(1)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="First page"><IconChevronsLeft size={13} /></button>
+            <button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Previous page"><IconChevronLeft size={13} /></button>
+            <span className="text-[11px] text-zinc-400 px-2 font-semibold select-none whitespace-nowrap">Page {currentPage} of {totalPages}</span>
+            <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Next page"><IconChevronRight size={13} /></button>
+            <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(totalPages)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Last page"><IconChevronsRight size={13} /></button>
           </div>
         </div>
       )}
     </ListingPageContainer>
   );
-};
+}
 
 export default VenuesPage;
+
+
