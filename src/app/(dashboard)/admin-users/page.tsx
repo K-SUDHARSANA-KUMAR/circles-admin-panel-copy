@@ -8,8 +8,6 @@ import {
   IconPhone,
   IconMail,
   IconShield,
-  IconGenderMale,
-  IconGenderFemale,
   IconPencil,
   IconTrash,
   IconX,
@@ -304,13 +302,10 @@ export default function AdminUsersPage() {
                   <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[15%]">
                     Role
                   </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
-                    Gender
-                  </th>
-                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[15%]">
+                  <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[20%]">
                     Status
                   </th>
-                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
+                  <th className="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[15%]">
                     Actions
                   </th>
                 </tr>
@@ -318,14 +313,14 @@ export default function AdminUsersPage() {
               <tbody className="divide-y divide-[#18181b]">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="py-20 text-center">
+                    <td colSpan={5} className="py-20 text-center">
                       <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-400" />
                       <p className="text-xs text-zinc-500 mt-2 font-medium">Loading admin users...</p>
                     </td>
                   </tr>
                 ) : paginatedUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-20 text-center">
+                    <td colSpan={5} className="py-20 text-center">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <IconUser size={32} className="text-zinc-600" />
                         <p className="text-xs font-semibold text-zinc-400">No administrators found</p>
@@ -392,24 +387,6 @@ export default function AdminUsersPage() {
                           )}
                         </td>
 
-                        {/* Gender */}
-                        <td className="py-3 px-6">
-                          {user.gender ? (
-                            <div
-                              className="inline-flex items-center p-1 rounded-md bg-zinc-900/60 border border-zinc-800/80 text-zinc-400"
-                              title={`Gender: ${user.gender}`}
-                            >
-                              {user.gender.toLowerCase() === 'male' ? (
-                                <IconGenderMale size={13} className="text-cyan-400" />
-                              ) : (
-                                <IconGenderFemale size={13} className="text-pink-400" />
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-zinc-600 select-none">—</span>
-                          )}
-                        </td>
-
                         {/* Status Badge */}
                         <td className="py-3 px-6">
                           {status === 'active' ? (
@@ -435,13 +412,13 @@ export default function AdminUsersPage() {
                             >
                               <IconPencil size={15} className="cursor-pointer" />
                             </button>
-                            <button
+                            {/* <button
                               onClick={() => setDeleteTarget(user)}
                               className="text-red-400 hover:text-red-300 hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                               title="Delete Admin"
                             >
                               <IconTrash size={15} className="cursor-pointer" />
-                            </button>
+                            </button>*/}
                           </div>
                         </td>
                       </tr>
