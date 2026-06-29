@@ -60,6 +60,9 @@ export interface Venue {
   isPartner?: boolean;
   isVisible?: boolean;
   coverImageS3FileName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  popularity?: number;
   popularityScore?: number;
 }
 
