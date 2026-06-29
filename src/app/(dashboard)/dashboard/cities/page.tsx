@@ -90,7 +90,7 @@ export default function CitiesPage() {
   const [currentCountryPage, setCurrentCountryPage] = useState(1);
   const [itemsPerCountryPage, setItemsPerCountryPage] = useState(10);
   const [activeFiltersCity, setActiveFiltersCity] = useState<Record<string, any>>({});
-  const [activeFiltersCountry, setActiveFiltersCountry] = useState<Record<string, any>>();
+  const [activeFiltersCountry, setActiveFiltersCountry] = useState<Record<string, any>>({});
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
   const getCityStatus = (city: City): 'active' | 'waitlist' | 'inactive' => {
@@ -370,7 +370,6 @@ export default function CitiesPage() {
 
       handleCloseCountryModal();
       await loadCountries(searchQueryCountry, currentCountryPage, activeFiltersCountry);
-      preloadAllCountries();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save country.';
       toast.error(msg);
@@ -393,7 +392,6 @@ export default function CitiesPage() {
       toast.success(`Successfully deleted country: ${deleteCountryTarget.name}`);
       setDeleteCountryTarget(null);
       await loadCountries(searchQueryCountry, currentCountryPage, activeFiltersCountry);
-      preloadAllCountries();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete country.';
       toast.error(msg);
@@ -656,7 +654,7 @@ export default function CitiesPage() {
                     type={filter.type}
                     options={filter.options}
                     placeholder={filter.placeholder}
-                    value={activeFiltersCountry[filter.key]}
+                    value={activeFiltersCountry?.[filter.key]}
                     onChange={(val) =>
                       setActiveFiltersCountry((prev) => ({
                         ...prev,
