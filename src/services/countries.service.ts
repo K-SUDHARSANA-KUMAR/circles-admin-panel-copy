@@ -43,7 +43,7 @@ export async function fetchCountries(params?: {
     if (params?.limit !== undefined) queryParams.limit = params.limit;
     if (params?.skip !== undefined) queryParams.skip = params.skip;
     if (params?.search?.trim()) queryParams.search = params.search.trim();
-    if (params?.isActive !== undefined) queryParams.isActive = params.isActive ? 'true' : '';
+    if (params?.isActive !== undefined) queryParams.isActive = String(params.isActive);
 
 
     const res = await customAxios.get(COUNTRIES_URL, { params: queryParams });
@@ -75,7 +75,7 @@ export async function fetchCountries(params?: {
 
     return Object.assign(mapped, { totalItems });
   } catch (err: any) {
-    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message || 'Server responded with error';
+    const msg = err?.response?.data?.result?.message || err?.response?.data?.message || err?.message || 'Server responded with error';
     throw new Error(msg);
   }
 }
