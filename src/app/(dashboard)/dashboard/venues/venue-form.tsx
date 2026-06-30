@@ -9,6 +9,13 @@ import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconCheck, IconEdit, Ico
 import { DetailPageContainer, DetailPageHeader, detailStyles, listingStyles } from "@/components/shared/listing-page";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { fetchCities, type City } from "@/services/cities.service";
 import { fetchCountries, type Country } from "@/services/countries.service";
 import { createVenue, updateVenue } from "@/services/venue.service";
@@ -600,13 +607,10 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                       className="rounded-xl h-11"
                     />
                   ) : (
-                    <select
-                      id="cityId"
-                      name="cityId"
-                      value={formData.cityId || ""}
-                      onChange={(e) => {
-                        const selectedId = e.target.value;
-                        const selectedCity = cities.find(c => (c.cityId ?? c.city_id ?? c.id) === selectedId);
+                    <Select
+                      value={formData.cityId || undefined}
+                      onValueChange={(selectedId) => {
+                        const selectedCity = cities.find(c => String(c.cityId ?? c.city_id ?? c.id) === selectedId);
                         setFormData(prev => ({
                           ...prev,
                           cityId: selectedId,
@@ -614,19 +618,24 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                           country: selectedCity?.country?.code || selectedCity?.country_code || prev.country
                         }));
                       }}
-                      className="flex h-11 w-full rounded-xl border border-border/50 bg-[#171717] px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <option value="" disabled className="bg-[#171717]">Select operational city...</option>
-                      {cities.map((c) => {
-                        const cid = c.cityId ?? c.city_id ?? c.id;
-                        const countryCode = c.country?.code ?? c.country_code ?? "";
-                        return (
-                          <option key={cid} value={cid} className="bg-[#171717] text-white">
-                            {c.name} {countryCode ? `(${countryCode})` : ""}
-                          </option>
-                        );
-                      })}
-                    </select>
+                      <SelectTrigger className="w-full h-11 rounded-xl bg-[#171717] border-border/50">
+                        <SelectValue placeholder="Select operational city..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cities.map((c) => {
+                          const idValue = c.cityId ?? c.city_id ?? c.id;
+                          if (idValue === undefined || idValue === null) return null;
+                          const cid = String(idValue);
+                          const countryCode = c.country?.code ?? c.country_code ?? "";
+                          return (
+                            <SelectItem key={cid} value={cid}>
+                              {c.name} {countryCode ? `(${countryCode})` : ""}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
                   )}
                 </div>
                 <div className="grid gap-3">
@@ -639,28 +648,33 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                       className="rounded-xl h-11"
                     />
                   ) : (
-                    <select
-                      id="country"
-                      name="country"
-                      value={formData.country || ""}
-                      onChange={(e) => {
+                    <Select
+                      value={formData.country || undefined}
+                      onValueChange={(val) => {
                         setFormData(prev => ({
                           ...prev,
-                          country: e.target.value,
+                          country: val,
                         }));
                       }}
-                      className="flex h-11 w-full rounded-xl border border-border/50 bg-[#171717] px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <option value="" disabled className="bg-[#171717]">Select country...</option>
-                      {countries.map((c) => {
-                        const cid = c.countryId ?? c.country_id ?? c.id;
-                        return (
-                          <option key={cid} value={c.code} className="bg-[#171717] text-white">
-                            {c.name} ({c.code})
-                          </option>
-                        );
-                      })}
-                    </select>
+                      <SelectTrigger className="w-full h-11 rounded-xl bg-[#171717] border-border/50">
+                        <SelectValue placeholder="Select country..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countries.map((c) => {
+                          const idValue = c.countryId ?? c.country_id ?? c.id;
+                          if (idValue === undefined || idValue === null) return null;
+                          const cid = String(idValue);
+                          const code = c.code;
+                          if (!code) return null;
+                          return (
+                            <SelectItem key={cid} value={code}>
+                              {c.name} ({code})
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
                   )}
                 </div>
               </div>
