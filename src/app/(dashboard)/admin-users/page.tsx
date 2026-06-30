@@ -26,6 +26,13 @@ import {
 } from '@/components/shared/listing-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
 import FilterDropdown from '@/components/common/FilterDropdown';
@@ -512,14 +519,18 @@ export default function AdminUsersPage() {
                 <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   Status <span className="text-red-500">*</span>
                 </label>
-                <select
+                <Select
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="flex h-9 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs text-white focus:outline-none focus:border-purple-500"
+                  onValueChange={(val) => setFormData({ ...formData, status: val })}
                 >
-                  <option value="active" className="bg-zinc-950">Active</option>
-                  <option value="inactive" className="bg-zinc-950">Inactive</option>
-                </select>
+                  <SelectTrigger className="w-full h-9 text-xs bg-zinc-900 border-zinc-800 text-white rounded-lg focus:border-purple-500">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Actions */}

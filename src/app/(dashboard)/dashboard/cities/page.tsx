@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   IconPlus,
   IconSearch,
   IconRefresh,
@@ -869,26 +876,30 @@ export default function CitiesPage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Country <span className="text-red-500">*</span>
                 </label>
-                <select
-                  required
-                  value={newCityCountryId}
-                  onChange={(e) => {
-                    const selectedId = e.target.value;
+                <Select
+                  value={newCityCountryId || undefined}
+                  onValueChange={(selectedId) => {
                     setNewCityCountryId(selectedId);
-                    const selectedCountry = countries.find(c => (c.countryId ?? c.id) === selectedId);
+                    const selectedCountry = countries.find(c => String(c.countryId ?? c.id) === selectedId);
                     if (selectedCountry) {
                       setNewCityCode(selectedCountry.code);
                     }
                   }}
-                  className="w-full h-9 text-xs bg-zinc-900 border border-zinc-800 rounded-lg text-white px-3 focus:outline-none focus:border-purple-500"
                 >
-                  <option value="" disabled>Select country...</option>
-                  {countries.map((country) => (
-                    <option key={country.countryId ?? country.id} value={country.countryId ?? country.id} className="bg-zinc-950">
-                      {country.name} ({country.code})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-9 text-xs bg-zinc-900 border-zinc-800 text-white rounded-lg focus:border-purple-500">
+                    <SelectValue placeholder="Select country..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => {
+                      const cid = String(country.countryId ?? country.id);
+                      return (
+                        <SelectItem key={cid} value={cid}>
+                          {country.name} ({country.code})
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Status Selector */}
@@ -896,14 +907,18 @@ export default function CitiesPage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Operational Status
                 </label>
-                <select
+                <Select
                   value={newCityActive ? 'active' : 'inactive'}
-                  onChange={(e) => setNewCityActive(e.target.value === 'active')}
-                  className="w-full h-9 text-xs bg-zinc-900 border border-zinc-800 rounded-lg text-white px-3 focus:outline-none focus:border-purple-500"
+                  onValueChange={(val) => setNewCityActive(val === 'active')}
                 >
-                  <option value="active" className="bg-zinc-950">Active</option>
-                  <option value="inactive" className="bg-zinc-950">Inactive</option>
-                </select>
+                  <SelectTrigger className="w-full h-9 text-xs bg-zinc-900 border-zinc-800 text-white rounded-lg focus:border-purple-500">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Actions */}
@@ -995,14 +1010,18 @@ export default function CitiesPage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Status
                 </label>
-                <select
+                <Select
                   value={newCountryActive ? 'active' : 'inactive'}
-                  onChange={(e) => setNewCountryActive(e.target.value === 'active')}
-                  className="w-full h-9 text-xs bg-zinc-900 border border-zinc-800 rounded-lg text-white px-3 focus:outline-none focus:border-purple-500"
+                  onValueChange={(val) => setNewCountryActive(val === 'active')}
                 >
-                  <option value="active" className="bg-zinc-950">Active</option>
-                  <option value="inactive" className="bg-zinc-950">Inactive</option>
-                </select>
+                  <SelectTrigger className="w-full h-9 text-xs bg-zinc-900 border-zinc-800 text-white rounded-lg focus:border-purple-500">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Actions */}
