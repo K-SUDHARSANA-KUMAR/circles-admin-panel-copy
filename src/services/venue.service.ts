@@ -14,6 +14,10 @@ export interface ApiVenue {
   longitude: number | string;
   addressLine1: string;
   region: string;
+  area?: string;
+  subCategory?: string;
+  postalCode?: string;
+  category?: { id?: string; slug?: string; name?: string } | null;
   country: string;
   isVisible: boolean;
   coverImageS3FileName?: string;
@@ -41,6 +45,9 @@ export interface Venue {
   city: string;
   cityId?: string;
   region: string;
+  area?: string;
+  subCategory?: string;
+  categorySlug?: string;
   country?: string;
   postalCode: string;
   latitude: string;
@@ -146,8 +153,11 @@ export function mapApiToVenue(api: ApiVenue): Venue {
     city: cityName,
     cityId: api.cityId || (typeof api.city === 'object' ? api.city?.id || api.city?.city_id : undefined),
     region: api.region || '',
+    area: api.area || '',
+    subCategory: api.subCategory || '',
+    categorySlug: api.category?.slug || '',
     country: countryName,
-    postalCode: '', // Not returned directly by API, keep fallback empty string
+    postalCode: api.postalCode || '',
     latitude: api.latitude !== undefined ? String(api.latitude) : '0',
     longitude: api.longitude !== undefined ? String(api.longitude) : '0',
     interests: api.interests || [],
@@ -295,6 +305,11 @@ export async function createVenue(payload: {
   longitude: number;
   addressLine1: string;
   region: string;
+  area?: string;
+  subCategory?: string;
+  categorySlug?: string;
+  postalCode?: string;
+  interests?: string[];
   country: string;
   isVisible: boolean;
   coverImageS3FileName: string;
@@ -323,6 +338,11 @@ export async function updateVenue(
     longitude: number;
     addressLine1: string;
     region: string;
+    area: string;
+    subCategory: string;
+    categorySlug: string;
+    postalCode: string;
+    interests: string[];
     country: string;
     isVisible: boolean;
     coverImageS3FileName: string;
@@ -336,6 +356,63 @@ export async function updateVenue(
     return mapApiToVenue(data);
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message || 'Failed to update venue';
+    throw new Error(msg);
+  }
+}
+
+// ─── Venue Categories ────────────────────────────────────────────────────────
+
+export interface VenueCategory {
+  id: string;
+  slug: string;
+  label: string;
+  isActive?: boolean;
+}
+
+const unwrap = (res: any) => res.data?.result?.data ?? res.data?.data ?? res.data;
+
+/**
+ * Venue categories. By default only active ones (for the picker); pass
+ * includeInactive to get all with their status (for the manager).
+ */
+export async function fetchVenueCategories(includeInactive = false): Promise<VenueCategory[]> {
+  try {
+    const url = includeInactive
+      ? `${ADMIN_VENUES_URL}/categories?includeInactive=true`
+      : `${ADMIN_VENUES_URL}/categories`;
+    const res = await customAxios.get(url);
+    const data = unwrap(res);
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Add a new venue category. */
+export async function createVenueCategory(label: string): Promise<VenueCategory> {
+  try {
+    const res = await customAxios.post(`${ADMIN_VENUES_URL}/categories`, { label });
+    return unwrap(res) as VenueCategory;
+  } catch (err: any) {
+    const msg =
+      err.response?.data?.result?.message ||
+      err.response?.data?.message ||
+      err.message ||
+      'Failed to add category';
+    throw new Error(msg);
+  }
+}
+
+/** Set a venue category active/inactive. */
+export async function setVenueCategoryActive(id: string, isActive: boolean): Promise<void> {
+  try {
+    await customAxios.patch(`${ADMIN_VENUES_URL}/categories/${id}`, { isActive });
+  } catch (err: any) {
+    const msg =
+      err.response?.data?.result?.message ||
+      err.response?.data?.message ||
+      err.message ||
+      'Failed to update category';
     throw new Error(msg);
   }
 }

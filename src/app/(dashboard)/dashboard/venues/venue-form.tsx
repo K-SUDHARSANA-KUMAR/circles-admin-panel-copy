@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/select";
 import { fetchCities, type City } from "@/services/cities.service";
 import { fetchCountries, type Country } from "@/services/countries.service";
-import { createVenue, updateVenue } from "@/services/venue.service";
+import { createVenue, updateVenue, fetchVenueCategories, createVenueCategory, type VenueCategory } from "@/services/venue.service";
+import { fetchAllInterests, type InterestOption } from "@/services/interest.service";
 import { toast } from "sonner";
 import { useFileUpload } from "@/features/common/hooks/useFileUpload";
 import dynamic from "next/dynamic";
@@ -54,6 +55,9 @@ export interface Venue {
   city: string;
   cityId?: string;
   region: string;
+  area?: string;
+  subCategory?: string;
+  categorySlug?: string;
   country?: string;
   postalCode: string;
   latitude: string;
@@ -97,6 +101,54 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Venue categories come from the backend table (not a hardcoded list), with a
+  // provision to add a new one inline.
+  const [categories, setCategories] = useState<VenueCategory[]>([]);
+  const [addingCategory, setAddingCategory] = useState(false);
+
+  useEffect(() => {
+    fetchVenueCategories().then(setCategories).catch(() => setCategories([]));
+  }, []);
+
+  // Existing interests catalog — mapped onto the venue (stored as interest ids,
+  // matching how user profiles store their interests).
+  const [allInterests, setAllInterests] = useState<InterestOption[]>([]);
+  useEffect(() => {
+    fetchAllInterests().then(setAllInterests).catch(() => setAllInterests([]));
+  }, []);
+
+  const interestLabel = (id: string) =>
+    allInterests.find((i) => i.id === id)?.name || id;
+
+  const addInterestId = (id: string) => {
+    if (!id) return;
+    setFormData((prev) =>
+      (prev.interests || []).includes(id)
+        ? prev
+        : { ...prev, interests: [...(prev.interests || []), id] },
+    );
+  };
+
+  const handleAddCategory = async () => {
+    const label = (typeof window !== "undefined"
+      ? window.prompt("New category name")
+      : "")?.trim();
+    if (!label) return;
+    setAddingCategory(true);
+    try {
+      const created = await createVenueCategory(label);
+      setCategories((prev) =>
+        prev.some((c) => c.slug === created.slug) ? prev : [...prev, created],
+      );
+      setFormData((prev) => ({ ...prev, categorySlug: created.slug }));
+      toast.success(`Added category: ${created.label}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add category");
+    } finally {
+      setAddingCategory(false);
+    }
+  };
+
   // Map state
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
@@ -109,6 +161,9 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     city: initialData?.city || "",
     cityId: initialData?.cityId || "",
     region: initialData?.region || "",
+    area: initialData?.area || "",
+    subCategory: initialData?.subCategory || "",
+    categorySlug: initialData?.categorySlug || "",
     country: initialData?.country || "",
     postalCode: initialData?.postalCode || "",
     latitude: initialData?.latitude || "",
@@ -121,7 +176,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     coverImageS3FileName: initialData?.coverImageS3FileName || "",
   });
 
-  const [interestInput, setInterestInput] = useState("");
 
   // Check if coordinates are valid numbers and not zero
   const latNum = parseFloat(formData.latitude);
@@ -211,17 +265,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const addInterest = () => {
-    const trimmedInput = interestInput.trim();
-    if (trimmedInput && !formData.interests.includes(trimmedInput)) {
-      setFormData(prev => ({
-        ...prev,
-        interests: [...(prev.interests || []), trimmedInput]
-      }));
-      setInterestInput("");
-    }
-  };
-
   const removeInterest = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -261,10 +304,14 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
         longitude: parseFloat(formData.longitude) || 0,
         addressLine1: formData.addressLine1.trim(),
         region: formData.region.trim(),
+        area: formData.area?.trim() || undefined,
+        categorySlug: formData.categorySlug?.trim() || undefined,
+        postalCode: formData.postalCode?.trim() || undefined,
+        interests: formData.interests || [],
+        // sub-category is now captured via mapped interests (removed as a field)
         country: formData.country || "IN",
         isVisible: formData.isVisible !== false,
         coverImageS3FileName: coverImageS3FileName,
-        isPartner: formData.isPartner || false,
         description: formData.description.trim(),
       };
 
@@ -438,23 +485,25 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
           </div>
 
           {/* Commented out as it is not needed in creating the venue */}
-          {/* 
           <div className="glass-card p-6 flex flex-col gap-4">
             <Label className="text-base font-bold flex items-center gap-2">
               <IconInfoCircle size={18} className="text-primary" />
-              Interests & Attributes
+              Mapped Interests
             </Label>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Map this venue to interests so it surfaces to users who share them.
+            </p>
             
             <div className="flex flex-wrap gap-2 min-h-[100px] p-4 rounded-2xl bg-muted/20 border border-border/50 content-start shadow-inner">
               {formData.interests.length > 0 ? (
-                formData.interests.map((interest: string, index: number) => (
-                  <span 
-                    key={index} 
+                formData.interests.map((slug: string, index: number) => (
+                  <span
+                    key={slug}
                     className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary text-xs font-bold rounded-xl border border-primary/20 animate-in zoom-in duration-300"
                   >
-                    {interest}
+                    {interestLabel(slug)}
                     {!isViewing && (
-                      <button 
+                      <button
                         type="button"
                         onClick={() => removeInterest(index)}
                         className="hover:text-destructive transition-colors"
@@ -466,37 +515,31 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                 ))
               ) : (
                 <div className="flex flex-col items-center justify-center w-full h-full gap-2 text-muted-foreground/50 py-4">
-                  <p className="text-sm italic">No interests tagged yet</p>
+                  <p className="text-sm italic">No interests mapped yet</p>
                 </div>
               )}
             </div>
 
             {!isViewing && (
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Type an interest..." 
-                  value={interestInput}
-                  onChange={(e) => setInterestInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addInterest();
-                    }
-                  }}
-                  className="rounded-xl"
-                />
-                <Button 
-                  type="button"
-                  variant="secondary"
-                  onClick={addInterest}
-                  className="rounded-xl px-6"
-                >
-                  Add
-                </Button>
-              </div>
+              <select
+                value=""
+                onChange={(e) => {
+                  addInterestId(e.target.value);
+                  e.target.value = "";
+                }}
+                className="flex h-11 w-full rounded-xl border border-border/50 bg-[#171717] px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+              >
+                <option value="" className="bg-[#171717]">Map an interest…</option>
+                {allInterests
+                  .filter((i) => !(formData.interests || []).includes(i.id))
+                  .map((i) => (
+                    <option key={i.id} value={i.id} className="bg-[#171717] text-white">
+                      {i.name}
+                    </option>
+                  ))}
+              </select>
             )}
           </div>
-          */}
           <div className="glass-card p-6 flex flex-col gap-6">
             <Label className="text-base font-bold flex items-center gap-2">
               <IconInfoCircle size={18} className="text-primary" />
@@ -504,32 +547,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
             </Label>
             
              <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-muted/20 shadow-inner">
-                <div>
-                  <Label htmlFor="isFeature" className="font-bold text-base cursor-pointer">Featured Venue</Label>
-                  <p className="text-sm text-muted-foreground">Display this venue prominently on the main page</p>
-                </div>
-                <Switch
-                  id="isFeature"
-                  checked={formData.isFeature}
-                  onCheckedChange={(c) => handleSwitchChange("isFeature", c)}
-                  disabled={isViewing}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-muted/20 shadow-inner">
-                <div>
-                  <Label htmlFor="isPartner" className="font-bold text-base cursor-pointer">Partner Venue</Label>
-                  <p className="text-sm text-muted-foreground">Mark this venue as an official partner</p>
-                </div>
-                <Switch
-                  id="isPartner"
-                  checked={formData.isPartner}
-                  onCheckedChange={(c) => handleSwitchChange("isPartner", c)}
-                  disabled={isViewing}
-                />
-              </div>
-
               <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-muted/20 shadow-inner">
                 <div>
                   <Label htmlFor="isVisible" className="font-bold text-base cursor-pointer">Visibility</Label>
@@ -564,11 +581,11 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
               </div>
 
               <div className="grid gap-3">
-                <Label htmlFor="description" className="text-base font-bold">Venue Description</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
-                  placeholder="Provide a detailed description of the venue, its features, and history..." 
+                <Label htmlFor="description" className="text-base font-bold">Reviews</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Summary / review of the venue — its vibe, features, and what stands out..."
                   value={formData.description}
                   onChange={handleInputChange}
                   readOnly={isViewing}
@@ -675,6 +692,89 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                         })}
                       </SelectContent>
                     </Select>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid gap-3">
+                  <Label htmlFor="region" className="font-bold">Region</Label>
+                  <Input
+                    id="region"
+                    name="region"
+                    placeholder="Central London"
+                    value={formData.region}
+                    onChange={handleInputChange}
+                    readOnly={isViewing}
+                    className="rounded-xl h-11"
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="area" className="font-bold">Area / Neighbourhood</Label>
+                  <Input
+                    id="area"
+                    name="area"
+                    placeholder="Mayfair"
+                    value={formData.area || ""}
+                    onChange={handleInputChange}
+                    readOnly={isViewing}
+                    className="rounded-xl h-11"
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="postalCode" className="font-bold">Postal Code</Label>
+                  <Input
+                    id="postalCode"
+                    name="postalCode"
+                    placeholder="W1K 2RX"
+                    value={formData.postalCode}
+                    onChange={handleInputChange}
+                    readOnly={isViewing}
+                    className="rounded-xl h-11"
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="categorySlug" className="font-bold">Category</Label>
+                    {!isViewing && (
+                      <button
+                        type="button"
+                        onClick={handleAddCategory}
+                        disabled={addingCategory}
+                        className="text-xs text-primary hover:underline disabled:opacity-50"
+                      >
+                        {addingCategory ? "Adding…" : "+ Add category"}
+                      </button>
+                    )}
+                  </div>
+                  {isViewing ? (
+                    <Input
+                      id="categorySlug"
+                      value={
+                        categories.find((o) => o.slug === formData.categorySlug)?.label ||
+                        formData.categorySlug ||
+                        "Not Specified"
+                      }
+                      readOnly
+                      className="rounded-xl h-11"
+                    />
+                  ) : (
+                    <select
+                      id="categorySlug"
+                      name="categorySlug"
+                      value={formData.categorySlug || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, categorySlug: e.target.value }))
+                      }
+                      className="flex h-11 w-full rounded-xl border border-border/50 bg-[#171717] px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="" className="bg-[#171717]">Select category...</option>
+                      {categories.map((o) => (
+                        <option key={o.slug} value={o.slug} className="bg-[#171717] text-white">
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
                   )}
                 </div>
               </div>

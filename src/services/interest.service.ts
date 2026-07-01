@@ -147,6 +147,30 @@ export async function fetchInterestGroups(search?: string): Promise<InterestGrou
  * Searches interests (sub-interests) by name via backend API.
  * Returns matching ApiInterest objects that include their interestGroupId.
  */
+export interface InterestOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+/** All interests (flat) from the catalog — used to map interests onto venues. */
+export async function fetchAllInterests(): Promise<InterestOption[]> {
+  try {
+    const res = await customAxios.get(`${INTERESTS_URL}?limit=500`);
+    const data = extractArray(res.data) ?? [];
+    return (data as any[])
+      .map((i) => ({
+        id: String(i?.Interestid ?? i?.id ?? ''),
+        name: String(i?.name ?? ''),
+        slug: String(i?.slug ?? ''),
+      }))
+      .filter((i) => i.slug && i.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchInterestsBySearch(search: string): Promise<ApiInterest[]> {
   try {
     const url = `${INTERESTS_URL}?search=${encodeURIComponent(search.trim())}`;

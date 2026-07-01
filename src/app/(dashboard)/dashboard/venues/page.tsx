@@ -11,15 +11,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from "@tabler/icons-react";
+import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight, IconTag } from "@tabler/icons-react";
 import {
   ListingPageContainer,
   ListingSectionHeader,
+  ListingSegmentedTabs,
   ListingToolbar,
   listingStyles,
 } from "@/components/shared/listing-page";
 import { useRouter, useSearchParams } from "next/navigation";
 import VenueDetailClient from "./VenueDetailClient";
+import { VenueCategoriesSection } from "./venue-categories-section";
 import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
 import { toast } from "sonner";
 import FilterDropdown from "@/components/common/FilterDropdown";
@@ -30,6 +32,7 @@ const VenuesPage = () => {
   const searchParams = useSearchParams();
   const detailVenueId = searchParams.get("id");
 
+  const [activeTab, setActiveTab] = useState<'venues' | 'categories'>('venues');
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,8 +133,22 @@ const VenuesPage = () => {
         icon={IconBuilding}
         title="Venue Management"
         subtitle={`${totalVenues} venues registered`}
+        trailing={
+          <ListingSegmentedTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={[
+              { id: 'venues', label: 'Venues', icon: IconBuilding },
+              { id: 'categories', label: 'Categories', icon: IconTag },
+            ]}
+          />
+        }
       />
 
+      {activeTab === 'categories' ? (
+        <VenueCategoriesSection />
+      ) : (
+      <>
       <ListingToolbar
         countLabel={`${totalVenues} Total Spaces`}
         showCount={!loading}
@@ -415,6 +432,8 @@ const VenuesPage = () => {
             <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(totalPages)} className="h-7 w-7 p-0 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300 disabled:opacity-30 hover:bg-zinc-800 hover:text-white rounded-lg transition-all" aria-label="Last page"><IconChevronsRight size={13} /></button>
           </div>
         </div>
+      )}
+      </>
       )}
     </ListingPageContainer>
   );
