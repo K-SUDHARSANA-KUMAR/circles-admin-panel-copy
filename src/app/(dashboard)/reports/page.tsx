@@ -18,13 +18,12 @@ import {
   ListingErrorPanel,
 } from '@/components/shared/listing-page';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import {
   IconFileSpreadsheet,
@@ -120,8 +119,8 @@ export default function ReportsPage() {
     }
   };
 
-  // Perform status update action (RESOLVED or REJECTED)
-  const handleUpdateStatus = async (status: 'RESOLVED' | 'REJECTED') => {
+  // Perform status update action (RESOLVED, REJECTED, or RESOLVED_BLOCK)
+  const handleUpdateStatus = async (status: 'RESOLVED' | 'REJECTED' | 'RESOLVED_BLOCK') => {
     if (!selectedReportId) return;
     setActionLoading(true);
     try {
@@ -335,173 +334,195 @@ export default function ReportsPage() {
         </ListingTableBody>
       </ListingTableWrapper>
 
-      {/* Slide-out Report Detail Sheet */}
-      <Sheet open={selectedReportId !== null} onOpenChange={(open) => {
+      {/* Report Detail Modal */}
+      <Dialog open={selectedReportId !== null} onOpenChange={(open) => {
         if (!open) {
           setSelectedReportId(null);
           setSelectedReport(null);
         }
       }}>
-        <SheetContent side="right" className="bg-[#09090b] border-l border-[#18181b] text-white p-6 sm:max-w-md w-full">
-          <SheetHeader className="border-b border-[#18181b] pb-4">
-            <SheetTitle className="text-white text-base font-bold flex items-center gap-2">
+        <DialogContent className="bg-[#09090b] border border-[#18181b] text-white p-6 max-w-4xl w-[90vw] max-h-[90vh] flex flex-col">
+          <DialogHeader className="border-b border-[#18181b] pb-4">
+            <DialogTitle className="text-white text-base font-bold flex items-center gap-2">
               <IconAlertCircle className="text-[#d8b4fe]" size={18} />
               Review Report Details
-            </SheetTitle>
-            <SheetDescription className="text-zinc-500 text-xs">
+            </DialogTitle>
+            <DialogDescription className="text-zinc-500 text-xs">
               Review user profiles, reason details, and take action.
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           {loadingDetail || !selectedReport ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-2">
+            <div className="flex flex-col items-center justify-center py-20 gap-2 flex-1">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-[#d8b4fe]" />
               <p className="text-xs text-zinc-500 font-medium">Retrieving report timeline...</p>
             </div>
           ) : (
-            <div className="space-y-6 mt-6 overflow-y-auto max-h-[calc(100vh-200px)] pr-2">
-              {/* Status Header */}
-              <div className="bg-zinc-950/60 border border-zinc-900 rounded-lg p-3 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Current Status</span>
-                <ListingStatusBadge
-                  variant={mapStatusToVariant(selectedReport.status)}
-                  label={selectedReport.status}
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 overflow-y-auto pr-2 flex-1 min-h-0">
+              {/* Left Column: Details */}
+              <div className="space-y-6">
+                {/* Status Header */}
+                <div className="bg-zinc-950/60 border border-zinc-900 rounded-lg p-3 flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Current Status</span>
+                  <ListingStatusBadge
+                    variant={mapStatusToVariant(selectedReport.status)}
+                    label={selectedReport.status}
+                  />
+                </div>
 
-              {/* Profiles Section */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Parties Involved</h4>
-                
-                {/* Reporter */}
-                <div className="bg-zinc-900/40 border border-zinc-850 p-3 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-zinc-850 flex items-center justify-center text-zinc-400">
-                      {selectedReport.reporter?.profilePhoto ? (
-                        <img
-                          src={selectedReport.reporter.profilePhoto}
-                          alt="reporter"
-                          className="h-full w-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <IconUser size={14} />
-                      )}
+                {/* Profiles Section */}
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Parties Involved</h4>
+                  
+                  {/* Reporter */}
+                  <div className="bg-zinc-900/40 border border-zinc-850 p-3 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-zinc-850 flex items-center justify-center text-zinc-400">
+                        {selectedReport.reporter?.profilePhoto ? (
+                          <img
+                            src={selectedReport.reporter.profilePhoto}
+                            alt="reporter"
+                            className="h-full w-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <IconUser size={14} />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-zinc-200">
+                          {selectedReport.reporter?.firstName
+                            ? `${selectedReport.reporter.firstName} ${selectedReport.reporter.lastName || ''}`.trim()
+                            : 'Reporter'}
+                        </p>
+                        <p className="text-[9px] font-mono text-zinc-500">ID: {selectedReport.reporter?.id}</p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] uppercase font-bold tracking-wider text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded">
+                      Reporter
+                    </span>
+                  </div>
+
+                  {/* Reported User */}
+                  <div className="bg-rose-950/10 border border-rose-900/20 p-3 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-rose-950/30 flex items-center justify-center text-rose-400">
+                        {selectedReport.reportedUser?.profilePhoto ? (
+                          <img
+                            src={selectedReport.reportedUser.profilePhoto}
+                            alt="reported"
+                            className="h-full w-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <IconUser size={14} />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-rose-200">
+                          {selectedReport.reportedUser?.firstName
+                            ? `${selectedReport.reportedUser.firstName} ${selectedReport.reportedUser.lastName || ''}`.trim()
+                            : 'Reported User'}
+                        </p>
+                        <p className="text-[9px] font-mono text-rose-500/80">ID: {selectedReport.reportedUser?.id}</p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] uppercase font-bold tracking-wider text-rose-400 bg-rose-950/30 border border-rose-900/30 px-2 py-0.5 rounded">
+                      Reported
+                    </span>
+                  </div>
+                </div>
+
+                {/* Reason Description */}
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Complaint Details</h4>
+                  <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-lg space-y-3">
+                    <div>
+                      <span className="text-[9px] font-bold text-zinc-500 uppercase block mb-1">Reason Category</span>
+                      <span className="font-bold text-zinc-200 text-xs px-2.5 py-1 bg-zinc-950 border border-zinc-900 rounded-md">
+                        {selectedReport.reasonCode}
+                      </span>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-zinc-200">
-                        {selectedReport.reporter?.firstName
-                          ? `${selectedReport.reporter.firstName} ${selectedReport.reporter.lastName || ''}`.trim()
-                          : 'Reporter'}
+                      <span className="text-[9px] font-bold text-zinc-500 uppercase block mb-1">Explanation / Proof</span>
+                      <p className="text-xs text-zinc-300 leading-relaxed italic">
+                        {selectedReport.reasonText ? `"${selectedReport.reasonText}"` : 'No additional text description provided.'}
                       </p>
-                      <p className="text-[9px] font-mono text-zinc-500">ID: {selectedReport.reporter?.id}</p>
                     </div>
-                  </div>
-                  <span className="text-[9px] uppercase font-bold tracking-wider text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded">
-                    Reporter
-                  </span>
-                </div>
-
-                {/* Reported User */}
-                <div className="bg-rose-950/10 border border-rose-900/20 p-3 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-rose-950/30 flex items-center justify-center text-rose-400">
-                      {selectedReport.reportedUser?.profilePhoto ? (
-                        <img
-                          src={selectedReport.reportedUser.profilePhoto}
-                          alt="reported"
-                          className="h-full w-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <IconUser size={14} />
-                      )}
+                    <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
+                      <IconClock size={11} />
+                      <span>
+                        Filed {new Date(selectedReport.createdAt).toLocaleString()}
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold text-rose-200">
-                        {selectedReport.reportedUser?.firstName
-                          ? `${selectedReport.reportedUser.firstName} ${selectedReport.reportedUser.lastName || ''}`.trim()
-                          : 'Reported User'}
-                      </p>
-                      <p className="text-[9px] font-mono text-rose-500/80">ID: {selectedReport.reportedUser?.id}</p>
-                    </div>
-                  </div>
-                  <span className="text-[9px] uppercase font-bold tracking-wider text-rose-400 bg-rose-950/30 border border-rose-900/30 px-2 py-0.5 rounded">
-                    Reported
-                  </span>
-                </div>
-              </div>
-
-              {/* Reason Description */}
-              <div className="space-y-2">
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Complaint Details</h4>
-                <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-lg space-y-3">
-                  <div>
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase block mb-1">Reason Category</span>
-                    <span className="font-bold text-zinc-200 text-xs px-2.5 py-1 bg-zinc-950 border border-zinc-900 rounded-md">
-                      {selectedReport.reasonCode}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase block mb-1">Explanation / Proof</span>
-                    <p className="text-xs text-zinc-300 leading-relaxed italic">
-                      {selectedReport.reasonText ? `"${selectedReport.reasonText}"` : 'No additional text description provided.'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
-                    <IconClock size={11} />
-                    <span>
-                      Filed {new Date(selectedReport.createdAt).toLocaleString()}
-                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Admin Action Notes */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Admin Notes</h4>
-                  {selectedReport.status !== 'PENDING' && (
-                    <span className="text-[9px] text-zinc-500 flex items-center gap-1">
-                      <IconNotebook size={10} /> Read-only
-                    </span>
-                  )}
+              {/* Right Column: Actions and Notes */}
+              <div className="space-y-6 flex flex-col justify-between h-full">
+                {/* Admin Action Notes */}
+                <div className="space-y-2 flex-1 flex flex-col">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Admin Notes</h4>
+                    {selectedReport.status !== 'PENDING' && (
+                      <span className="text-[9px] text-zinc-500 flex items-center gap-1">
+                        <IconNotebook size={10} /> Read-only
+                      </span>
+                    )}
+                  </div>
+                  <Textarea
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    placeholder="Record verification findings, context details, or rejection reasons here..."
+                    className="bg-zinc-900 border-zinc-800 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:ring-[#d8b4fe] flex-1 min-h-[120px] resize-none"
+                    disabled={selectedReport.status !== 'PENDING' || actionLoading}
+                  />
                 </div>
-                <Textarea
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Record verification findings, context details, or rejection reasons here..."
-                  className="bg-zinc-900 border-zinc-800 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:ring-[#d8b4fe] min-h-[90px]"
-                  disabled={selectedReport.status !== 'PENDING' || actionLoading}
-                />
-              </div>
 
-              {/* Action Buttons */}
-              {selectedReport.status === 'PENDING' && (
-                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#18181b]">
-                  <Button
-                    type="button"
-                    onClick={() => handleUpdateStatus('REJECTED')}
-                    disabled={actionLoading}
-                    variant="outline"
-                    className="border-red-950 bg-red-950/20 text-rose-200 hover:bg-red-900 hover:text-white flex items-center justify-center gap-1.5 h-9 text-xs font-bold uppercase tracking-wider"
-                  >
-                    <IconX size={14} />
-                    Reject Report
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => handleUpdateStatus('RESOLVED')}
-                    disabled={actionLoading}
-                    className="bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] flex items-center justify-center gap-1.5 h-9 text-xs font-bold uppercase tracking-wider"
-                  >
-                    <IconCheck size={14} />
-                    Resolve Report
-                  </Button>
-                </div>
-              )}
+                {/* Action Buttons */}
+                {selectedReport.status === 'PENDING' ? (
+                  <div className="space-y-3 pt-4 border-t border-[#18181b]">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        type="button"
+                        onClick={() => handleUpdateStatus('REJECTED')}
+                        disabled={actionLoading}
+                        variant="outline"
+                        className="border-red-950 bg-red-950/20 text-rose-200 hover:bg-red-900 hover:text-white flex items-center justify-center gap-1.5 h-9 text-xs font-bold uppercase tracking-wider"
+                      >
+                        <IconX size={14} />
+                        Reject Report
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => handleUpdateStatus('RESOLVED')}
+                        disabled={actionLoading}
+                        className="bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] flex items-center justify-center gap-1.5 h-9 text-xs font-bold uppercase tracking-wider"
+                      >
+                        <IconCheck size={14} />
+                        Resolve Report
+                      </Button>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => handleUpdateStatus('RESOLVED_BLOCK')}
+                      disabled={actionLoading}
+                      variant="outline"
+                      className="w-full border-red-700 bg-red-900/30 text-red-200 hover:bg-red-800 hover:text-white flex items-center justify-center gap-1.5 h-9 text-xs font-bold uppercase tracking-wider"
+                    >
+                      <IconTrash size={14} />
+                      Resolve &amp; Block User
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="pt-4 border-t border-[#18181b] text-center text-xs text-zinc-500 font-medium">
+                    This report has already been processed.
+                  </div>
+                )}
+              </div>
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </ListingPageContainer>
   );
 }
