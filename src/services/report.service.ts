@@ -1,4 +1,5 @@
 import customAxios from '@/lib/axios';
+import { apiEndPoint } from '@/features/apiEndPoint';
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -31,9 +32,9 @@ export interface PaginatedReportsResponse {
 
 // ─── Endpoint Configuration ──────────────────────────────────────────────────
 
-const CORE_SERVICE_URL =
-  process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_URL ||
-  'http://localhost:3002/api/core-service';
+const CORE_SERVICE_URL = process.env.NEXT_PUBLIC_BASE_URL
+  ? `${process.env.NEXT_PUBLIC_BASE_URL}/core-service`
+  : (apiEndPoint.CITIES_ENDPOINT as string).replace('/user-service/cities', '/core-service');
 
 export const REPORTS_URL = `${CORE_SERVICE_URL}/reports`;
 
