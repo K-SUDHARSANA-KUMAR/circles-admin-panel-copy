@@ -100,12 +100,12 @@ export async function fetchReportById(id: string): Promise<Report> {
 }
 
 /**
- * Updates a report's status (RESOLVED or REJECTED) with optional admin notes.
+ * Updates a report's status (RESOLVED, REJECTED, or RESOLVED_BLOCK) with optional admin notes.
  */
 export async function updateReportStatus(
   id: string,
   payload: {
-    status: 'RESOLVED' | 'REJECTED';
+    status: 'RESOLVED' | 'REJECTED' | 'RESOLVED_BLOCK';
     adminNotes?: string;
   }
 ): Promise<Report> {

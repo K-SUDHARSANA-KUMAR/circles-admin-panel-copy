@@ -249,8 +249,15 @@ const handleResponseError = async (
       `Network error: unable to reach ${requestUrl}.`,
       error.message || 'No response from server.'
     );
-  } else if (error.message) {
-    console.error('Request error:', error.message);
+  } else if (error.response && error.message) {
+    // Use console.warn for client errors (4xx) — callers handle these gracefully.
+    // Reserve console.error for server errors (5xx) which are truly unexpected.
+    const status = error.response.status;
+    if (status >= 500) {
+      console.error('Server error:', error.message);
+    } else {
+      console.warn('Request error:', error.message);
+    }
   }
 
   return Promise.reject(error);
