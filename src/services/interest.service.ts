@@ -155,20 +155,31 @@ export interface InterestOption {
 
 /** All interests (flat) from the catalog — used to map interests onto venues. */
 export async function fetchAllInterests(): Promise<InterestOption[]> {
+  // The backend caps `limit` at 100 (rejects anything higher with a 400), so we
+  // page through with skip/limit and accumulate until a short/empty page.
+  const PAGE_SIZE = 100;
+  const all: InterestOption[] = [];
   try {
-    const res = await customAxios.get(`${INTERESTS_URL}?limit=500`);
-    const data = extractArray(res.data) ?? [];
-    return (data as any[])
-      .map((i) => ({
-        id: String(i?.Interestid ?? i?.id ?? ''),
-        name: String(i?.name ?? ''),
-        slug: String(i?.slug ?? ''),
-      }))
-      .filter((i) => i.slug && i.name)
-      .sort((a, b) => a.name.localeCompare(b.name));
+    for (let skip = 0, guard = 0; guard < 100; guard++, skip += PAGE_SIZE) {
+      const res = await customAxios.get(
+        `${INTERESTS_URL}?limit=${PAGE_SIZE}&skip=${skip}`,
+      );
+      const data = extractArray(res.data) ?? [];
+      const mapped = (data as any[])
+        .map((i) => ({
+          id: String(i?.Interestid ?? i?.id ?? ''),
+          name: String(i?.name ?? ''),
+          slug: String(i?.slug ?? ''),
+        }))
+        .filter((i) => i.slug && i.name);
+      all.push(...mapped);
+      // Last page reached once the backend returns fewer than a full page.
+      if (data.length < PAGE_SIZE) break;
+    }
   } catch {
-    return [];
+    // Best-effort: return whatever we accumulated before the failure.
   }
+  return all.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function fetchInterestsBySearch(search: string): Promise<ApiInterest[]> {
