@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import {
   ListingPageContainer,
   ListingSectionHeader,
@@ -16,15 +17,9 @@ import {
   ListingLoadingRow,
   ListingEmptyRow,
   ListingErrorPanel,
+  DetailPageContainer,
+  DetailPageHeader,
 } from '@/components/shared/listing-page';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import {
   IconFileSpreadsheet,
   IconUser,
@@ -33,7 +28,16 @@ import {
   IconX,
   IconClock,
   IconNotebook,
-  IconTrash,
+  IconMessage,
+  IconShield,
+  IconNotes,
+  IconBan,
+  IconCircleCheck,
+  IconCircleX,
+  IconMail,
+  IconPhone,
+  IconCalendar,
+  IconMessageReport,
 } from '@tabler/icons-react';
 import {
   fetchReports,
@@ -57,12 +61,28 @@ export default function ReportsPage() {
   // Filter states
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'RESOLVED' | 'REJECTED'>('ALL');
 
-  // Detail panel / action states
+  // Detail view states
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Ref for the chat container to scroll it locally
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll chat history to the bottom when detail panel finishes loading
+  useEffect(() => {
+    if (selectedReport && selectedReport.messages && selectedReport.messages.length > 0) {
+      // Small timeout to allow DOM to render
+      const timer = setTimeout(() => {
+        if (chatContainerRef.current) {
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+      }, 80);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedReport]);
 
   // Load all reports
   const loadReports = useCallback(async (pageNum = currentPage, status = statusFilter) => {
@@ -86,12 +106,10 @@ export default function ReportsPage() {
     }
   }, [itemsPerPage]);
 
-  // Load reports when page or filter changes
   useEffect(() => {
     loadReports(currentPage, statusFilter);
   }, [currentPage, statusFilter, loadReports]);
 
-  // Reset pagination to page 1 on filter change
   const prevFilterRef = useRef(statusFilter);
   useEffect(() => {
     if (prevFilterRef.current !== statusFilter) {
@@ -108,9 +126,7 @@ export default function ReportsPage() {
     try {
       const report = await fetchReportById(id);
       setSelectedReport(report);
-      if (report.adminNotes) {
-        setAdminNotes(report.adminNotes);
-      }
+      if (report.adminNotes) setAdminNotes(report.adminNotes);
     } catch (err: any) {
       toast.error(err.message || 'Failed to retrieve report details');
       setSelectedReportId(null);
@@ -119,7 +135,6 @@ export default function ReportsPage() {
     }
   };
 
-  // Perform status update action (RESOLVED, REJECTED, or RESOLVED_BLOCK)
   const handleUpdateStatus = async (status: 'RESOLVED' | 'REJECTED' | 'RESOLVED_BLOCK') => {
     if (!selectedReportId) return;
     setActionLoading(true);
@@ -129,8 +144,7 @@ export default function ReportsPage() {
         adminNotes: adminNotes.trim() || undefined,
       });
       setSelectedReport(updated);
-      toast.success(`Report status updated to ${status.toLowerCase()} successfully`);
-      // Reload lists
+      toast.success(`Report ${status.toLowerCase().replace('_', ' ')} successfully`);
       loadReports(currentPage, statusFilter);
     } catch (err: any) {
       toast.error(err.message || 'Failed to update report status');
@@ -139,20 +153,428 @@ export default function ReportsPage() {
     }
   };
 
-  // Status mapping to UI status badges
   const mapStatusToVariant = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return 'pending';
-      case 'RESOLVED':
-        return 'active';
-      case 'REJECTED':
-        return 'rejected';
-      default:
-        return 'inactive';
+      case 'PENDING': return 'pending';
+      case 'RESOLVED': return 'active';
+      case 'REJECTED': return 'rejected';
+      default: return 'inactive';
     }
   };
 
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+
+  const getStatusBadge = (status: string) => {
+    if (status === 'PENDING') return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-950/30 border border-amber-900/40 text-amber-400 text-xs font-semibold">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+        Pending
+      </span>
+    );
+    if (status === 'RESOLVED') return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-950/30 border border-emerald-900/40 text-emerald-400 text-xs font-semibold">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        Resolved
+      </span>
+    );
+    if (status === 'REJECTED') return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-red-950/30 border border-red-900/40 text-rose-400 text-xs font-semibold">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+        Rejected
+      </span>
+    );
+    return null;
+  };
+
+  // ── DETAIL VIEW ──────────────────────────────────────────────────────────
+  if (selectedReportId) {
+    return (
+      <DetailPageContainer className="pb-12 animate-in fade-in duration-300">
+        <DetailPageHeader
+          icon={IconMessageReport}
+          title={selectedReport ? `Report Details — ${selectedReport.id.slice(0, 8).toUpperCase()}` : 'Report Details'}
+          subtitle={selectedReport ? `Filed on ${formatDate(selectedReport.createdAt)}` : 'Loading...'}
+          onBack={() => {
+            setSelectedReportId(null);
+            setSelectedReport(null);
+          }}
+          backLabel="Back to Reports List"
+          trailing={
+            selectedReport ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Status:</span>
+                {getStatusBadge(selectedReport.status)}
+              </div>
+            ) : undefined
+          }
+        />
+
+        {loadingDetail || !selectedReport ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-3">
+            <div className="h-7 w-7 animate-spin rounded-full border-2 border-zinc-800 border-t-[#d8b4fe]" />
+            <p className="text-xs text-zinc-500 font-medium">Retrieving report details...</p>
+          </div>
+        ) : (
+          <>
+            {/* ── Top 3 Cards ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+
+              {/* Card 1: Report Summary */}
+              <Card className="border-[#18181b] bg-[#09090b] shadow-xl flex flex-col justify-between">
+                <div>
+                  <CardHeader className="border-b border-[#18181b] py-3.5 px-5 flex flex-row items-center gap-2">
+                    <IconNotes size={16} className="text-[#d8b4fe]" />
+                    <div>
+                      <CardTitle className="text-xs font-bold text-white">Report Summary</CardTitle>
+                      <CardDescription className="text-[9px] text-zinc-500 mt-0.5">
+                        Complaint classification and timeline
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-5 space-y-3.5">
+                    <div>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 block mb-0.5">
+                        Reason Category
+                      </span>
+                      <span className="font-bold text-[#d8b4fe] text-xs px-2.5 py-1 bg-[#1c122c]/40 border border-[#3b1a60]/30 rounded-md">
+                        {selectedReport.reasonCode}
+                      </span>
+                    </div>
+                    {selectedReport.reasonText && (
+                      <div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 block mb-0.5">
+                          User Description
+                        </span>
+                        <p className="text-xs text-zinc-300 leading-relaxed italic">
+                          "{selectedReport.reasonText}"
+                        </p>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 gap-2 border-t border-[#18181b]/60 pt-3">
+                      <div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 block mb-0.5">
+                          Date Filed
+                        </span>
+                        <span className="text-[11px] text-zinc-300 block mt-0.5 font-mono">
+                          {formatDate(selectedReport.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </div>
+
+                {/* Admin notes display (read-only if resolved/rejected) */}
+                {selectedReport.adminNotes && (
+                  <div className="p-5 border-t border-[#18181b]/60 bg-zinc-950/30">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 block mb-1">
+                      Admin Notes
+                    </span>
+                    <div className="text-[11px] text-zinc-400 italic">
+                      "{selectedReport.adminNotes}"
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              {/* Card 2: Reporter Profile */}
+              <Card className="border-[#18181b] bg-[#09090b] shadow-xl">
+                <CardHeader className="border-b border-[#18181b] py-3.5 px-5 flex flex-row items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                    <IconUser size={12} className="text-zinc-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xs font-bold text-white">Reporter Profile</CardTitle>
+                    <CardDescription className="text-[9px] text-zinc-500 mt-0.5">
+                      Complaining party details
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-5 space-y-3.5">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0 overflow-hidden"
+                      style={{ background: 'linear-gradient(135deg, #18181b, #27272a)' }}
+                    >
+                      {selectedReport.reporter?.profilePhoto ? (
+                        <img src={selectedReport.reporter.profilePhoto} alt="reporter" className="w-full h-full object-cover" />
+                      ) : (
+                        (selectedReport.reporter?.firstName?.charAt(0) ?? 'R').toUpperCase()
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white block">
+                        {selectedReport.reporter?.firstName
+                          ? `${selectedReport.reporter.firstName} ${selectedReport.reporter.lastName ?? ''}`.trim()
+                          : 'Unknown Reporter'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2 border-t border-[#18181b]/60 pt-3">
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <IconMail size={12} className="text-zinc-600 shrink-0" />
+                      <span className="truncate">{selectedReport.reporter?.email ?? '—'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <IconPhone size={12} className="text-zinc-600 shrink-0" />
+                      <span>{selectedReport.reporter?.phone ?? '—'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <IconCalendar size={12} className="text-zinc-600 shrink-0" />
+                      <span>
+                        Joined {selectedReport.reporter?.createdAt
+                          ? new Date(selectedReport.reporter.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric', month: 'short', day: 'numeric',
+                            })
+                          : '—'}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Card 3: Reported User Profile */}
+              <Card className="border-[#18181b] bg-[#09090b] shadow-xl">
+                <CardHeader className="border-b border-[#18181b] py-3.5 px-5 flex flex-row items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                    <IconShield size={12} className="text-[#d8b4fe]" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xs font-bold text-white">Reported User Profile</CardTitle>
+                    <CardDescription className="text-[9px] text-zinc-500 mt-0.5">
+                      Subject of complaint and history
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-[#d8b4fe] shrink-0 overflow-hidden"
+                        style={{ background: 'linear-gradient(135deg, #2d124d, #09090b)', border: '1px solid #3b1a60' }}
+                      >
+                        {selectedReport.reportedUser?.profilePhoto ? (
+                          <img src={selectedReport.reportedUser.profilePhoto} alt="reported" className="w-full h-full object-cover" />
+                        ) : (
+                          (selectedReport.reportedUser?.firstName?.charAt(0) ?? 'U').toUpperCase()
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block">
+                          {selectedReport.reportedUser?.firstName
+                            ? `${selectedReport.reportedUser.firstName} ${selectedReport.reportedUser.lastName ?? ''}`.trim()
+                            : 'Unknown User'}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      {selectedReport.reportedUser?.status === 'blocked' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-950/20 border border-red-900/30 text-rose-400 text-[10px] font-semibold">
+                          Blocked
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-950/20 border border-cyan-900/30 text-cyan-400 text-[10px] font-semibold">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 border-t border-[#18181b]/60 pt-3">
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <IconMail size={12} className="text-zinc-600 shrink-0" />
+                      <span className="truncate">{selectedReport.reportedUser?.email ?? '—'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <IconPhone size={12} className="text-zinc-600 shrink-0" />
+                      <span>{selectedReport.reportedUser?.phone ?? '—'}</span>
+                    </div>
+                  </div>
+
+                  {/* Reliability Score */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                      <span className="text-zinc-500">Reliability Score</span>
+                      <span className={`px-1.5 py-0.5 rounded ${
+                        (selectedReport.reportedUser?.reliabilityScore ?? 80) >= 80
+                          ? 'bg-emerald-950/30 border border-emerald-900/40 text-emerald-400 text-[10px] font-semibold'
+                          : (selectedReport.reportedUser?.reliabilityScore ?? 80) >= 50
+                          ? 'bg-amber-950/30 border border-amber-900/40 text-amber-400 text-[10px] font-semibold'
+                          : 'bg-red-950/30 border border-red-900/40 text-rose-400 text-[10px] font-semibold'
+                      }`}>
+                        {selectedReport.reportedUser?.reliabilityScore ?? 80}%
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-zinc-900 border border-zinc-800 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          (selectedReport.reportedUser?.reliabilityScore ?? 80) >= 80
+                            ? 'bg-emerald-500'
+                            : (selectedReport.reportedUser?.reliabilityScore ?? 80) >= 50
+                            ? 'bg-amber-500'
+                            : 'bg-rose-500'
+                        }`}
+                        style={{ width: `${selectedReport.reportedUser?.reliabilityScore ?? 80}%` }}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* ── Evidence Log (full width) ── */}
+            <Card className="border-[#18181b] bg-[#09090b] shadow-xl mt-6">
+              <CardHeader className="border-b border-[#18181b] py-4 px-6 flex flex-row items-center gap-2">
+                <IconMessage size={16} className="text-[#d8b4fe]" />
+                <div>
+                  <CardTitle className="text-sm font-bold text-white">Evidence Log</CardTitle>
+                  <CardDescription className="text-[10px] text-zinc-500 mt-0.5">
+                    Messages and media sent prior to report submittal
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                {!selectedReport.messages || selectedReport.messages.length === 0 ? (
+                  <div className="py-16 text-center flex flex-col items-center justify-center gap-2 border border-dashed border-zinc-800 rounded-xl bg-zinc-950/20">
+                    <IconMessage size={28} className="text-zinc-600" />
+                    <p className="text-xs font-semibold text-zinc-400">No Chat History Attached</p>
+                    <p className="text-[10px] text-zinc-600 max-w-[280px]">
+                      No conversation logs were submitted with this report.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">
+                      Recent Chat Log
+                    </span>
+                    <div ref={chatContainerRef} className="border border-zinc-800 bg-[#060608] rounded-xl p-4 space-y-3 max-h-[480px] overflow-y-auto">
+                      {selectedReport.messages.slice(-20).map((msg) => {
+                        const isReporter = msg.senderId === selectedReport.reporter?.id;
+                        const displayName = msg.senderName || (isReporter
+                          ? `${selectedReport.reporter?.firstName ?? 'Reporter'} ${selectedReport.reporter?.lastName ?? ''}`.trim()
+                          : `${selectedReport.reportedUser?.firstName ?? 'Reported User'} ${selectedReport.reportedUser?.lastName ?? ''}`.trim());
+                        return (
+                          <div
+                            key={msg.messageId}
+                            className={`flex flex-col max-w-[75%] ${isReporter ? 'mr-auto items-start' : 'ml-auto items-end'}`}
+                          >
+                            <div className="flex items-center gap-1.5 mb-1 px-1">
+                              <span className="text-[10px] font-semibold text-zinc-400">{displayName}</span>
+                              <span className="text-[9px] text-zinc-600">
+                                ({isReporter ? 'Reporter' : 'Reported'})
+                              </span>
+                            </div>
+                            <div
+                              className={`px-3.5 py-2.5 rounded-2xl text-xs font-medium leading-relaxed ${isReporter
+                                  ? 'bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-tl-sm'
+                                  : 'bg-[#1c122c] border border-[#3b1a60]/30 text-zinc-100 rounded-tr-sm'
+                                }`}
+                            >
+                              {msg.messageType === 'image' ? (
+                                <img
+                                  src={msg.text}
+                                  alt="Chat attachment"
+                                  className="max-w-[240px] max-h-[180px] rounded-lg object-cover cursor-pointer border border-zinc-700/50 my-1"
+                                  onClick={() => window.open(msg.text, '_blank')}
+                                />
+                              ) : msg.messageType === 'url' ? (
+                                <a
+                                  href={msg.text}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline text-purple-300 hover:text-purple-200 break-all"
+                                >
+                                  {msg.text}
+                                </a>
+                              ) : (
+                                msg.text
+                              )}
+                            </div>
+                            <span className="text-[9px] text-zinc-600 mt-1 px-1">
+                              {formatDate(msg.timestamp)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ── Admin Notes & Action Panel (below Evidence Log) ── */}
+            <Card className="border-[#18181b] bg-[#09090b] shadow-xl mt-6">
+              <CardHeader className="border-b border-[#18181b] py-3.5 px-5 flex flex-row items-center gap-2">
+                <IconNotebook size={16} className="text-[#d8b4fe]" />
+                <div>
+                  <CardTitle className="text-xs font-bold text-white">Admin Notes & Actions</CardTitle>
+                  <CardDescription className="text-[10px] text-zinc-500 mt-0.5">
+                    Record verification findings and finalize report status
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                {selectedReport.status === 'PENDING' ? (
+                  <>
+                    <Textarea
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      placeholder="Record verification findings, context details, or rejection reasons..."
+                      className="bg-zinc-900 border-zinc-800 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:ring-[#d8b4fe] min-h-[80px] max-h-[120px] resize-none w-full"
+                      disabled={actionLoading}
+                    />
+
+                    {/* Action Buttons */}
+                    <div className="border-t border-[#18181b] pt-4 flex justify-end items-center gap-3">
+                      <Button
+                        type="button"
+                        onClick={() => handleUpdateStatus('REJECTED')}
+                        disabled={actionLoading}
+                        className="h-9 text-xs font-bold uppercase tracking-wider bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white px-5 rounded-lg flex items-center gap-1.5 transition-all duration-200"
+                      >
+                        <IconCircleX size={14} />
+                        Reject Report
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => handleUpdateStatus('RESOLVED')}
+                        disabled={actionLoading}
+                        className="h-9 text-xs font-bold uppercase tracking-wider bg-zinc-900 border border-[#3b1a60]/50 text-emerald-400 hover:bg-zinc-800 hover:text-emerald-300 px-5 rounded-lg flex items-center gap-1.5 transition-all duration-200"
+                      >
+                        <IconCircleCheck size={14} />
+                        Resolve Report
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => handleUpdateStatus('RESOLVED_BLOCK')}
+                        disabled={actionLoading}
+                        className="h-9 text-xs font-bold uppercase tracking-wider bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/30 text-rose-400 hover:text-rose-300 px-5 rounded-lg flex items-center gap-1.5 transition-all duration-200"
+                      >
+                        <IconBan size={14} />
+                        Resolve & Block User
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 p-2.5 bg-zinc-900/40 border border-zinc-850 rounded-lg">
+                    <IconAlertCircle size={14} className="text-zinc-500" />
+                    <span className="text-[11px] text-zinc-400 font-medium">
+                      Workflow closed — status is <strong>{selectedReport.status.toLowerCase()}</strong>
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </DetailPageContainer>
+    );
+  }
+
+  // ── LIST VIEW ─────────────────────────────────────────────────────────────
   return (
     <ListingPageContainer className="font-sans">
       <ListingSectionHeader
@@ -176,11 +598,10 @@ export default function ReportsPage() {
                   key={tab}
                   type="button"
                   onClick={() => setStatusFilter(tab)}
-                  className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
-                    isActive
+                  className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${isActive
                       ? 'bg-zinc-800 text-white shadow-md border border-zinc-700'
                       : 'text-zinc-500 hover:text-zinc-300'
-                  }`}
+                    }`}
                 >
                   {tab}
                 </button>
@@ -190,7 +611,6 @@ export default function ReportsPage() {
         }
       />
 
-      {/* Reports Table Listing */}
       <ListingTableWrapper
         footer={
           <ListingPagination
@@ -242,88 +662,61 @@ export default function ReportsPage() {
                 onClick={() => loadReportDetails(report.id)}
                 className="group hover:bg-[#0c0c0e] transition-colors duration-200 cursor-pointer border-b border-[#18181b]/40"
               >
-                {/* Reporter Column */}
+                {/* Reporter */}
                 <td className="py-4 px-12 text-sm font-semibold text-white">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-400">
-                      {report.reporter?.profilePhoto ? (
-                        <img
-                          src={report.reporter.profilePhoto}
-                          alt="reporter"
-                          className="h-full w-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <IconUser size={14} />
-                      )}
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-400 overflow-hidden">
+                      {report.reporter?.profilePhoto
+                        ? <img src={report.reporter.profilePhoto} alt="reporter" className="h-full w-full object-cover" />
+                        : <IconUser size={14} />}
                     </div>
-                    <div>
-                      <p className="text-zinc-200">
-                        {report.reporter?.firstName
-                          ? `${report.reporter.firstName} ${report.reporter.lastName || ''}`.trim()
-                          : 'Unknown User'}
-                      </p>
-                      <p className="text-[10px] text-zinc-500 font-mono">{report.reporter?.id}</p>
-                    </div>
+                    <p className="text-zinc-200">
+                      {report.reporter?.firstName
+                        ? `${report.reporter.firstName} ${report.reporter.lastName || ''}`.trim()
+                        : 'Unknown User'}
+                    </p>
                   </div>
                 </td>
 
-                {/* Reported User Column */}
+                {/* Reported User */}
                 <td className="py-4 px-12 text-sm font-semibold text-white">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-950/40 border border-red-900/30 text-rose-400">
-                      {report.reportedUser?.profilePhoto ? (
-                        <img
-                          src={report.reportedUser.profilePhoto}
-                          alt="reported"
-                          className="h-full w-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <IconUser size={14} />
-                      )}
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-950/40 border border-red-900/30 text-rose-400 overflow-hidden">
+                      {report.reportedUser?.profilePhoto
+                        ? <img src={report.reportedUser.profilePhoto} alt="reported" className="h-full w-full object-cover" />
+                        : <IconUser size={14} />}
                     </div>
-                    <div>
-                      <p className="text-rose-200">
-                        {report.reportedUser?.firstName
-                          ? `${report.reportedUser.firstName} ${report.reportedUser.lastName || ''}`.trim()
-                          : 'Unknown User'}
-                      </p>
-                      <p className="text-[10px] text-rose-500/80 font-mono">{report.reportedUser?.id}</p>
-                    </div>
+                    <p className="text-rose-200">
+                      {report.reportedUser?.firstName
+                        ? `${report.reportedUser.firstName} ${report.reportedUser.lastName || ''}`.trim()
+                        : 'Unknown User'}
+                    </p>
                   </div>
                 </td>
 
-                {/* Reason Category Column */}
+                {/* Reason */}
                 <td className="py-4 px-12 text-sm text-zinc-300">
                   <span className="font-bold text-zinc-400 text-xs px-2 py-1 bg-zinc-900 border border-zinc-850 rounded-md">
                     {report.reasonCode}
                   </span>
                 </td>
 
-                {/* Filed Date Column */}
+                {/* Filed Date */}
                 <td className="py-4 px-12 text-sm text-zinc-400 font-mono">
-                  {new Date(report.createdAt).toLocaleString(undefined, {
-                    dateStyle: 'short',
-                    timeStyle: 'short',
-                  })}
+                  {new Date(report.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                 </td>
 
-                {/* Status Column */}
+                {/* Status */}
                 <td className="py-4 px-12 text-sm">
-                  <ListingStatusBadge
-                    variant={mapStatusToVariant(report.status)}
-                    label={report.status}
-                  />
+                  <ListingStatusBadge variant={mapStatusToVariant(report.status)} label={report.status} />
                 </td>
 
-                {/* Actions Column */}
+                {/* Action */}
                 <td className="py-4 px-12 text-right text-sm">
                   <Button
                     variant="link"
                     className="text-xs font-bold text-[#d8b4fe] hover:text-[#c084fc] p-0 h-auto"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      loadReportDetails(report.id);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); loadReportDetails(report.id); }}
                   >
                     View & Action
                   </Button>
@@ -333,196 +726,6 @@ export default function ReportsPage() {
           )}
         </ListingTableBody>
       </ListingTableWrapper>
-
-      {/* Report Detail Modal */}
-      <Dialog open={selectedReportId !== null} onOpenChange={(open) => {
-        if (!open) {
-          setSelectedReportId(null);
-          setSelectedReport(null);
-        }
-      }}>
-        <DialogContent className="bg-[#09090b] border border-[#18181b] text-white p-6 max-w-4xl w-[90vw] max-h-[90vh] flex flex-col">
-          <DialogHeader className="border-b border-[#18181b] pb-4">
-            <DialogTitle className="text-white text-base font-bold flex items-center gap-2">
-              <IconAlertCircle className="text-[#d8b4fe]" size={18} />
-              Review Report Details
-            </DialogTitle>
-            <DialogDescription className="text-zinc-500 text-xs">
-              Review user profiles, reason details, and take action.
-            </DialogDescription>
-          </DialogHeader>
-
-          {loadingDetail || !selectedReport ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-2 flex-1">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-[#d8b4fe]" />
-              <p className="text-xs text-zinc-500 font-medium">Retrieving report timeline...</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 overflow-y-auto pr-2 flex-1 min-h-0">
-              {/* Left Column: Details */}
-              <div className="space-y-6">
-                {/* Status Header */}
-                <div className="bg-zinc-950/60 border border-zinc-900 rounded-lg p-3 flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Current Status</span>
-                  <ListingStatusBadge
-                    variant={mapStatusToVariant(selectedReport.status)}
-                    label={selectedReport.status}
-                  />
-                </div>
-
-                {/* Profiles Section */}
-                <div className="space-y-3">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Parties Involved</h4>
-                  
-                  {/* Reporter */}
-                  <div className="bg-zinc-900/40 border border-zinc-850 p-3 rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-zinc-850 flex items-center justify-center text-zinc-400">
-                        {selectedReport.reporter?.profilePhoto ? (
-                          <img
-                            src={selectedReport.reporter.profilePhoto}
-                            alt="reporter"
-                            className="h-full w-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <IconUser size={14} />
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-zinc-200">
-                          {selectedReport.reporter?.firstName
-                            ? `${selectedReport.reporter.firstName} ${selectedReport.reporter.lastName || ''}`.trim()
-                            : 'Reporter'}
-                        </p>
-                        <p className="text-[9px] font-mono text-zinc-500">ID: {selectedReport.reporter?.id}</p>
-                      </div>
-                    </div>
-                    <span className="text-[9px] uppercase font-bold tracking-wider text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded">
-                      Reporter
-                    </span>
-                  </div>
-
-                  {/* Reported User */}
-                  <div className="bg-rose-950/10 border border-rose-900/20 p-3 rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-rose-950/30 flex items-center justify-center text-rose-400">
-                        {selectedReport.reportedUser?.profilePhoto ? (
-                          <img
-                            src={selectedReport.reportedUser.profilePhoto}
-                            alt="reported"
-                            className="h-full w-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <IconUser size={14} />
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-rose-200">
-                          {selectedReport.reportedUser?.firstName
-                            ? `${selectedReport.reportedUser.firstName} ${selectedReport.reportedUser.lastName || ''}`.trim()
-                            : 'Reported User'}
-                        </p>
-                        <p className="text-[9px] font-mono text-rose-500/80">ID: {selectedReport.reportedUser?.id}</p>
-                      </div>
-                    </div>
-                    <span className="text-[9px] uppercase font-bold tracking-wider text-rose-400 bg-rose-950/30 border border-rose-900/30 px-2 py-0.5 rounded">
-                      Reported
-                    </span>
-                  </div>
-                </div>
-
-                {/* Reason Description */}
-                <div className="space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Complaint Details</h4>
-                  <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-lg space-y-3">
-                    <div>
-                      <span className="text-[9px] font-bold text-zinc-500 uppercase block mb-1">Reason Category</span>
-                      <span className="font-bold text-zinc-200 text-xs px-2.5 py-1 bg-zinc-950 border border-zinc-900 rounded-md">
-                        {selectedReport.reasonCode}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-bold text-zinc-500 uppercase block mb-1">Explanation / Proof</span>
-                      <p className="text-xs text-zinc-300 leading-relaxed italic">
-                        {selectedReport.reasonText ? `"${selectedReport.reasonText}"` : 'No additional text description provided.'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
-                      <IconClock size={11} />
-                      <span>
-                        Filed {new Date(selectedReport.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Actions and Notes */}
-              <div className="space-y-6 flex flex-col justify-between h-full">
-                {/* Admin Action Notes */}
-                <div className="space-y-2 flex-1 flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Admin Notes</h4>
-                    {selectedReport.status !== 'PENDING' && (
-                      <span className="text-[9px] text-zinc-500 flex items-center gap-1">
-                        <IconNotebook size={10} /> Read-only
-                      </span>
-                    )}
-                  </div>
-                  <Textarea
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                    placeholder="Record verification findings, context details, or rejection reasons here..."
-                    className="bg-zinc-900 border-zinc-800 text-xs text-zinc-300 placeholder:text-zinc-600 focus-visible:ring-[#d8b4fe] flex-1 min-h-[120px] resize-none"
-                    disabled={selectedReport.status !== 'PENDING' || actionLoading}
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                {selectedReport.status === 'PENDING' ? (
-                  <div className="space-y-3 pt-4 border-t border-[#18181b]">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        type="button"
-                        onClick={() => handleUpdateStatus('REJECTED')}
-                        disabled={actionLoading}
-                        variant="outline"
-                        className="border-red-950 bg-red-950/20 text-rose-200 hover:bg-red-900 hover:text-white flex items-center justify-center gap-1.5 h-9 text-xs font-bold uppercase tracking-wider"
-                      >
-                        <IconX size={14} />
-                        Reject Report
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => handleUpdateStatus('RESOLVED')}
-                        disabled={actionLoading}
-                        className="bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] flex items-center justify-center gap-1.5 h-9 text-xs font-bold uppercase tracking-wider"
-                      >
-                        <IconCheck size={14} />
-                        Resolve Report
-                      </Button>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() => handleUpdateStatus('RESOLVED_BLOCK')}
-                      disabled={actionLoading}
-                      variant="outline"
-                      className="w-full border-red-700 bg-red-900/30 text-red-200 hover:bg-red-800 hover:text-white flex items-center justify-center gap-1.5 h-9 text-xs font-bold uppercase tracking-wider"
-                    >
-                      <IconTrash size={14} />
-                      Resolve &amp; Block User
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="pt-4 border-t border-[#18181b] text-center text-xs text-zinc-500 font-medium">
-                    This report has already been processed.
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </ListingPageContainer>
   );
 }

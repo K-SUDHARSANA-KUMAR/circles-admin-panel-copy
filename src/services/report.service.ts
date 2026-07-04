@@ -8,6 +8,20 @@ export interface ReportUserRef {
   firstName: string | null;
   lastName: string | null;
   profilePhoto: string | null;
+  email: string | null;
+  phone: string | null;
+  status: string | null;
+  createdAt: string | null;
+  reliabilityScore: number | null;
+}
+
+export interface ReportChatMessage {
+  messageId: string;
+  senderId: string;
+  senderName?: string;
+  text: string;
+  timestamp: string;
+  messageType?: string;
 }
 
 export interface Report {
@@ -20,6 +34,7 @@ export interface Report {
   adminNotes: string | null;
   createdAt: string;
   updatedAt: string;
+  messages?: ReportChatMessage[];
 }
 
 export interface PaginatedReportsResponse {
