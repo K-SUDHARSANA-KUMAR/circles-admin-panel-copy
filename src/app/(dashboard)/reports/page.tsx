@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -48,6 +49,10 @@ import {
 import { toast } from 'sonner';
 
 export default function ReportsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const detailId = searchParams.get('id');
+
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +140,15 @@ export default function ReportsPage() {
     }
   };
 
+  useEffect(() => {
+    if (detailId) {
+      loadReportDetails(detailId);
+    } else {
+      setSelectedReportId(null);
+      setSelectedReport(null);
+    }
+  }, [detailId]);
+
   const handleUpdateStatus = async (status: 'RESOLVED' | 'REJECTED' | 'RESOLVED_BLOCK') => {
     if (!selectedReportId) return;
     setActionLoading(true);
@@ -201,6 +215,7 @@ export default function ReportsPage() {
           onBack={() => {
             setSelectedReportId(null);
             setSelectedReport(null);
+            router.push('/reports');
           }}
           backLabel="Back to Reports List"
           trailing={

@@ -47,11 +47,21 @@ export interface PaginatedReportsResponse {
 
 // ─── Endpoint Configuration ──────────────────────────────────────────────────
 
-const CORE_SERVICE_URL = process.env.NEXT_PUBLIC_BASE_URL
-  ? `${process.env.NEXT_PUBLIC_BASE_URL}/core-service`
-  : (apiEndPoint.CITIES_ENDPOINT as string).replace('/user-service/cities', '/core-service');
+const getCoreServiceUrl = () => {
+  if (process.env.NEXT_PUBLIC_CORE_SERVICE_URL) {
+    return process.env.NEXT_PUBLIC_CORE_SERVICE_URL;
+  }
+  let url = process.env.NEXT_PUBLIC_BASE_URL
+    ? `${process.env.NEXT_PUBLIC_BASE_URL}/core-service`
+    : (apiEndPoint.CITIES_ENDPOINT as string).replace('/user-service/cities', '/core-service');
 
-export const REPORTS_URL = `${CORE_SERVICE_URL}/reports`;
+  if (url.includes('localhost:3005')) {
+    url = url.replace('localhost:3005', 'localhost:3002');
+  }
+  return url;
+};
+
+export const REPORTS_URL = `${getCoreServiceUrl()}/reports`;
 
 // ─── API Operations ──────────────────────────────────────────────────────────
 

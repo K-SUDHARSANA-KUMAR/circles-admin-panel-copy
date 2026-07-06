@@ -72,6 +72,60 @@ export async function fetchCustomerById(customerId: string): Promise<Customer> {
   }
 }
 
+export interface UserDevice {
+  id: string;
+  platform: string | null;
+  deviceId: string | null;
+  createdAt: string;
+}
+
+/** Fetches registered device tokens and platforms for a user. */
+export async function fetchUserDevices(userId: string): Promise<UserDevice[]> {
+  try {
+    const res = await customAxios.get(`${BASE_URL}/user-service/notifications/tokens`, {
+      params: { userId }
+    });
+    return res.data?.result?.data ?? res.data?.data ?? res.data ?? [];
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
+}
+
+/** Sends a targeted notification to a single user. */
+export async function sendNotification(
+  userId: string,
+  payload: { title: string; body: string; data?: Record<string, any> }
+): Promise<any> {
+  try {
+    const res = await customAxios.post(
+      `${BASE_URL}/user-service/notifications/send`,
+      payload,
+      { params: { userId } }
+    );
+    return res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
+}
+
+/** Sends a broadcast notification to all active users. */
+export async function broadcastNotification(
+  payload: { title: string; body: string; data?: Record<string, any> }
+): Promise<any> {
+  try {
+    const res = await customAxios.post(
+      `${BASE_URL}/user-service/notifications/broadcast`,
+      payload
+    );
+    return res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
+}
+
 /**
  * Fetches the list of customers/users from the backend user-service.
  *
