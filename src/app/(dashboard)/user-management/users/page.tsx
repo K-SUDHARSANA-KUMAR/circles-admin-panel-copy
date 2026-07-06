@@ -4,7 +4,15 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import UserDetailClient from './UserDetailClient';
-import { fetchCustomers, updateCustomerStatus, type Customer } from '@/services/user.service';
+import {
+  fetchCustomers,
+  updateCustomerStatus,
+  fetchUserDevices,
+  sendNotification,
+  broadcastNotification,
+  type Customer,
+  type UserDevice,
+} from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import {
   IconRefresh,
@@ -16,6 +24,7 @@ import {
   IconLoader,
   IconMapPin,
   IconUsers,
+  IconBell,
 } from '@tabler/icons-react';
 import {
   ListingPageContainer,
@@ -39,6 +48,7 @@ import { guessCountryFromUser } from '@/components/common/filters/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 export default function UsersPage() {
   const router = useRouter();
@@ -63,6 +73,88 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false);
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
   const [cityToCountryMap, setCityToCountryMap] = useState<Record<string, string>>({});
+
+  // Notification Modal States
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [notificationTargetType, setNotificationTargetType] = useState<'broadcast' | 'single'>('broadcast');
+  const [notificationTargetUser, setNotificationTargetUser] = useState<Customer | null>(null);
+  const [notificationTitle, setNotificationTitle] = useState('');
+  const [notificationBody, setNotificationBody] = useState('');
+  const [isSendingNotification, setIsSendingNotification] = useState(false);
+  const [userDevices, setUserDevices] = useState<UserDevice[]>([]);
+  const [loadingDevices, setLoadingDevices] = useState(false);
+
+  const handleOpenNotificationModal = async (targetUser?: Customer) => {
+    setNotificationTitle('');
+    setNotificationBody('');
+    setUserDevices([]);
+    if (targetUser) {
+      setNotificationTargetType('single');
+      setNotificationTargetUser(targetUser);
+      setIsNotificationModalOpen(true);
+      setLoadingDevices(true);
+      try {
+        const devices = await fetchUserDevices(targetUser.id);
+        setUserDevices(devices);
+      } catch (err) {
+        console.error('Failed to load user devices', err);
+        toast.error('Failed to load user devices');
+      } finally {
+        setLoadingDevices(false);
+      }
+    } else {
+      setNotificationTargetType('broadcast');
+      setNotificationTargetUser(null);
+      setIsNotificationModalOpen(true);
+    }
+  };
+
+  const handleCloseNotificationModal = () => {
+    setIsNotificationModalOpen(false);
+    setNotificationTargetUser(null);
+    setNotificationTitle('');
+    setNotificationBody('');
+    setUserDevices([]);
+  };
+
+  const handleSendNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notificationTitle.trim() || !notificationBody.trim()) {
+      toast.error('Please enter both title and message body');
+      return;
+    }
+
+    setIsSendingNotification(true);
+    try {
+      if (notificationTargetType === 'single') {
+        if (!notificationTargetUser) {
+          toast.error('No target user selected');
+          return;
+        }
+        await sendNotification(notificationTargetUser.id, {
+          title: notificationTitle.trim(),
+          body: notificationBody.trim(),
+        });
+        const displayName = notificationTargetUser.name
+          ? `${notificationTargetUser.name} ${notificationTargetUser.lastName || ''}`.trim()
+          : 'User';
+        toast.success(`Successfully sent push notification to ${displayName}`);
+      } else {
+        const res = await broadcastNotification({
+          title: notificationTitle.trim(),
+          body: notificationBody.trim(),
+        });
+        const targeted = res?.usersTargeted ?? res?.data?.usersTargeted ?? 0;
+        toast.success(`Successfully broadcasted push notification to all users (${targeted} active users targeted)`);
+      }
+      handleCloseNotificationModal();
+    } catch (err: any) {
+      const msg = err.message || 'Failed to send notification';
+      toast.error(msg);
+    } finally {
+      setIsSendingNotification(false);
+    }
+  };
 
   useEffect(() => {
     async function loadCities() {
@@ -249,6 +341,15 @@ export default function UsersPage() {
             ))}
           </div>
         }
+        primaryAction={
+          <Button
+            onClick={() => handleOpenNotificationModal()}
+            className="flex items-center gap-2 h-8 px-4 text-xs font-bold uppercase tracking-wider bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] shrink-0 rounded-lg transition-all duration-200 cursor-pointer"
+          >
+            <IconBell size={14} className="cursor-pointer" />
+            <span>Broadcast</span>
+          </Button>
+        }
       />
 
       {error ? (
@@ -415,6 +516,13 @@ export default function UsersPage() {
                     <td className={`${listingStyles.cellDefault} text-right`} onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2.5">
                         <button
+                          onClick={() => handleOpenNotificationModal(customer)}
+                          className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
+                          title="Send Notification"
+                        >
+                          <IconBell size={15} className="cursor-pointer" />
+                        </button>
+                        <button
                           onClick={() => router.push(`/user-management/users?id=${customer.id}`)}
                           className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1 cursor-pointer"
                           title="Verify Details"
@@ -534,6 +642,176 @@ export default function UsersPage() {
                 >
                   {saving && <IconLoader size={12} className="animate-spin" />}
                   <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+                </Button>
+              </div>
+
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* Slide-out / Modal Dialog for Sending Push Notifications */}
+      {isNotificationModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+          <Card className="w-full max-w-md border-white/10 bg-zinc-950/95 p-6 shadow-2xl space-y-5 rounded-xl animate-in zoom-in-95 duration-200">
+
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
+                  <IconBell size={16} />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-bold text-white">
+                    Broadcast Notification
+                  </CardTitle>
+                  <CardDescription className="text-[10px] text-zinc-500 mt-0.5">
+                    Broadcast a push notification to registered users' devices
+                  </CardDescription>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCloseNotificationModal}
+                className="h-8 w-8 text-zinc-500 hover:text-white rounded-lg hover:bg-zinc-900"
+              >
+                <IconX size={14} />
+              </Button>
+            </div>
+
+            <form onSubmit={handleSendNotification} className="space-y-5">
+
+              {/* Target Type Selector */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  Target Audience
+                </label>
+                {notificationTargetUser ? (
+                  <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/50">
+                          {notificationTargetUser.name ? notificationTargetUser.name.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-white">
+                            {notificationTargetUser.name ? `${notificationTargetUser.name} ${notificationTargetUser.lastName || ''}`.trim() : 'Unnamed User'}
+                          </h4>
+                          <p className="text-[10px] text-zinc-500">{notificationTargetUser.email || notificationTargetUser.phone}</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-purple-950/30 border border-purple-900/50 text-[#d8b4fe]">
+                        Specific User
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-3.5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-950/20 text-[#d8b4fe] border border-purple-900/50">
+                        <IconUsers size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">All Active Users</h4>
+                        <p className="text-[10px] text-zinc-500">Global broadcast to all users globally</p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-emerald-950/30 border border-emerald-900/50 text-emerald-400">
+                      Broadcast
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Active Devices Visibility */}
+              {notificationTargetType === 'single' && (
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    Active Registered Devices
+                  </label>
+                  {loadingDevices ? (
+                    <div className="flex items-center gap-2 text-xs text-zinc-500 py-1">
+                      <IconLoader size={12} className="animate-spin" />
+                      <span>Checking user devices...</span>
+                    </div>
+                  ) : userDevices.length > 0 ? (
+                    <div className="space-y-1.5 max-h-24 overflow-y-auto pr-1">
+                      {userDevices.map((device) => (
+                        <div key={device.id} className="flex items-center justify-between bg-zinc-900 border border-zinc-800/80 px-2.5 py-1.5 rounded-lg text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="font-bold text-white uppercase text-[10px] tracking-wider px-1 bg-zinc-800 rounded border border-zinc-700/60">
+                              {device.platform || 'unknown'}
+                            </span>
+                            <span className="text-zinc-400 font-mono text-[9px] truncate max-w-[150px]">
+                              {device.deviceId || 'No Device ID'}
+                            </span>
+                          </div>
+                          <span className="text-[9px] text-zinc-600">
+                            {device.createdAt ? format(new Date(device.createdAt), 'dd MMM yyyy') : ''}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-2.5 rounded-lg text-[10px] leading-relaxed flex items-start gap-2">
+                      <span className="text-xs">⚠️</span>
+                      <span>
+                        No active push tokens found for this user. They will still receive the notification in their in-app feed next time they open the app, but they will not get a system push banner.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Notification Form Input Fields */}
+              <div className="space-y-3.5">
+                <div className="space-y-1.5">
+                  <label htmlFor="notif-title" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    Title <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="notif-title"
+                    placeholder="Enter notification title..."
+                    value={notificationTitle}
+                    onChange={(e) => setNotificationTitle(e.target.value)}
+                    className="bg-zinc-900 border-zinc-800 text-xs text-white placeholder:text-zinc-600 rounded-lg h-9"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="notif-body" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    Message Body <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="notif-body"
+                    placeholder="Enter message details..."
+                    value={notificationBody}
+                    onChange={(e) => setNotificationBody(e.target.value)}
+                    className="flex w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white placeholder:text-zinc-600 min-h-[90px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-700"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-end pt-2 border-t border-white/5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleCloseNotificationModal}
+                  className="h-8 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSendingNotification}
+                  className="h-8 text-xs font-semibold uppercase tracking-wider px-5 bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] rounded-lg transition-colors duration-200 flex items-center gap-1.5"
+                >
+                  {isSendingNotification && <IconLoader size={12} className="animate-spin" />}
+                  <span>{isSendingNotification ? 'Sending...' : 'Send Notification'}</span>
                 </Button>
               </div>
 

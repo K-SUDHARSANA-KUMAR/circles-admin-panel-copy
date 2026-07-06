@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
 import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
@@ -37,6 +38,11 @@ import { profileVerificationFilters } from '@/components/common/filters/profileV
 
 
 export default function ProfileVerificationPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const detailId = searchParams.get('id');
+  const searchParamVal = searchParams.get('search');
+
   const [users, setUsers] = useState<ProfileVerificationUser[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -146,6 +152,25 @@ export default function ProfileVerificationPage() {
     loadUsers(searchQuery, page, activeFilters);
   };
 
+  useEffect(() => {
+    if (searchParamVal) {
+      setSearchQuery(searchParamVal);
+    }
+  }, [searchParamVal]);
+
+  const hasAutoOpenedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (detailId && users.length > 0 && hasAutoOpenedRef.current !== detailId) {
+      const target = users.find(u => u.id === detailId);
+      if (target) {
+        setVerifyingUser(target);
+        setIsModalOpen(true);
+        hasAutoOpenedRef.current = detailId;
+      }
+    }
+  }, [detailId, users]);
+
   const handleOpenVerify = (user: ProfileVerificationUser) => {
     setVerifyingUser(user);
     setIsModalOpen(true);
@@ -154,6 +179,7 @@ export default function ProfileVerificationPage() {
   const handleCloseModal = () => {
     setVerifyingUser(null);
     setIsModalOpen(false);
+    router.replace('/user-management/profile-verification');
   };
 
   const handleVerifyAction = async (action: 'approve' | 'reject') => {
