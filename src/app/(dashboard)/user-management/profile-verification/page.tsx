@@ -581,7 +581,7 @@ export default function ProfileVerificationPage() {
               })()}
             </div>
 
-            <div className="flex gap-3 justify-end pt-4 border-t border-white/5 mt-2 shrink-0">
+            <div className="flex gap-3 justify-end items-center pt-4 border-t border-white/5 mt-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -590,24 +590,46 @@ export default function ProfileVerificationPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="button"
-                disabled={saving}
-                onClick={() => handleVerifyAction('reject')}
-                className="h-9 text-xs font-semibold uppercase tracking-wider px-6 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/30 transition-colors flex items-center gap-2 rounded-lg"
-              >
-                {saving ? <IconLoader size={14} className="animate-spin" /> : <IconBan size={14} />}
-                <span>Reject</span>
-              </Button>
-              <Button
-                type="button"
-                disabled={saving}
-                onClick={() => handleVerifyAction('approve')}
-                className="h-9 text-xs font-semibold uppercase tracking-wider px-6 bg-[#d8b4fe]/20 text-[#d8b4fe] hover:bg-[#c084fc] hover:text-[#3b0764] border border-[#3b1a60]/30 transition-colors flex items-center gap-2 rounded-lg"
-              >
-                {saving ? <IconLoader size={14} className="animate-spin" /> : <IconCheck size={14} />}
-                <span>Approve</span>
-              </Button>
+              {(() => {
+                const status = (verifyingUser.status || 'pending').toLowerCase();
+                if (status === 'verified' || status === 'approved' || status === 'active') {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-xs font-semibold select-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
+                      Verified
+                    </span>
+                  );
+                } else if (status === 'rejected' || status === 'declined') {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-xs font-semibold select-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                      Rejected
+                    </span>
+                  );
+                }
+                return (
+                  <>
+                    <Button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => handleVerifyAction('reject')}
+                      className="h-9 text-xs font-semibold uppercase tracking-wider px-6 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/30 transition-colors flex items-center gap-2 rounded-lg"
+                    >
+                      {saving ? <IconLoader size={14} className="animate-spin" /> : <IconBan size={14} />}
+                      <span>Reject</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => handleVerifyAction('approve')}
+                      className="h-9 text-xs font-semibold uppercase tracking-wider px-6 bg-[#d8b4fe]/20 text-[#d8b4fe] hover:bg-[#c084fc] hover:text-[#3b0764] border border-[#3b1a60]/30 transition-colors flex items-center gap-2 rounded-lg"
+                    >
+                      {saving ? <IconLoader size={14} className="animate-spin" /> : <IconCheck size={14} />}
+                      <span>Approve</span>
+                    </Button>
+                  </>
+                );
+              })()}
             </div>
 
           </Card>
