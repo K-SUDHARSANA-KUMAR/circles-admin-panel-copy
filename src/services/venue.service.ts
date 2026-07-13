@@ -106,7 +106,7 @@ export function mapApiToVenue(api: ApiVenue): Venue {
     const lat = Number(api.latitude);
     const lon = Number(api.longitude);
 
-    if (addr.includes('coimbatore') || addr.includes('noukha')) {
+    if (addr.includes('coimbatore') || addr.includes('circles')) {
       cityName = 'Coimbatore';
     } else if (addr.includes('london') || addr.includes('soho')) {
       cityName = 'London';

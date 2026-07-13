@@ -22,7 +22,7 @@ const ProfilePage = () => {
     dob: "May 15, 1992",
     reliabilityScore: 98,
     phoneNumber: user?.phoneNumber || "+91 98765 43210",
-    email: user?.email || "user@noukha.com",
+    email: user?.email || "user@circles.com",
     name: user?.name || "User Name",
     interests: [
       { name: "Cricket", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
