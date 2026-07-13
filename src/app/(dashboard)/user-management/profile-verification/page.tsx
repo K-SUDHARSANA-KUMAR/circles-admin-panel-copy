@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
-import { fetchProfileUsersGetAll, verifyProfileImage, ProfileVerificationUser } from '@/services/user.service';
+import { fetchProfileUsersGetAll, verifyProfileImage, rejectAndReuploadVerification, ProfileVerificationUser } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 
 import {
@@ -59,6 +59,9 @@ export default function ProfileVerificationPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [verifyingUser, setVerifyingUser] = useState<ProfileVerificationUser | null>(null);
   const [saving, setSaving] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(new Set());
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectReason, setShowRejectReason] = useState(false);
 
   useEffect(() => {
     async function loadCities() {
@@ -95,14 +98,6 @@ export default function ProfileVerificationPage() {
         ? (Array.isArray(filters.country) ? filters.country.filter(Boolean) : [filters.country])
         : undefined;
 
-      // Map UI status to AdminAccountStatus
-      let statusParam: string | undefined = undefined;
-      if (filters.status === 'verified') {
-        statusParam = 'active';
-      } else if (filters.status === 'pending') {
-        statusParam = 'inactive';
-      }
-
       const response = await fetchProfileUsersGetAll({
         search: searchVal,
         limit: limit,
@@ -110,7 +105,7 @@ export default function ProfileVerificationPage() {
         cityNames: cityNames?.length ? cityNames : undefined,
         countries: countries?.length ? countries : undefined,
         medium: filters.medium,
-        status: statusParam,
+        verificationStatus: filters.status,
       });
 
       setUsers(response.users || []);
@@ -179,7 +174,48 @@ export default function ProfileVerificationPage() {
   const handleCloseModal = () => {
     setVerifyingUser(null);
     setIsModalOpen(false);
+    setSelectedImageIds(new Set());
+    setRejectReason('');
+    setShowRejectReason(false);
     router.replace('/user-management/profile-verification');
+  };
+
+  const toggleImageSelection = (imageId: string | undefined) => {
+    if (!imageId) return;
+    setSelectedImageIds(prev => {
+      const next = new Set(prev);
+      if (next.has(imageId)) {
+        next.delete(imageId);
+      } else {
+        next.add(imageId);
+      }
+      return next;
+    });
+  };
+
+  const handleRejectAndReupload = async () => {
+    if (!verifyingUser) return;
+    if (!rejectReason.trim()) {
+      toast.error('Please provide a reason for rejection.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const imageIds = selectedImageIds.size > 0 ? Array.from(selectedImageIds) : undefined;
+      await rejectAndReuploadVerification(verifyingUser.id, rejectReason.trim(), imageIds);
+
+      const displayName = verifyingUser.name ? `${verifyingUser.name} ${verifyingUser.lastName || ''}`.trim() : 'User';
+      toast.success(`Successfully rejected ${displayName}'s verification. Notification sent.`);
+
+      handleCloseModal();
+      await loadUsers(debouncedSearch, page);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to reject verification.';
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleVerifyAction = async (action: 'approve' | 'reject') => {
@@ -330,7 +366,7 @@ export default function ProfileVerificationPage() {
                     const code = (user as any).referralCode;
                     const medium = (user as any).referralMedium;
                     const score = (user as any).reliabilityScore !== undefined ? (user as any).reliabilityScore : 100;
-                    const status = (user.status || 'pending').toLowerCase();
+                    const status = (user.profileVerificationStatus || user.status || 'pending').toLowerCase();
 
                     return (
                       <tr
@@ -535,87 +571,157 @@ export default function ProfileVerificationPage() {
 
               {(() => {
                 const selfieImg = verifyingUser.verificationImages?.find(img => img.type === 'selfie') ||
-                  (verifyingUser.selfieImageUrl ? { url: verifyingUser.selfieImageUrl } : null);
+                  (verifyingUser.selfieImageUrl ? { url: verifyingUser.selfieImageUrl, id: undefined } : null);
                 const docImg = verifyingUser.verificationImages?.find(img => img.type === 'profile') ||
                   verifyingUser.verificationImages?.[0];
 
-                return (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">Selfie Image</h3>
-                      <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
-                        {selfieImg?.url ? (
-                          <img
-                            src={selfieImg.url}
-                            alt="Selfie"
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="text-center text-zinc-600 flex flex-col items-center gap-2">
-                            <IconUser size={32} className="opacity-20" />
-                            <span className="text-xs font-medium">No selfie provided</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                const selfieId = (selfieImg as any)?.id as string | undefined;
+                const docId = (docImg as any)?.id as string | undefined;
+                const isSelfieSelected = selfieId ? selectedImageIds.has(selfieId) : false;
+                const isDocSelected = docId ? selectedImageIds.has(docId) : false;
 
-                    <div className="space-y-3">
-                      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">Verification Document</h3>
-                      <div className="bg-zinc-900/30 border border-zinc-800/80 rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden">
-                        {docImg?.url ? (
-                          <img
-                            src={docImg.url}
-                            alt="Verification Document"
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="text-center text-zinc-600 flex flex-col items-center gap-2">
-                            <IconAlertCircle size={32} className="opacity-20" />
-                            <span className="text-xs font-medium">No document provided</span>
-                          </div>
-                        )}
+                return (
+                  <>
+                    <p className="text-[10px] text-zinc-500 text-center italic">Click an image to select it for rejection. If none are selected, both will be rejected.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">Selfie Image</h3>
+                        <div
+                          onClick={() => toggleImageSelection(selfieId)}
+                          className={`relative bg-zinc-900/30 rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 border-2 ${
+                            isSelfieSelected
+                              ? 'border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.3)]'
+                              : 'border-zinc-800/80 hover:border-zinc-600'
+                          }`}
+                        >
+                          {isSelfieSelected && (
+                            <div className="absolute top-2 right-2 z-10 bg-rose-500 rounded-full p-1 shadow-lg">
+                              <IconCheck size={14} className="text-white" />
+                            </div>
+                          )}
+                          {selfieImg?.url ? (
+                            <img
+                              src={selfieImg.url}
+                              alt="Selfie"
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="text-center text-zinc-600 flex flex-col items-center gap-2">
+                              <IconUser size={32} className="opacity-20" />
+                              <span className="text-xs font-medium">No selfie provided</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">Verification Document</h3>
+                        <div
+                          onClick={() => toggleImageSelection(docId)}
+                          className={`relative bg-zinc-900/30 rounded-lg aspect-[3/4] flex items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 border-2 ${
+                            isDocSelected
+                              ? 'border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.3)]'
+                              : 'border-zinc-800/80 hover:border-zinc-600'
+                          }`}
+                        >
+                          {isDocSelected && (
+                            <div className="absolute top-2 right-2 z-10 bg-rose-500 rounded-full p-1 shadow-lg">
+                              <IconCheck size={14} className="text-white" />
+                            </div>
+                          )}
+                          {docImg?.url ? (
+                            <img
+                              src={docImg.url}
+                              alt="Verification Document"
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="text-center text-zinc-600 flex flex-col items-center gap-2">
+                              <IconAlertCircle size={32} className="opacity-20" />
+                              <span className="text-xs font-medium">No document provided</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </>
                 );
               })()}
             </div>
 
-            <div className="flex gap-3 justify-end items-center pt-4 border-t border-white/5 mt-2 shrink-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseModal}
-                className="h-9 text-xs font-semibold uppercase tracking-wider border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg"
-              >
-                Cancel
-              </Button>
+            <div className="flex gap-3 justify-end items-center pt-4 border-t border-white/5 mt-2 shrink-0 w-full">
+              {!showRejectReason && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloseModal}
+                  className="h-9 text-xs font-semibold uppercase tracking-wider border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg animate-in fade-in duration-200"
+                >
+                  Cancel
+                </Button>
+              )}
               {(() => {
-                const status = (verifyingUser.status || 'pending').toLowerCase();
+                const status = (verifyingUser.profileVerificationStatus || verifyingUser.status || 'pending').toLowerCase();
                 if (status === 'verified' || status === 'approved' || status === 'active') {
                   return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-xs font-semibold select-none">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-xs font-semibold select-none animate-in fade-in duration-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
                       Verified
                     </span>
                   );
                 } else if (status === 'rejected' || status === 'declined') {
                   return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-xs font-semibold select-none">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-xs font-semibold select-none animate-in fade-in duration-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                       Rejected
                     </span>
                   );
                 }
+
+                if (showRejectReason) {
+                  return (
+                    <div className="flex flex-col gap-3 w-full animate-in slide-in-from-bottom duration-300">
+                      <div className="w-full animate-in fade-in duration-300">
+                        <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-1 block">Rejection Reason <span className="text-rose-500">*</span></label>
+                        <textarea
+                          value={rejectReason}
+                          onChange={(e) => setRejectReason(e.target.value)}
+                          placeholder="e.g., Selfie is blurred, please re-upload a clear photo."
+                          className="w-full h-16 bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-purple-700 resize-none"
+                        />
+                      </div>
+                      <div className="flex gap-3 justify-end w-full">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowRejectReason(false)}
+                          className="h-9 text-xs font-semibold uppercase tracking-wider border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg px-6"
+                        >
+                          Cancel Rejection
+                        </Button>
+                        <Button
+                          type="button"
+                          disabled={saving}
+                          onClick={handleRejectAndReupload}
+                          className="h-9 text-xs font-semibold uppercase tracking-wider px-6 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/30 transition-colors flex items-center gap-2 rounded-lg"
+                        >
+                          {saving ? <IconLoader size={14} className="animate-spin" /> : <IconBan size={14} />}
+                          <span>Confirm Reject</span>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
-                  <>
+                  <div className="flex gap-3 justify-end animate-in fade-in duration-200">
                     <Button
                       type="button"
                       disabled={saving}
-                      onClick={() => handleVerifyAction('reject')}
+                      onClick={() => setShowRejectReason(true)}
                       className="h-9 text-xs font-semibold uppercase tracking-wider px-6 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/30 transition-colors flex items-center gap-2 rounded-lg"
                     >
-                      {saving ? <IconLoader size={14} className="animate-spin" /> : <IconBan size={14} />}
+                      <IconBan size={14} />
                       <span>Reject</span>
                     </Button>
                     <Button
@@ -627,7 +733,7 @@ export default function ProfileVerificationPage() {
                       {saving ? <IconLoader size={14} className="animate-spin" /> : <IconCheck size={14} />}
                       <span>Approve</span>
                     </Button>
-                  </>
+                  </div>
                 );
               })()}
             </div>

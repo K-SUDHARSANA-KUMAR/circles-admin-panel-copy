@@ -6,6 +6,7 @@ export const profileVerificationFilters: FilterField[] = [
     key: 'status', label: 'Status', type: 'select', options: [
       { label: 'Pending', value: 'pending' },
       { label: 'Verified', value: 'verified' },
+      { label: 'Rejected', value: 'rejected' },
     ]
   },
   { key: 'country', label: 'Country', type: 'multiselect', options: COUNTRIES_OPTIONS },
