@@ -39,6 +39,7 @@ import {
   IconPhone,
   IconCalendar,
   IconMessageReport,
+  IconLoader,
 } from '@tabler/icons-react';
 import {
   fetchReports,
@@ -47,6 +48,76 @@ import {
   type Report,
 } from '@/services/report.service';
 import { toast } from 'sonner';
+
+const ChatImage = ({ src }: { src: string }) => {
+  const [hasError, setHasError] = useState(false);
+  if (hasError) {
+    return (
+      <div 
+        onClick={() => window.open(src, '_blank')}
+        className="flex flex-col items-center justify-center gap-1.5 p-4 rounded-xl bg-zinc-950/40 border border-zinc-800/80 text-zinc-500 w-[240px] h-[130px] my-1 text-center select-none cursor-pointer hover:bg-zinc-900/60 transition-all hover:scale-[1.01] active:scale-[0.99]"
+      >
+        <IconAlertCircle size={20} className="text-zinc-650 shrink-0" />
+        <span className="text-[10px] font-bold text-zinc-400">Media Link Expired</span>
+        <span className="text-[9px] text-zinc-500 underline decoration-zinc-600">Click to view in new tab</span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt="Chat attachment"
+      className="max-w-[240px] max-h-[180px] rounded-lg object-cover cursor-pointer border border-zinc-700/50 my-1 hover:scale-[1.01] transition-transform duration-200"
+      onClick={() => window.open(src, '_blank')}
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
+const ChatPdf = ({ src }: { src: string }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch(src);
+      const blob = await res.blob();
+      const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+      const localUrl = URL.createObjectURL(pdfBlob);
+      window.open(localUrl, '_blank');
+    } catch (err) {
+      console.error('Error loading PDF securely via Blob:', err);
+      // Fallback: direct window.open if CORS or network block occurs
+      window.open(src, '_blank');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="flex items-center gap-3 px-3 py-2.5 my-1 rounded-lg bg-zinc-800/60 border border-zinc-700/50 hover:bg-zinc-800 disabled:opacity-75 disabled:cursor-wait transition-all hover:scale-[1.01] active:scale-[0.99] group/pdf cursor-pointer max-w-[280px] w-full text-left"
+    >
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-950/30 border border-rose-900/40">
+        {loading ? (
+          <IconLoader size={18} className="text-rose-400 animate-spin" />
+        ) : (
+          <IconFileSpreadsheet size={18} className="text-rose-400" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-semibold text-zinc-200 truncate">PDF Document</p>
+        <p className="text-[9px] text-zinc-500 group-hover/pdf:text-zinc-400 transition-colors">
+          {loading ? 'Opening securely...' : 'Tap to view securely'}
+        </p>
+      </div>
+    </button>
+  );
+};
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -488,25 +559,51 @@ export default function ReportsPage() {
                                   : 'bg-[#1c122c] border border-[#3b1a60]/30 text-zinc-100 rounded-tr-sm'
                                 }`}
                             >
-                              {msg.messageType === 'image' ? (
-                                <img
-                                  src={msg.text}
-                                  alt="Chat attachment"
-                                  className="max-w-[240px] max-h-[180px] rounded-lg object-cover cursor-pointer border border-zinc-700/50 my-1"
-                                  onClick={() => window.open(msg.text, '_blank')}
-                                />
-                              ) : msg.messageType === 'url' ? (
-                                <a
-                                  href={msg.text}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="underline text-purple-300 hover:text-purple-200 break-all"
-                                >
-                                  {msg.text}
-                                </a>
-                              ) : (
-                                msg.text
-                              )}
+                              {(() => {
+                                const textLower = (msg.text || '').toLowerCase();
+                                const urlPath = textLower.split('?')[0];
+                                const isVideo = msg.messageType === 'video' || /\.(mp4|mov|webm|avi)$/i.test(urlPath);
+                                const isPdf = msg.messageType === 'pdf' || (msg.messageType === 'file' && /\.pdf$/i.test(urlPath)) || /\.pdf$/i.test(urlPath);
+                                const isImage = msg.messageType === 'image' || /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(urlPath);
+
+                                if (isImage) {
+                                  return (
+                                    <ChatImage src={msg.text} />
+                                  );
+                                }
+                                if (isVideo) {
+                                  return (
+                                    <div className="my-1 flex items-center justify-center w-[240px] h-[180px] bg-black/60 rounded-lg border border-zinc-800/80 overflow-hidden">
+                                      <video
+                                        src={msg.text}
+                                        controls
+                                        preload="metadata"
+                                        className="w-full h-full object-contain"
+                                      >
+                                        Your browser does not support the video tag.
+                                      </video>
+                                    </div>
+                                  );
+                                }
+                                if (isPdf) {
+                                  return (
+                                    <ChatPdf src={msg.text} />
+                                  );
+                                }
+                                if (msg.messageType === 'url') {
+                                  return (
+                                    <a
+                                      href={msg.text}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="underline text-purple-300 hover:text-purple-200 break-all"
+                                    >
+                                      {msg.text}
+                                    </a>
+                                  );
+                                }
+                                return msg.text;
+                              })()}
                             </div>
                             <span className="text-[9px] text-zinc-600 mt-1 px-1">
                               {formatDate(msg.timestamp)}
