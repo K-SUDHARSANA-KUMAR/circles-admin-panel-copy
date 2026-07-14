@@ -513,6 +513,7 @@ export async function fetchProfileUsersGetAll(params?: {
   skip?: number;
   search?: string;
   status?: string;
+  verificationStatus?: string;
   medium?: string;
   minScore?: number;
   maxScore?: number;
@@ -532,6 +533,7 @@ export async function fetchProfileUsersGetAll(params?: {
 
   if (backendSearch) qs.set('search', backendSearch);
   if (params?.status) qs.set('status', params.status);
+  if (params?.verificationStatus) qs.set('verificationStatus', params.verificationStatus);
   if (params?.medium) qs.set('medium', params.medium);
 
   (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
@@ -595,6 +597,31 @@ export async function verifyProfileImage(
 
   try {
     const res = await customAxios.patch(url, { verified });
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
+}
+
+/**
+ * Rejects specific (or all) verification images and notifies the user to re-upload.
+ *
+ * - If `imageIds` is non-empty, only those images are rejected.
+ * - If `imageIds` is empty/undefined, all images are rejected.
+ */
+export async function rejectAndReuploadVerification(
+  userId: string,
+  reason: string,
+  imageIds?: string[]
+): Promise<any> {
+  const url = `${BASE_URL}/user-service/admin/customers/${userId}/profile-verification/reject-and-reupload`;
+
+  try {
+    const res = await customAxios.post(url, {
+      reason,
+      ...(imageIds?.length ? { imageIds } : {}),
+    });
     return res.data?.result?.data ?? res.data?.data ?? res.data;
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
