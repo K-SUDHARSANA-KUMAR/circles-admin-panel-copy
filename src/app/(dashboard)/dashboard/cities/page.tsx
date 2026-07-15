@@ -99,6 +99,22 @@ export default function CitiesPage() {
   const [activeFiltersCity, setActiveFiltersCity] = useState<Record<string, any>>({});
   const [activeFiltersCountry, setActiveFiltersCountry] = useState<Record<string, any>>({});
 
+  // All countries (fetched once with high limit) for dropdown & name resolution
+  const [allCountries, setAllCountries] = useState<Country[]>([]);
+
+  const loadAllCountries = useCallback(async () => {
+    try {
+      const data = await fetchCountries({ limit: 100 });
+      setAllCountries(data);
+    } catch (err) {
+      console.error('Failed to load all countries:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAllCountries();
+  }, [loadAllCountries]);
+
   // ─── Helpers ───────────────────────────────────────────────────────────────
   const getCityStatus = (city: City): 'active' | 'waitlist' | 'inactive' => {
     if ((city as any).status) {
@@ -120,25 +136,19 @@ export default function CitiesPage() {
   };
 
   const getCountryName = (city: City): string => {
-    const code = (city.country?.code ?? city.country_code ?? '').trim().toUpperCase();
-    const matched = countries.find(c => c.code.toUpperCase() === code);
-    if (matched) return matched.name;
+    if (city.country?.name) return city.country.name;
 
-    const map: Record<string, string> = {
-      'PT': 'Portugal',
-      'DE': 'Germany',
-      'JP': 'Japan',
-      'IS': 'Iceland',
-      'MA': 'Morocco',
-      'VN': 'Vietnam',
-      'AT': 'Austria',
-      'US': 'United States',
-      'GB': 'United Kingdom',
-      'FR': 'France',
-      'ES': 'Spain',
-      'IT': 'Italy',
-    };
-    return map[code] ?? city.country?.name ?? code ?? '—';
+    const countryId = city.country_id ?? city.countryId ?? '';
+    const matchedById = allCountries.find(c =>
+      String(c.countryId ?? c.id) === String(countryId)
+    );
+    if (matchedById) return matchedById.name;
+
+    const code = (city.country?.code ?? city.country_code ?? '').trim().toUpperCase();
+    const matchedByCode = allCountries.find(c => c.code.toUpperCase() === code);
+    if (matchedByCode) return matchedByCode.name;
+
+    return code || '—';
   };
 
   // ─── Fetch Cities ──────────────────────────────────────────────────────────
@@ -377,6 +387,7 @@ export default function CitiesPage() {
 
       handleCloseCountryModal();
       await loadCountries(searchQueryCountry, currentCountryPage, activeFiltersCountry);
+      await loadAllCountries();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save country.';
       toast.error(msg);
@@ -399,6 +410,7 @@ export default function CitiesPage() {
       toast.success(`Successfully deleted country: ${deleteCountryTarget.name}`);
       setDeleteCountryTarget(null);
       await loadCountries(searchQueryCountry, currentCountryPage, activeFiltersCountry);
+      await loadAllCountries();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete country.';
       toast.error(msg);
@@ -890,7 +902,7 @@ export default function CitiesPage() {
                     <SelectValue placeholder="Select country..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {countries.map((country) => {
+                    {allCountries.map((country) => {
                       const cid = String(country.countryId ?? country.id);
                       return (
                         <SelectItem key={cid} value={cid}>

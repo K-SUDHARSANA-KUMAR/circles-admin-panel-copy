@@ -1,9 +1,8 @@
 import { FilterField } from '../FilterDropdown';
-import { CITIES_OPTIONS, COUNTRIES_OPTIONS } from './shared';
 
 export const venueFilters: FilterField[] = [
-  { key: 'city', label: 'City', type: 'multiselect', options: CITIES_OPTIONS },
-  { key: 'country', label: 'Country', type: 'multiselect', options: COUNTRIES_OPTIONS },
+  { key: 'city', label: 'City', type: 'multiselect', options: [] },
+  { key: 'country', label: 'Country', type: 'multiselect', options: [] },
   {
     key: 'isVisible', label: 'Visible', type: 'boolean', options: [
       { label: 'Visible', value: true },
@@ -23,4 +22,3 @@ export const venueFilters: FilterField[] = [
   //   ]
   // },
 ];
-

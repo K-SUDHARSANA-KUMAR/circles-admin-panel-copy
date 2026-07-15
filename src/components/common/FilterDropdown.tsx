@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Popover,
   PopoverContent,
@@ -52,9 +52,16 @@ export default function FilterDropdown({
   const [apiOptions, setApiOptions] = useState<FilterOption[]>(options);
   const [apiLoading, setApiLoading] = useState(false);
 
+  // City infinite scroll state
+  const citySkipRef = useRef(0);
+  const [cityHasMore, setCityHasMore] = useState(true);
+  const [cityLoadingMore, setCityLoadingMore] = useState(false);
+  const citySentinelRef = useRef<HTMLDivElement>(null);
+  const cityFetchIdRef = useRef(0);
+
   const cleanLabel = label.toLowerCase().trim();
-  const isCity = false; // Disable dynamic city API fetching (use static options/uniqueCities instead)
-  const isCountry = false; // Disable dynamic country API fetching (use full static COUNTRIES_OPTIONS instead)
+  const isCity = cleanLabel === 'city' || cleanLabel === 'cities';
+  const isCountry = cleanLabel === 'country' || cleanLabel === 'countries';
   const isVenueName = cleanLabel === 'venue name' || cleanLabel === 'venue' || cleanLabel === 'venues';
   const isEmail = cleanLabel === 'email';
   const currentOptions = (isCity || isCountry || isVenueName || isEmail) ? apiOptions : options;
@@ -87,40 +94,63 @@ export default function FilterDropdown({
     if (!isOpen) return;
 
     if (isCity) {
-      const loadCities = async () => {
-        setApiLoading(true);
+      const CITY_PAGE_SIZE = 20;
+      const loadCities = async (skip: number, searchStr: string, append: boolean) => {
+        const id = ++cityFetchIdRef.current;
+        if (skip === 0) setApiLoading(true);
+        else setCityLoadingMore(true);
         try {
-          const data = await fetchCities({ search: searchQuery, limit: 100 });
+          const limit = skip === 0 ? CITY_PAGE_SIZE * 2 : CITY_PAGE_SIZE;
+          const data = await fetchCities({ search: searchStr || undefined, limit, skip });
+          if (id !== cityFetchIdRef.current) return;
           const mapped = Array.isArray(data)
             ? data
                 .filter((c: any) => c && c.name)
-                .map((c: any) => {
-                  return {
-                    label: `${c.name} (${c.country_code || c.country?.code || '—'})`,
-                    value: c.name, // city name
-                  };
-                })
-
+                .map((c: any) => ({
+                  label: `${c.name} (${c.country_code || c.country?.code || '—'})`,
+                  value: c.name,
+                }))
             : [];
 
           // Merge already selected values so they don't get lost
           const selectedVals = Array.isArray(value) ? value : (value ? [value] : []);
-          const merged = [...mapped];
-          selectedVals.forEach((val: any) => {
-            if (!merged.find(m => m.value === val)) {
-              merged.push({ label: val, value: val });
-            }
-          });
 
-          setApiOptions(merged);
+          if (append) {
+            setApiOptions(prev => {
+              const merged = [...prev, ...mapped];
+              selectedVals.forEach((val: any) => {
+                if (!merged.find(m => m.value === val)) {
+                  merged.push({ label: val, value: val });
+                }
+              });
+              return merged;
+            });
+          } else {
+            const merged = [...mapped];
+            selectedVals.forEach((val: any) => {
+              if (!merged.find(m => m.value === val)) {
+                merged.push({ label: val, value: val });
+              }
+            });
+            setApiOptions(merged);
+          }
+
+          citySkipRef.current = skip + mapped.length;
+          setCityHasMore(mapped.length >= CITY_PAGE_SIZE);
         } catch (err) {
           console.error('Error fetching dynamic cities:', err);
         } finally {
-          setApiLoading(false);
+          if (id === cityFetchIdRef.current) {
+            setApiLoading(false);
+            setCityLoadingMore(false);
+          }
         }
       };
 
-      const timer = setTimeout(loadCities, searchQuery ? 300 : 0);
+      // Reset and load on open or search change
+      citySkipRef.current = 0;
+      setCityHasMore(true);
+      const timer = setTimeout(() => loadCities(0, searchQuery, false), searchQuery ? 300 : 0);
       return () => clearTimeout(timer);
     } else if (isCountry) {
       const loadCountries = async () => {
@@ -231,6 +261,43 @@ export default function FilterDropdown({
     }
   }, [isOpen, searchQuery, label, value, isCity, isCountry, isVenueName, isEmail]);
 
+  // ── City infinite scroll via IntersectionObserver ──────────────────────
+  const loadMoreCities = useCallback(() => {
+    if (!isCity || !cityHasMore || apiLoading || cityLoadingMore) return;
+    const CITY_PAGE_SIZE = 20;
+    const id = ++cityFetchIdRef.current;
+    setCityLoadingMore(true);
+    fetchCities({ search: searchQuery || undefined, limit: CITY_PAGE_SIZE, skip: citySkipRef.current })
+      .then((data) => {
+        if (id !== cityFetchIdRef.current) return;
+        const mapped = Array.isArray(data)
+          ? data.filter((c: any) => c && c.name).map((c: any) => ({
+              label: `${c.name} (${c.country_code || c.country?.code || '—'})`,
+              value: c.name,
+            }))
+          : [];
+        setApiOptions(prev => [...prev, ...mapped]);
+        citySkipRef.current += mapped.length;
+        setCityHasMore(mapped.length >= CITY_PAGE_SIZE);
+      })
+      .catch(err => console.error('Error loading more cities:', err))
+      .finally(() => {
+        if (id === cityFetchIdRef.current) setCityLoadingMore(false);
+      });
+  }, [isCity, cityHasMore, apiLoading, cityLoadingMore, searchQuery]);
+
+  useEffect(() => {
+    if (!isOpen || !isCity) return;
+    const sentinel = citySentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMoreCities(); },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [isOpen, isCity, loadMoreCities]);
+
   const handleApply = () => {
     let finalValue = localValue;
 
@@ -338,7 +405,7 @@ export default function FilterDropdown({
   };
 
   // Filter right options by search query (only locally if not dynamically fetching)
-  const filteredOptions = isCity
+  const filteredOptions = (isCity || isCountry)
     ? currentOptions
     : currentOptions.filter((opt) =>
       opt.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -464,23 +531,31 @@ export default function FilterDropdown({
                 ) : (
                   filteredOptions.map((option, index) => {
                     const isChecked = Array.isArray(localValue) && localValue.includes(option.value);
+                    // Place prefetch sentinel 10 items before end (city only)
+                    const isPrefetchTrigger = isCity && index === filteredOptions.length - 10;
                     return (
-                      <button
-                        key={`${option.value ?? ''}-${index}`}
-                        type="button"
-                        onClick={() => toggleOption(option.value)}
-                        className="w-full flex items-center gap-2 px-1.5 py-1 rounded-md hover:bg-zinc-950 text-left text-[13px] text-zinc-300 hover:text-white transition-all select-none group"
-                      >
-                        <div className={`h-3.5 w-3.5 rounded border transition-all flex items-center justify-center shrink-0 ${isChecked
-                            ? 'bg-[#d8b4fe] border-[#d8b4fe] text-[#3b0764]'
-                            : 'border-zinc-800 bg-zinc-900 group-hover:border-zinc-700'
-                          }`}>
-                          {isChecked && <IconCheck size={10} strokeWidth={3} />}
-                        </div>
-                        <span className="truncate">{option.label}</span>
-                      </button>
+                      <React.Fragment key={`${option.value ?? ''}-${index}`}>
+                        {isPrefetchTrigger && <div ref={citySentinelRef} className="h-0" />}
+                        <button
+                          type="button"
+                          onClick={() => toggleOption(option.value)}
+                          className="w-full flex items-center gap-2 px-1.5 py-1 rounded-md hover:bg-zinc-950 text-left text-[13px] text-zinc-300 hover:text-white transition-all select-none group"
+                        >
+                          <div className={`h-3.5 w-3.5 rounded border transition-all flex items-center justify-center shrink-0 ${isChecked
+                              ? 'bg-[#d8b4fe] border-[#d8b4fe] text-[#3b0764]'
+                              : 'border-zinc-800 bg-zinc-900 group-hover:border-zinc-700'
+                            }`}>
+                            {isChecked && <IconCheck size={10} strokeWidth={3} />}
+                          </div>
+                          <span className="truncate">{option.label}</span>
+                        </button>
+                      </React.Fragment>
                     );
                   })
+                )}
+                {/* Fallback sentinel for short city lists */}
+                {isCity && filteredOptions.length < 10 && filteredOptions.length > 0 && (
+                  <div ref={citySentinelRef} className="h-0" />
                 )}
               </div>
             </div>
