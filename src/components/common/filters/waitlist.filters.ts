@@ -1,5 +1,5 @@
 import { FilterField } from '../FilterDropdown';
-import { CITIES_OPTIONS, MEDIUM_OPTIONS, COUNTRIES_OPTIONS } from './shared';
+import { MEDIUM_OPTIONS } from './shared';
 
 export const waitlistFilters: FilterField[] = [
   {
@@ -8,8 +8,7 @@ export const waitlistFilters: FilterField[] = [
       { label: 'Approved', value: 'approved' },
     ]
   },
-  { key: 'country', label: 'Country', type: 'multiselect', options: COUNTRIES_OPTIONS },
-  { key: 'city', label: 'City', type: 'multiselect', options: CITIES_OPTIONS },
+  { key: 'country', label: 'Country', type: 'multiselect', options: [] },
+  { key: 'city', label: 'City', type: 'multiselect', options: [] },
   { key: 'medium', label: 'Medium', type: 'select', options: MEDIUM_OPTIONS },
 ];
-

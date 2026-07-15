@@ -16,12 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchCities, type City } from "@/services/cities.service";
+import { type City } from "@/services/cities.service";
 import { fetchCountries, type Country } from "@/services/countries.service";
 import { createVenue, updateVenue, fetchVenueCategories, createVenueCategory, type VenueCategory } from "@/services/venue.service";
 import { fetchAllInterests, type InterestOption } from "@/services/interest.service";
 import { toast } from "sonner";
 import { useFileUpload } from "@/features/common/hooks/useFileUpload";
+import { InfiniteScrollCitySelect } from "@/components/ui/infinite-scroll-city-select";
 import dynamic from "next/dynamic";
 
 // Dynamically import map components to avoid SSR/window undefined issues
@@ -95,8 +96,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [cities, setCities] = useState<City[]>([]);
-  const [loadingCities, setLoadingCities] = useState(false);
   const [countries, setCountries] = useState<Country[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -192,17 +191,6 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   };
 
   useEffect(() => {
-    const loadCities = async () => {
-      setLoadingCities(true);
-      try {
-        const data = await fetchCities();
-        setCities(data);
-      } catch (err: any) {
-        console.error("Failed to load cities:", err);
-      } finally {
-        setLoadingCities(false);
-      }
-    };
     const loadCountries = async () => {
       setLoadingCountries(true);
       try {
@@ -228,9 +216,16 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
         setLoadingCountries(false);
       }
     };
-    loadCities();
     loadCountries();
   }, []);
+
+  // Resolve the selected country's ID for the city dropdown
+  const selectedCountryId = React.useMemo(() => {
+    if (!formData.country || countries.length === 0) return undefined;
+    const country = countries.find(c => c.code?.toUpperCase() === formData.country!.toUpperCase());
+    if (!country) return undefined;
+    return String(country.countryId ?? country.country_id ?? country.id);
+  }, [formData.country, countries]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -346,6 +341,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
       : "Add a new destination to your circle";
 
   const handleBackToVenues = () => router.push("/dashboard/venues");
+
 
   return (
     <DetailPageContainer className="max-w-[1600px]">
@@ -624,35 +620,20 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                       className="rounded-xl h-11"
                     />
                   ) : (
-                    <Select
+                    <InfiniteScrollCitySelect
+                      countryId={selectedCountryId}
                       value={formData.cityId || undefined}
-                      onValueChange={(selectedId) => {
-                        const selectedCity = cities.find(c => String(c.cityId ?? c.city_id ?? c.id) === selectedId);
+                      displayValue={formData.city || undefined}
+                      placeholder="Select operational city..."
+                      onValueChange={(cityId, cityName, countryCode) => {
                         setFormData(prev => ({
                           ...prev,
-                          cityId: selectedId,
-                          city: selectedCity ? selectedCity.name : "",
-                          country: selectedCity?.country?.code || selectedCity?.country_code || prev.country
+                          cityId,
+                          city: cityName,
+                          country: countryCode || prev.country,
                         }));
                       }}
-                    >
-                      <SelectTrigger className="w-full h-11 rounded-xl bg-[#171717] border-border/50">
-                        <SelectValue placeholder="Select operational city..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cities.map((c) => {
-                          const idValue = c.cityId ?? c.city_id ?? c.id;
-                          if (idValue === undefined || idValue === null) return null;
-                          const cid = String(idValue);
-                          const countryCode = c.country?.code ?? c.country_code ?? "";
-                          return (
-                            <SelectItem key={cid} value={cid}>
-                              {c.name} {countryCode ? `(${countryCode})` : ""}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
+                    />
                   )}
                 </div>
                 <div className="grid gap-3">
@@ -671,6 +652,8 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                         setFormData(prev => ({
                           ...prev,
                           country: val,
+                          cityId: '',
+                          city: '',
                         }));
                       }}
                     >

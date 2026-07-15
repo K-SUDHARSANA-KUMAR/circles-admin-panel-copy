@@ -1,5 +1,5 @@
 import { FilterField } from '../FilterDropdown';
-import { CITIES_OPTIONS, MEDIUM_OPTIONS, COUNTRIES_OPTIONS } from './shared';
+import { MEDIUM_OPTIONS } from './shared';
 
 export const profileVerificationFilters: FilterField[] = [
   {
@@ -9,10 +9,7 @@ export const profileVerificationFilters: FilterField[] = [
       { label: 'Rejected', value: 'rejected' },
     ]
   },
-  { key: 'country', label: 'Country', type: 'multiselect', options: COUNTRIES_OPTIONS },
-  { key: 'city', label: 'City', type: 'multiselect', options: CITIES_OPTIONS },
+  { key: 'country', label: 'Country', type: 'multiselect', options: [] },
+  { key: 'city', label: 'City', type: 'multiselect', options: [] },
   { key: 'medium', label: 'Medium', type: 'select', options: MEDIUM_OPTIONS },
 ];
-
-
-
