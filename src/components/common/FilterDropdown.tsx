@@ -14,6 +14,8 @@ import { fetchCountries } from '@/services/countries.service';
 import { fetchVenues } from '@/services/venue.service';
 import { fetchAdminUsers } from '@/services/adminuser.service';
 
+let countriesCache: any[] | null = null;
+
 export interface FilterOption {
   label: string;
   value: any;
@@ -35,6 +37,8 @@ export interface FilterDropdownProps {
   value: any;
   onChange: (value: any) => void;
   clearable?: boolean;
+  activeFilters?: Record<string, any>;
+  hasVenues?: boolean;
 }
 
 export default function FilterDropdown({
@@ -45,6 +49,8 @@ export default function FilterDropdown({
   value,
   onChange,
   clearable = true,
+  activeFilters,
+  hasVenues = true,
 }: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState<any>(undefined);
@@ -67,9 +73,28 @@ export default function FilterDropdown({
   const currentOptions = (isCity || isCountry || isVenueName || isEmail) ? apiOptions : options;
   console.log(`[FilterDropdown] ${label}: options=`, options, `currentOptions=`, currentOptions);
 
+  // ── City↔Country filter dependency ──────────────────────────────────
+  const relatedCountryNames: string[] | undefined = (() => {
+    const val = activeFilters?.country;
+    if (!val) return undefined;
+    const arr = (Array.isArray(val) ? val : [val]).filter(Boolean);
+    return arr.length > 0 ? arr : undefined;
+  })();
+  const relatedCityNames: string[] | undefined = (() => {
+    const val = activeFilters?.city;
+    if (!val) return undefined;
+    const arr = (Array.isArray(val) ? val : [val]).filter(Boolean);
+    return arr.length > 0 ? arr : undefined;
+  })();
+  const relatedCountryKey = JSON.stringify(relatedCountryNames || []);
+  const relatedCityKey = JSON.stringify(relatedCityNames || []);
+
   // Sync local state when popover opens
   useEffect(() => {
     if (isOpen) {
+      if (isCity || isCountry || isVenueName || isEmail) {
+        setApiOptions([]);
+      }
       if (value === undefined || value === null) {
         if (type === 'number') {
           setLocalValue({ min: '', max: '' });
@@ -87,7 +112,7 @@ export default function FilterDropdown({
       }
       setSearchQuery('');
     }
-  }, [isOpen, value, type]);
+  }, [isOpen, value, type, isCity, isCountry, isVenueName, isEmail]);
 
   // Fetch cities/countries/venues/emails dynamically if needed
   useEffect(() => {
@@ -101,7 +126,7 @@ export default function FilterDropdown({
         else setCityLoadingMore(true);
         try {
           const limit = skip === 0 ? CITY_PAGE_SIZE * 2 : CITY_PAGE_SIZE;
-          const data = await fetchCities({ search: searchStr || undefined, limit, skip });
+          const data = await fetchCities({ search: searchStr || undefined, limit, skip, countries: relatedCountryNames, hasVenues });
           if (id !== cityFetchIdRef.current) return;
           const mapped = Array.isArray(data)
             ? data
@@ -150,14 +175,47 @@ export default function FilterDropdown({
       // Reset and load on open or search change
       citySkipRef.current = 0;
       setCityHasMore(true);
-      const timer = setTimeout(() => loadCities(0, searchQuery, false), searchQuery ? 300 : 0);
-      return () => clearTimeout(timer);
+      if (searchQuery) {
+        const timer = setTimeout(() => loadCities(0, searchQuery, false), 300);
+        return () => clearTimeout(timer);
+      } else {
+        loadCities(0, '', false);
+      }
     } else if (isCountry) {
       const loadCountries = async () => {
         setApiLoading(true);
         try {
-          const data = await fetchCountries({ search: searchQuery, limit: 100 });
-          const mapped = Array.isArray(data)
+          // If cities are selected, find their countries to restrict the list
+          let allowedCountryNames: Set<string> | null = null;
+          if (relatedCityNames?.length) {
+            try {
+              const citiesData = await fetchCities({ cityNames: relatedCityNames, limit: 100 });
+              allowedCountryNames = new Set<string>();
+              for (const city of citiesData as any[]) {
+                const countryName = city.country?.name;
+                if (countryName) allowedCountryNames.add(countryName);
+              }
+            } catch (err) {
+              console.error('Error fetching cities for country constraint:', err);
+            }
+          }
+
+          let data: any[];
+          if (!searchQuery && !relatedCityNames?.length && countriesCache) {
+            data = countriesCache;
+          } else {
+            const [res1, res2, res3] = await Promise.all([
+              fetchCountries({ search: searchQuery, limit: 100, skip: 0 }),
+              fetchCountries({ search: searchQuery, limit: 100, skip: 100 }),
+              fetchCountries({ search: searchQuery, limit: 100, skip: 200 }),
+            ]);
+            data = [...res1, ...res2, ...res3];
+            if (!searchQuery && !relatedCityNames?.length) {
+              countriesCache = data;
+            }
+          }
+
+          let mapped = Array.isArray(data)
             ? data
               .filter((c: any) => c && c.name)
               .map((c: any) => ({
@@ -165,6 +223,11 @@ export default function FilterDropdown({
                 value: c.name,
               }))
             : [];
+
+          // Filter to only show countries that contain the selected cities
+          if (allowedCountryNames && allowedCountryNames.size > 0) {
+            mapped = mapped.filter(item => allowedCountryNames!.has(item.value));
+          }
 
           // Merge already selected values
           const selectedVals = Array.isArray(value) ? value : (value ? [value] : []);
@@ -259,15 +322,15 @@ export default function FilterDropdown({
       const timer = setTimeout(loadEmails, searchQuery ? 300 : 0);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, searchQuery, label, value, isCity, isCountry, isVenueName, isEmail]);
+  }, [isOpen, searchQuery, label, value, isCity, isCountry, isVenueName, isEmail, relatedCountryKey, relatedCityKey]);
 
   // ── City infinite scroll via IntersectionObserver ──────────────────────
   const loadMoreCities = useCallback(() => {
-    if (!isCity || !cityHasMore || apiLoading || cityLoadingMore) return;
+    if (!isCity || !cityHasMore || apiLoading || cityLoadingMore || citySkipRef.current === 0) return;
     const CITY_PAGE_SIZE = 20;
     const id = ++cityFetchIdRef.current;
     setCityLoadingMore(true);
-    fetchCities({ search: searchQuery || undefined, limit: CITY_PAGE_SIZE, skip: citySkipRef.current })
+    fetchCities({ search: searchQuery || undefined, limit: CITY_PAGE_SIZE, skip: citySkipRef.current, countries: relatedCountryNames, hasVenues })
       .then((data) => {
         if (id !== cityFetchIdRef.current) return;
         const mapped = Array.isArray(data)
@@ -284,7 +347,7 @@ export default function FilterDropdown({
       .finally(() => {
         if (id === cityFetchIdRef.current) setCityLoadingMore(false);
       });
-  }, [isCity, cityHasMore, apiLoading, cityLoadingMore, searchQuery]);
+  }, [isCity, cityHasMore, apiLoading, cityLoadingMore, searchQuery, relatedCountryNames]);
 
   useEffect(() => {
     if (!isOpen || !isCity) return;
@@ -531,31 +594,31 @@ export default function FilterDropdown({
                 ) : (
                   filteredOptions.map((option, index) => {
                     const isChecked = Array.isArray(localValue) && localValue.includes(option.value);
-                    // Place prefetch sentinel 10 items before end (city only)
-                    const isPrefetchTrigger = isCity && index === filteredOptions.length - 10;
                     return (
-                      <React.Fragment key={`${option.value ?? ''}-${index}`}>
-                        {isPrefetchTrigger && <div ref={citySentinelRef} className="h-0" />}
-                        <button
-                          type="button"
-                          onClick={() => toggleOption(option.value)}
-                          className="w-full flex items-center gap-2 px-1.5 py-1 rounded-md hover:bg-zinc-950 text-left text-[13px] text-zinc-300 hover:text-white transition-all select-none group"
-                        >
-                          <div className={`h-3.5 w-3.5 rounded border transition-all flex items-center justify-center shrink-0 ${isChecked
-                              ? 'bg-[#d8b4fe] border-[#d8b4fe] text-[#3b0764]'
-                              : 'border-zinc-800 bg-zinc-900 group-hover:border-zinc-700'
-                            }`}>
-                            {isChecked && <IconCheck size={10} strokeWidth={3} />}
-                          </div>
-                          <span className="truncate">{option.label}</span>
-                        </button>
-                      </React.Fragment>
+                      <button
+                        key={`${option.value ?? ''}-${index}`}
+                        type="button"
+                        onClick={() => toggleOption(option.value)}
+                        className="w-full flex items-center gap-2 px-1.5 py-1 rounded-md hover:bg-zinc-950 text-left text-[13px] text-zinc-300 hover:text-white transition-all select-none group"
+                      >
+                        <div className={`h-3.5 w-3.5 rounded border transition-all flex items-center justify-center shrink-0 ${isChecked
+                            ? 'bg-[#d8b4fe] border-[#d8b4fe] text-[#3b0764]'
+                            : 'border-zinc-800 bg-zinc-900 group-hover:border-zinc-700'
+                          }`}>
+                          {isChecked && <IconCheck size={10} strokeWidth={3} />}
+                        </div>
+                        <span className="truncate">{option.label}</span>
+                      </button>
                     );
                   })
                 )}
-                {/* Fallback sentinel for short city lists */}
-                {isCity && filteredOptions.length < 10 && filteredOptions.length > 0 && (
-                  <div ref={citySentinelRef} className="h-0" />
+                {/* Scroll sentinel for fetching more cities */}
+                {isCity && cityHasMore && (
+                  <div ref={citySentinelRef} className="h-4 flex items-center justify-center py-2 select-none">
+                    {cityLoadingMore && (
+                      <div className="h-3 w-3 animate-spin rounded-full border border-zinc-800 border-t-zinc-400" />
+                    )}
+                  </div>
                 )}
               </div>
             </div>

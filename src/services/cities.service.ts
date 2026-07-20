@@ -49,6 +49,7 @@ export async function fetchCities(params?: {
   cityNames?: string[];
   /** Pass true/false to filter active/inactive cities */
   isActive?: boolean;
+  hasVenues?: boolean;
   countryCode?: string;
   country?: string;
   city?: string;
@@ -60,6 +61,7 @@ export async function fetchCities(params?: {
     if (params?.skip !== undefined) qs.set('skip', String(params.skip));
     if (params?.search?.trim()) qs.set('search', params.search.trim());
     if (params?.isActive !== undefined) qs.set('isActive', params.isActive ? 'true' : 'false');
+    if (params?.hasVenues !== undefined) qs.set('hasVenues', params.hasVenues ? 'true' : 'false');
 
     (params?.countryIds ?? []).forEach((id) => qs.append('countryIds', id));
     (params?.countries ?? []).forEach((c) => qs.append('countries', c));

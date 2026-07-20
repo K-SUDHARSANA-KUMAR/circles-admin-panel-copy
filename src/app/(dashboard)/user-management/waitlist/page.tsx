@@ -294,6 +294,7 @@ export default function WaitlistPage() {
                   placeholder={filter.placeholder}
                   value={filterValue}
                   onChange={handleFilterChange}
+                  activeFilters={activeFilters}
                 />
               );
             })}
