@@ -273,6 +273,7 @@ export default function AdminUsersPage() {
                     [filter.key]: val,
                   }))
                 }
+                activeFilters={activeFilters}
               />
             ))}
           </div>

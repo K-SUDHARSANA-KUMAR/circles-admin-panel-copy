@@ -337,6 +337,7 @@ export default function UsersPage() {
                     [filter.key]: val,
                   }))
                 }
+                activeFilters={activeFilters}
               />
             ))}
           </div>

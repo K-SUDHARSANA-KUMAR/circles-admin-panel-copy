@@ -174,6 +174,7 @@ const VenuesPage = () => {
                     [filter.key]: val,
                   }))
                 }
+                activeFilters={activeFilters}
               />
             ))}
           </div>

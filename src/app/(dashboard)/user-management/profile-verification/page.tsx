@@ -292,6 +292,7 @@ export default function ProfileVerificationPage() {
                     [filter.key]: val,
                   }))
                 }
+                activeFilters={activeFilters}
               />
             ))}
           </div>

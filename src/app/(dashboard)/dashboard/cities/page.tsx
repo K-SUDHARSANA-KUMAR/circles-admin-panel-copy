@@ -491,6 +491,8 @@ export default function CitiesPage() {
                         [filter.key]: val,
                       }))
                     }
+                    activeFilters={activeFiltersCity}
+                    hasVenues={false}
                   />
                 ))}
               </div>
@@ -680,6 +682,7 @@ export default function CitiesPage() {
                         [filter.key]: val,
                       }))
                     }
+                    activeFilters={activeFiltersCountry}
                   />
                 ))}
               </div>
