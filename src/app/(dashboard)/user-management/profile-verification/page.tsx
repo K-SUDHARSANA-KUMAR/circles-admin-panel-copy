@@ -221,19 +221,21 @@ export default function ProfileVerificationPage() {
   const handleVerifyAction = async (action: 'approve' | 'reject') => {
     if (!verifyingUser) return;
 
-    const docImage = verifyingUser.verificationImages?.find(img => img.type === 'profile') ||
-      verifyingUser.verificationImages?.find(img => img.type === 'selfie') ||
-      verifyingUser.verificationImages?.[0];
-    const imageId = docImage?.id;
-    if (!imageId) {
-      toast.error('No verification image found for this user.');
+    const imagesToVerify = verifyingUser.verificationImages?.filter(
+      img => img.status.toLowerCase() === 'pending'
+    ) || [];
+
+    if (imagesToVerify.length === 0) {
+      toast.error('No pending verification images found for this user.');
       return;
     }
 
     setSaving(true);
     try {
       const isApproved = action === 'approve';
-      await verifyProfileImage(verifyingUser.id, imageId, isApproved);
+      for (const img of imagesToVerify) {
+        await verifyProfileImage(verifyingUser.id, img.id, isApproved);
+      }
 
       const displayName = verifyingUser.name ? `${verifyingUser.name} ${verifyingUser.lastName || ''}`.trim() : 'User';
       toast.success(`Successfully ${action === 'approve' ? 'approved' : 'rejected'} ${displayName}'s profile`);
