@@ -92,10 +92,10 @@ export function mapApiToVenue(api: ApiVenue): Venue {
   let countryName = '';
   if (api.country) {
     const uc = api.country.toUpperCase();
-    if (uc === 'IN' || uc === 'INDIA') countryName = 'India';
-    else if (uc === 'GB' || uc === 'UK' || uc === 'UNITED KINGDOM') countryName = 'United Kingdom';
-    else if (uc === 'US' || uc === 'USA' || uc === 'UNITED STATES') countryName = 'United States';
-    else if (uc === 'SE' || uc === 'SWEDEN') countryName = 'Sweden';
+    if (uc === 'IN' || uc === 'INDIA') countryName = 'IN';
+    else if (uc === 'GB' || uc === 'UK' || uc === 'UNITED KINGDOM') countryName = 'GB';
+    else if (uc === 'US' || uc === 'USA' || uc === 'UNITED STATES') countryName = 'US';
+    else if (uc === 'SE' || uc === 'SWEDEN') countryName = 'SE';
     else countryName = api.country;
   }
 
@@ -127,17 +127,17 @@ export function mapApiToVenue(api: ApiVenue): Venue {
 
   // Ensure country matches the resolved city name
   if (cityName === 'Coimbatore' || cityName === 'Chennai') {
-    countryName = 'India';
+    countryName = 'IN';
   } else if (cityName === 'London' || cityName === 'Leeds') {
-    countryName = 'United Kingdom';
+    countryName = 'GB';
   } else if (cityName === 'San Francisco' || cityName === 'New York') {
-    countryName = 'United States';
+    countryName = 'US';
   } else if (cityName === 'Stockholm') {
-    countryName = 'Sweden';
+    countryName = 'SE';
   }
 
   if (!countryName) {
-    countryName = 'India';
+    countryName = 'IN';
   }
 
   // Build premium cover image URL
