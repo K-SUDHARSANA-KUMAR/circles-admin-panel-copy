@@ -691,8 +691,21 @@ export default function UsersPage() {
                   <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-3.5 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/50">
+                        <div className="relative w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 bg-purple-950/20 text-[#d8b4fe] border border-purple-900/50 overflow-hidden">
+                          {/* Base fallback initial letter */}
                           {notificationTargetUser.name ? notificationTargetUser.name.charAt(0).toUpperCase() : 'U'}
+
+                          {/* Profile picture layered above the fallback */}
+                          {notificationTargetUser.profilePictureUrl && (
+                            <img
+                              src={notificationTargetUser.profilePictureUrl}
+                              alt={notificationTargetUser.name || 'User'}
+                              className="absolute inset-0 w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
                         </div>
                         <div>
                           <h4 className="text-xs font-bold text-white">
