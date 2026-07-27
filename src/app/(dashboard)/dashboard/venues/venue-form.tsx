@@ -128,6 +128,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     );
   };
 
+  /*
   const handleAddCategory = async () => {
     const label = (typeof window !== "undefined"
       ? window.prompt("New category name")
@@ -147,6 +148,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
       setAddingCategory(false);
     }
   };
+  */
 
   // Map state
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -719,7 +721,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                 <div className="grid gap-3">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="categorySlug" className="font-bold">Category</Label>
-                    {!isViewing && (
+                    {/* {!isViewing && (
                       <button
                         type="button"
                         onClick={handleAddCategory}
@@ -728,7 +730,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                       >
                         {addingCategory ? "Adding…" : "+ Add category"}
                       </button>
-                    )}
+                    )} */}
                   </div>
                   {isViewing ? (
                     <Input
