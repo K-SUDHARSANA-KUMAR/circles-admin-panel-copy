@@ -13,8 +13,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Circles Admin Panel',
-  description: 'Circles Admin Panel',
+  title: 'The Circles Club Admin Panel',
+  description: 'The Circles Club Admin Panel',
   icons: {
     icon: '/circles_logo.ico',
   },

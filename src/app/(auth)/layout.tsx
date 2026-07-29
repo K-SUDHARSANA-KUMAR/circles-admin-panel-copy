@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Circles - Login',
-  description: 'Circles Admin Panel',
+  title: 'The Circles Club - Login',
+  description: 'The Circles Club Admin Panel',
 };
 
 export default function RootLayout({

@@ -21,7 +21,7 @@ export const AuthHero = () => {
             by="character"
             once
           >
-            Welcome to Circles Admin Panel
+            Welcome to The Circles Club Admin Panel
           </TextAnimate>
           <TextAnimate
             className="px-20 text-base"
