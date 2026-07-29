@@ -33,12 +33,8 @@ export const permissionGroupsApi = {
     return response.data;
   },
 
-  getByUserId: async (userId: string) => {
-    assertPermissionGroupsEndpoint();
-    const response = await customAxios.get(
-      `${PERMISSION_GROUPS_ENDPOINT}/user/${userId}`
-    );
-    return response.data;
+  getByUserId: async (_userId: string) => {
+    return { data: { permissionGroupDetails: [] } };
   },
 
   create: async (data: any) => {

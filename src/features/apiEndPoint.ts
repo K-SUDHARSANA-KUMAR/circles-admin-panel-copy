@@ -5,10 +5,6 @@ const baseUrl =
 export const apiEndPoint = Object.freeze({
   //Dashboard
 
-  NOTIFICATIONS_ENDPOINT: `${baseUrl}/user-service/notifications`,
-  NOTIFICATIONS_COUNT_ENDPOINT: `${baseUrl}/user-service/notifications/unread-count`,
-
-
   //Circle-Services
 
   //Users Services
