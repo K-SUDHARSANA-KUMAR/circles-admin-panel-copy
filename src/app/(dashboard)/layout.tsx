@@ -6,8 +6,8 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 import PageHeader from '@/components/shared/page-header';
 
 export const metadata: Metadata = {
-  title: 'Circles Admin - Dashboard',
-  description: 'Main dashboard for Circles Admin Panel',
+  title: 'The Circles Club Admin - Dashboard',
+  description: 'Main dashboard for The Circles Club Admin Panel',
   icons: {
     icon: '/circles_logo.ico',
   },

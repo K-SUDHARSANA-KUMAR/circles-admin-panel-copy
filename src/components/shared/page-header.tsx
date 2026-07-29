@@ -35,10 +35,6 @@ const routeMap: Record<string, { title: string; subtitle?: string }> = {
     title: 'Verification Users',
     subtitle: 'Verify customer documents, identities, and background checks.',
   },
-  '/user-management/reviews': {
-    title: 'Reviews',
-    subtitle: 'Moderate user reviews, ratings, and customer feedback.',
-  },
   '/reports': {
     title: 'Reports & Analytics',
     subtitle: 'Generate spreadsheets, export booking CSVs, and examine platform statistics.',
@@ -79,7 +75,7 @@ const getHeaderInfo = (pathname: string) => {
       .join(' ');
   });
 
-  const subtitle = ['Circles Admin', ...formattedSegments].join(' > ');
+  const subtitle = ['The Circles Club Admin', ...formattedSegments].join(' > ');
   
   return { title, subtitle };
 };
@@ -93,7 +89,6 @@ const segmentLabelMap: Record<string, string> = {
   'user-management': 'User Management',
   users: 'Users',
   verification: 'Verification',
-  reviews: 'Reviews',
   reports: 'Reports',
   'admin-users': 'Admin Users',
   create: 'Create',
@@ -143,8 +138,8 @@ const PageHeader = () => {
     displayTitle = dynamicTitle;
   }
 
-  // Globally remove any auto-generated breadcrumbs starting with "Circles Admin"
-  if (displaySubtitle && displaySubtitle.startsWith("Circles Admin")) {
+  // Globally remove any auto-generated breadcrumbs starting with "The Circles Club Admin" or "Circles Admin"
+  if (displaySubtitle && (displaySubtitle.startsWith("Circles Admin") || displaySubtitle.startsWith("The Circles Club Admin"))) {
     displaySubtitle = undefined;
   }
   
