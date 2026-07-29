@@ -11,6 +11,7 @@ export interface Customer {
   reliabilityScore?: number;
   createdAt?: string;
   updatedAt?: string;
+  profilePictureUrl?: string | null;
 }
 
 export interface CustomersResponse {
