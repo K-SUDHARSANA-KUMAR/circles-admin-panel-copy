@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { SidebarTrigger } from '../ui/sidebar';
-import SpringBoard from '@/components/shared/spring-board';
 import { useAppSelector } from '@/store/hooks';
 import Link from 'next/link';
 
@@ -203,33 +202,24 @@ const PageHeader = () => {
         </div>
       </div>
 
-      {/* Right: Notifications, User profile chip */}
+      {/* Right: User profile chip */}
       <div className="flex items-center gap-4">
-        {/* Notifications and profile */}
-        <div className="flex items-center gap-3">
-          <SpringBoard />
-
-          {/* Vertical Separator */}
-          <div className="w-px h-6 bg-border mx-1" />
-
-          {/* User profile chip */}
-          <Link
-            href="/dashboard/profile"
-            className="flex items-center gap-3 bg-transparent hover:opacity-85 transition-opacity cursor-pointer py-1"
-          >
-            <div className="flex flex-col text-right justify-center">
-              <span className="text-xs font-semibold text-white leading-none">
-                {user?.name || 'Irfans'}
-              </span>
-              <span className="text-[10px] text-muted-foreground font-medium leading-none mt-1">
-                {user?.roleName || 'Super Admin'}
-              </span>
-            </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-xs shrink-0 border border-primary/30">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'I'}
-            </div>
-          </Link>
-        </div>
+        <Link
+          href="/dashboard/profile"
+          className="flex items-center gap-3 bg-transparent hover:opacity-85 transition-opacity cursor-pointer py-1"
+        >
+          <div className="flex flex-col text-right justify-center">
+            <span className="text-xs font-semibold text-white leading-none">
+              {user?.name || 'Irfans'}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-medium leading-none mt-1">
+              {user?.roleName || 'Super Admin'}
+            </span>
+          </div>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-xs shrink-0 border border-primary/30">
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'I'}
+          </div>
+        </Link>
       </div>
     </header>
   );

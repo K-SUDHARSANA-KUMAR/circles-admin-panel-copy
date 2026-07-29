@@ -37,39 +37,13 @@ export const ProtectedRoute = ({
     groupedPermissionsLoading,
   } = useAppSelector((state) => state.auth);
 
-  const fetchUserPermissions = async (userId: string) => {
+  const fetchUserPermissions = async (_userId: string) => {
     try {
       dispatch(setGroupedPermissionsLoading(true));
-      const permissionData = await permissionGroupsApi.getByUserId(userId);
-
-      if (permissionData?.data) {
-        const permissionGroupDetails =
-          permissionData.data.permissionGroupDetails || [];
-
-        dispatch(
-          setGroupedPermissions({
-            permissionGroupDetails,
-          })
-        );
-      } else {
-        dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
-      }
+      dispatch(setDefaultGroupedPermissions());
     } catch (error: unknown) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
-        return;
-      }
-
-      if (isNetworkError(error)) {
-        console.warn(
-          `Permission API unreachable for user ${userId}; using default local permissions.`
-        );
-        dispatch(setDefaultGroupedPermissions());
-        return;
-      }
-
-      console.error('Failed to fetch user permissions:', error);
-      dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
+      console.error('Failed to set default user permissions:', error);
+      dispatch(setDefaultGroupedPermissions());
     } finally {
       dispatch(setGroupedPermissionsLoading(false));
     }
