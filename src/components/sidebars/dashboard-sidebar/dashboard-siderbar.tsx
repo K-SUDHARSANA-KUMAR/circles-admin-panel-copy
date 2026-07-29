@@ -71,11 +71,6 @@ const sidebarGroups = [
         icon: CheckSquare,
       },
       {
-        title: 'Reviews',
-        url: '/user-management/reviews',
-        icon: Star,
-      },
-      {
         title: 'Admin Users',
         url: '/admin-users',
         icon: Shield,

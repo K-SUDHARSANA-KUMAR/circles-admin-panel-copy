@@ -35,10 +35,6 @@ const routeMap: Record<string, { title: string; subtitle?: string }> = {
     title: 'Verification Users',
     subtitle: 'Verify customer documents, identities, and background checks.',
   },
-  '/user-management/reviews': {
-    title: 'Reviews',
-    subtitle: 'Moderate user reviews, ratings, and customer feedback.',
-  },
   '/reports': {
     title: 'Reports & Analytics',
     subtitle: 'Generate spreadsheets, export booking CSVs, and examine platform statistics.',
@@ -93,7 +89,6 @@ const segmentLabelMap: Record<string, string> = {
   'user-management': 'User Management',
   users: 'Users',
   verification: 'Verification',
-  reviews: 'Reviews',
   reports: 'Reports',
   'admin-users': 'Admin Users',
   create: 'Create',
