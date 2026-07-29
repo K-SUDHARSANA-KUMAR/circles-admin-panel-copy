@@ -133,10 +133,13 @@ export default function WaitlistPage() {
       // Extract score value
       const scoreVal = filters.score?.min !== undefined ? filters.score.min : (typeof filters.score === 'number' ? filters.score : undefined);
 
+      const currentStatus = filters.status || activeTab;
+
       const filterParams = {
         search: debouncedSearch,
         limit: itemsPerPage,
         skip,
+        status: currentStatus,
         medium: filters.medium,
         minScore: filters.score?.min,
         maxScore: filters.score?.max,
@@ -147,17 +150,8 @@ export default function WaitlistPage() {
 
       const response = await fetchWaitlist(filterParams);
       const allUsers = response.users || [];
-      const filteredUsers = allUsers.filter((user) => {
-        // Status filter (client-side tab logic)
-        const currentStatus = filters.status || activeTab;
-        const matchesStatus = currentStatus === 'approved'
-          ? user.status === 'active'
-          : (user.status === 'waitlisted' || !user.status);
-        return matchesStatus;
-      });
-
-      setUsers(filteredUsers);
-      setTotal(response.total || filteredUsers.length);
+      setUsers(allUsers);
+      setTotal(response.total || allUsers.length);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch waitlist users. Please try again.';
       setError(msg);
@@ -364,7 +358,10 @@ export default function WaitlistPage() {
                       (user as { reliabilityScore?: number }).reliabilityScore !== undefined
                         ? (user as { reliabilityScore?: number }).reliabilityScore!
                         : 100;
-                    const status = (user.status || 'pending').toLowerCase();
+                    const waitlistStatus = ((user as { waitlistStatus?: string }).waitlistStatus || '').toLowerCase();
+                    const userAccountStatus = (user.status || 'pending').toLowerCase();
+                    const isApprovedUser = userAccountStatus === 'approved' || userAccountStatus === 'verified' || userAccountStatus === 'active' || waitlistStatus === 'approved';
+                    const isRejectedUser = userAccountStatus === 'rejected' || userAccountStatus === 'declined' || userAccountStatus === 'inactive' || waitlistStatus === 'rejected';
 
                     return (
                       <tr
@@ -405,12 +402,12 @@ export default function WaitlistPage() {
                         </td>
 
                         <td className="py-3 px-6">
-                          {status === 'approved' || status === 'verified' || status === 'active' ? (
+                          {isApprovedUser ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
                               Approved
                             </span>
-                          ) : status === 'rejected' || status === 'declined' || status === 'inactive' ? (
+                          ) : isRejectedUser ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                               Rejected
