@@ -146,9 +146,6 @@ export function VenueAttendeesModal({
                               <p className="font-semibold text-white">
                                 {item.userName}
                               </p>
-                              <p className="text-[10px] text-zinc-500 font-mono">
-                                ID: {item.userId}
-                              </p>
                             </div>
                           </div>
                         </td>
