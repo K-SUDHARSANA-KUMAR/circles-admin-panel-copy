@@ -15,6 +15,12 @@ export interface ReportUserRef {
   reliabilityScore: number | null;
 }
 
+export interface ReportChatAttachment {
+  type: string;
+  url: string;
+  name?: string;
+}
+
 export interface ReportChatMessage {
   messageId: string;
   senderId: string;
@@ -22,6 +28,7 @@ export interface ReportChatMessage {
   text: string;
   timestamp: string;
   messageType?: string;
+  attachments?: ReportChatAttachment[];
 }
 
 export interface Report {
