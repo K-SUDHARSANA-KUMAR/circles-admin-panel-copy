@@ -4,6 +4,7 @@ import { MEDIUM_OPTIONS } from './shared';
 export const waitlistFilters: FilterField[] = [
   {
     key: 'status', label: 'Status', type: 'select', options: [
+      { label: 'All', value: 'all' },
       { label: 'Pending', value: 'pending' },
       { label: 'Approved', value: 'approved' },
     ]
