@@ -757,9 +757,6 @@ export default function UsersPage() {
                             <span className="font-bold text-white uppercase text-[10px] tracking-wider px-1 bg-zinc-800 rounded border border-zinc-700/60">
                               {device.platform || 'unknown'}
                             </span>
-                            <span className="text-zinc-400 font-mono text-[9px] truncate max-w-[150px]">
-                              {device.deviceId || 'No Device ID'}
-                            </span>
                           </div>
                           <span className="text-[9px] text-zinc-600">
                             {device.createdAt ? format(new Date(device.createdAt), 'dd MMM yyyy') : ''}

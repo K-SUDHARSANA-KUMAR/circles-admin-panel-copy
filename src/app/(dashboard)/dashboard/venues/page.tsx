@@ -22,7 +22,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import VenueDetailClient from "./VenueDetailClient";
 import { VenueCategoriesSection } from "./venue-categories-section";
-import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
+import { fetchVenues, fetchFeaturedVenues, fetchVenueAttendees, type Venue } from "@/services/venue.service";
 import { toast } from "sonner";
 import FilterDropdown from "@/components/common/FilterDropdown";
 import { venueFilters } from "@/components/common/filters/venues.filters";
@@ -106,6 +106,39 @@ const VenuesPage = () => {
     if (detailVenueId) return;
     loadAllVenues(debouncedSearch, currentPage, activeFilters);
   }, [debouncedSearch, currentPage, activeFilters, itemsPerPage, loadAllVenues, detailVenueId]);
+
+  // Fetch live attendee counts for loaded venues and patch into state
+  useEffect(() => {
+    if (!venues.length || loading) return;
+
+    const venuesWithIds = venues.filter((v) => v.id);
+    if (!venuesWithIds.length) return;
+
+    let cancelled = false;
+
+    Promise.all(
+      venuesWithIds.map((v) =>
+        fetchVenueAttendees(v.id!, 1, 1).then((res) => ({
+          id: v.id!,
+          total: res.total,
+        }))
+      )
+    ).then((counts) => {
+      if (cancelled) return;
+      const countMap = new Map(counts.map((c) => [c.id, c.total]));
+      setVenues((prev) =>
+        prev.map((v) =>
+          v.id && countMap.has(v.id)
+            ? { ...v, attendeeCount: countMap.get(v.id)! }
+            : v
+        )
+      );
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [venues.length, loading]);
 
   // Reset pagination to page 1 on search or filter updates
   const prevSearchRef = useRef(debouncedSearch);
