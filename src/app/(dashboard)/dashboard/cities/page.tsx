@@ -440,9 +440,14 @@ export default function CitiesPage() {
   const paginatedCities = filteredCities;
 
   // ─── Filtering & Pagination for Countries ──────────────────────────────────
-  const filteredCountries = countries;
-  const totalCountryPages = Math.ceil(totalCountries / itemsPerCountryPage);
-  const paginatedCountries = countries;
+  const filteredCountries = countries.filter((country) => {
+    const active = country.isActive ?? country.is_active ?? true;
+    if (activeFiltersCountry.status === 'active') return active === true;
+    if (activeFiltersCountry.status === 'inactive') return active === false;
+    return true;
+  });
+  const totalCountryPages = Math.ceil(filteredCountries.length / itemsPerCountryPage);
+  const paginatedCountries = filteredCountries;
 
 
 
