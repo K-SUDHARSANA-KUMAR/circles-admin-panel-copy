@@ -32,7 +32,7 @@ import {
 } from '@/components/shared/listing-page';
 import { toast } from 'sonner';
 
-type WaitlistTab = 'pending' | 'approved';
+type WaitlistTab = 'all' | 'pending' | 'approved';
 
 const WAITLIST_TABLE_HEADERS = (
   <tr className="border-b border-[#18181b]">
@@ -70,8 +70,9 @@ export default function WaitlistPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const detailUserId = searchParams.get('id');
+  const tabParam = searchParams.get('tab');
   const activeTab: WaitlistTab =
-    searchParams.get('tab') === 'approved' ? 'approved' : 'pending';
+    tabParam === 'approved' ? 'approved' : tabParam === 'pending' ? 'pending' : 'all';
 
   const [users, setUsers] = useState<WaitlistUser[]>([]);
   const [total, setTotal] = useState(0);
@@ -105,10 +106,10 @@ export default function WaitlistPage() {
 
   const handleTabChange = (tab: WaitlistTab) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (tab === 'approved') {
-      params.set('tab', 'approved');
-    } else {
+    if (tab === 'all') {
       params.delete('tab');
+    } else {
+      params.set('tab', tab);
     }
     const query = params.toString();
     router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
@@ -229,15 +230,18 @@ export default function WaitlistPage() {
         icon={IconShieldCheck}
         title="Waitlist Management"
         subtitle={
-          isApprovedTab
+          activeTab === 'approved'
             ? `${total} approved applicants`
-            : `${total} applicants pending review`
+            : activeTab === 'pending'
+              ? `${total} applicants pending review`
+              : `${total} waitlist applicants`
         }
         trailing={
           <ListingSegmentedTabs
             activeTab={activeTab}
             onTabChange={handleTabChange}
             tabs={[
+              { id: 'all', label: 'All', icon: IconUserSearch },
               { id: 'pending', label: 'Pending', icon: IconShieldCheck },
               { id: 'approved', label: 'Approved', icon: IconUserCheck },
             ]}
@@ -247,9 +251,11 @@ export default function WaitlistPage() {
 
       <ListingToolbar
         countLabel={
-          isApprovedTab
+          activeTab === 'approved'
             ? `${total} Approved Users`
-            : `${total} Pending Verification`
+            : activeTab === 'pending'
+              ? `${total} Pending Verification`
+              : `${total} Applicants`
         }
         showCount={!loading && !error}
         searchPlaceholder="Search by name or phone no..."
@@ -274,7 +280,7 @@ export default function WaitlistPage() {
                   } else if (val === 'pending') {
                     handleTabChange('pending');
                   } else {
-                    handleTabChange('pending');
+                    handleTabChange('all');
                   }
                 }
               };
