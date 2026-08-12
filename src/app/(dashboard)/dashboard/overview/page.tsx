@@ -34,6 +34,12 @@ import {
 import { fetchReports, Report } from '@/services/report.service';
 import { fetchVenues, Venue } from '@/services/venue.service';
 
+const timeRangeLabels: Record<'7D' | '1M' | '6M', string> = {
+  '7D': '7 Day',
+  '1M': '1 Month',
+  '6M': '6 Month',
+};
+
 const chartConfig = {
   signups: {
     label: 'Signups',
@@ -330,6 +336,9 @@ const DashboardPage = () => {
           }`}
         >
           Action Center
+          {activeTab === 'action-center' && (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary" />
+          )}
         </button>
       </div>
 
@@ -430,7 +439,7 @@ const DashboardPage = () => {
             </CardHeader>
             <CardContent className="pt-3">
               <p className="text-xs text-primary/80 font-medium group-hover:text-primary transition-colors">
-                Needs attention
+                Tap to go to Reports Tab
               </p>
             </CardContent>
           </Card>
@@ -465,7 +474,7 @@ const DashboardPage = () => {
                         : 'text-muted-foreground hover:text-white'
                     }`}
                   >
-                    {range}
+                    {timeRangeLabels[range]}
                   </button>
                 ))}
               </div>

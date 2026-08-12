@@ -159,41 +159,51 @@ const PageHeader = () => {
               {displaySubtitle}
             </p>
           )}
-          {segments.length > 0 && (
-            <nav className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF] font-medium font-sans">
-              <Link href="/dashboard/overview" className="hover:text-white transition-colors">
-                Console
-              </Link>
-              {segments.map((segment, index) => {
-                const fullPath = '/' + segments.slice(0, index + 1).join('/');
-                const isLast = index === segments.length - 1;
-                
-                // Determine label
-                let label = segmentLabelMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
-                if (isLast && dynamicTitle) {
-                  label = dynamicTitle;
-                } else if (segment.length > 20 && !segmentLabelMap[segment]) {
-                  label = 'Details';
-                }
+          {segments.length > 0 && (() => {
+            // "dashboard" is a real parent only for "Overview" (Dashboard > Overview).
+            // For sibling top-level sections routed under /dashboard/* (venues, cities, ...),
+            // it's not a true parent, so drop it from the breadcrumb chain.
+            const crumbIndexes = segments
+              .map((_, index) => index)
+              .filter((index) => !(segments[index] === 'dashboard' && segments[1] !== 'overview'));
 
-                // Custom link for dashboard
-                const link = getSegmentLink(segment, fullPath);
+            // A single crumb just repeats the page heading with no real hierarchy to show.
+            if (crumbIndexes.length < 2) return null;
 
-                return (
-                  <React.Fragment key={fullPath}>
-                    <span className="text-[#555555] select-none">&gt;</span>
-                    {isLast ? (
-                      <span className="text-[#BF6DFF] font-semibold">{label}</span>
-                    ) : (
-                      <Link href={link} className="hover:text-white transition-colors">
-                        {label}
-                      </Link>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </nav>
-          )}
+            return (
+              <nav className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF] font-medium font-sans">
+                {crumbIndexes.map((index, i) => {
+                  const segment = segments[index];
+                  const fullPath = '/' + segments.slice(0, index + 1).join('/');
+                  const isLast = index === segments.length - 1;
+
+                  // Determine label
+                  let label = segmentLabelMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
+                  if (isLast && dynamicTitle) {
+                    label = dynamicTitle;
+                  } else if (segment.length > 20 && !segmentLabelMap[segment]) {
+                    label = 'Details';
+                  }
+
+                  // Custom link for dashboard
+                  const link = getSegmentLink(segment, fullPath);
+
+                  return (
+                    <React.Fragment key={fullPath}>
+                      {i > 0 && <span className="text-[#555555] select-none">&gt;</span>}
+                      {isLast ? (
+                        <span className="text-[#BF6DFF] font-semibold">{label}</span>
+                      ) : (
+                        <Link href={link} className="hover:text-white transition-colors">
+                          {label}
+                        </Link>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </nav>
+            );
+          })()}
         </div>
       </div>
 
