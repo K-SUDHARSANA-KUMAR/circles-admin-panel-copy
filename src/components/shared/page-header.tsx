@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { SidebarTrigger } from '../ui/sidebar';
 import { useAppSelector } from '@/store/hooks';
 import Link from 'next/link';
@@ -94,29 +94,25 @@ const segmentLabelMap: Record<string, string> = {
   create: 'Create',
 };
 
-const getSegmentLink = (segment: string, fullPath: string) => {
-  if (segment === 'dashboard') return '/dashboard/overview';
-  return fullPath;
-};
-
 const PageHeader = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useAppSelector((state) => state.auth);
   const headerInfo = getHeaderInfo(pathname);
   const [dynamicTitle, setDynamicTitle] = useState<string | null>(null);
   const segments = pathname.split('/').filter(Boolean);
+  const normalizedPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  const detailId = searchParams.get('id');
+  // A specific record (venue, waitlist applicant) is opened via ?id= on its list route
+  // rather than its own path segment, so detect it off the query param.
+  const isVenueDetail = normalizedPath === '/dashboard/venues' && !!detailId;
+  const isWaitlistDetail = normalizedPath === '/user-management/waitlist' && !!detailId;
+  const hasDetailChild = isVenueDetail || isWaitlistDetail;
 
   useEffect(() => {
-    const segments = pathname.split('/').filter(Boolean);
-    if (
-      segments.length === 3 &&
-      segments[0] === 'dashboard' &&
-      segments[1] === 'venues' &&
-      segments[2] !== 'create'
-    ) {
-      const venueId = segments[2];
+    if (isVenueDetail) {
       import('@/services/venue.service').then(({ fetchVenueById }) => {
-        fetchVenueById(venueId)
+        fetchVenueById(detailId!)
           .then((venue) => {
             if (venue && venue.name) {
               setDynamicTitle(venue.name);
@@ -126,17 +122,25 @@ const PageHeader = () => {
             console.error("Failed to fetch venue name for header:", err);
           });
       });
+    } else if (isWaitlistDetail) {
+      import('@/services/user.service').then(({ fetchCustomerById }) => {
+        fetchCustomerById(detailId!)
+          .then((customer) => {
+            const name = [customer?.name, customer?.lastName].filter(Boolean).join(' ').trim();
+            setDynamicTitle(name || 'Unnamed User');
+          })
+          .catch((err) => {
+            console.error("Failed to fetch user name for header:", err);
+          });
+      });
     } else {
       setDynamicTitle(null);
     }
-  }, [pathname]);
+  }, [isVenueDetail, isWaitlistDetail, detailId]);
 
-  let displayTitle = headerInfo.title;
+  // Heading stays static (e.g. "Venues"); the record's name only appears as a breadcrumb child.
+  const displayTitle = headerInfo.title;
   let displaySubtitle = headerInfo.subtitle;
-
-  if (dynamicTitle) {
-    displayTitle = dynamicTitle;
-  }
 
   // Globally remove any auto-generated breadcrumbs starting with "The Circles Club Admin" or "Circles Admin"
   if (displaySubtitle && (displaySubtitle.startsWith("Circles Admin") || displaySubtitle.startsWith("The Circles Club Admin"))) {
@@ -159,41 +163,53 @@ const PageHeader = () => {
               {displaySubtitle}
             </p>
           )}
-          {segments.length > 0 && (
-            <nav className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF] font-medium font-sans">
-              <Link href="/dashboard/overview" className="hover:text-white transition-colors">
-                Console
-              </Link>
-              {segments.map((segment, index) => {
-                const fullPath = '/' + segments.slice(0, index + 1).join('/');
-                const isLast = index === segments.length - 1;
-                
-                // Determine label
-                let label = segmentLabelMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
-                if (isLast && dynamicTitle) {
-                  label = dynamicTitle;
-                } else if (segment.length > 20 && !segmentLabelMap[segment]) {
-                  label = 'Details';
-                }
+          {segments.length > 0 && (() => {
+            // "dashboard" is a real parent only for "Overview" (Dashboard > Overview).
+            // For sibling top-level sections routed under /dashboard/* (venues, cities, ...),
+            // it's not a true parent, so drop it from the breadcrumb chain.
+            const crumbIndexes = segments
+              .map((_, index) => index)
+              .filter((index) => !(segments[index] === 'dashboard' && segments[1] !== 'overview'));
 
-                // Custom link for dashboard
-                const link = getSegmentLink(segment, fullPath);
+            type Crumb = { key: string; label: string };
+            const crumbs: Crumb[] = crumbIndexes.map((index) => {
+              const segment = segments[index];
+              const fullPath = '/' + segments.slice(0, index + 1).join('/');
+              let label = segmentLabelMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
+              if (segment.length > 20 && !segmentLabelMap[segment]) {
+                label = 'Details';
+              }
+              return { key: fullPath, label };
+            });
 
-                return (
-                  <React.Fragment key={fullPath}>
-                    <span className="text-[#555555] select-none">&gt;</span>
-                    {isLast ? (
-                      <span className="text-[#BF6DFF] font-semibold">{label}</span>
-                    ) : (
-                      <Link href={link} className="hover:text-white transition-colors">
-                        {label}
-                      </Link>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </nav>
-          )}
+            // Append the clicked record as its own child crumb, e.g. Venues > SB Pub
+            // or User Management > Waitlist > Jane Doe.
+            if (hasDetailChild && dynamicTitle) {
+              crumbs.push({ key: `${normalizedPath}?id=${detailId}`, label: dynamicTitle });
+            }
+
+            // A single crumb just repeats the page heading with no real hierarchy to show.
+            if (crumbs.length < 2) return null;
+
+            return (
+              <nav className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF] font-medium font-sans">
+                {crumbs.map((crumb, i) => {
+                  const isLast = i === crumbs.length - 1;
+
+                  return (
+                    <React.Fragment key={crumb.key}>
+                      {i > 0 && <span className="text-[#555555] select-none">&gt;</span>}
+                      {isLast ? (
+                        <span className="text-[#BF6DFF] font-semibold">{crumb.label}</span>
+                      ) : (
+                        <span>{crumb.label}</span>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </nav>
+            );
+          })()}
         </div>
       </div>
 
