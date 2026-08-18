@@ -1,50 +1,153 @@
-name: Build and Deploy to S3
+name: Build and Deploy Frontend
 
 on:
   push:
     branches:
-      - develop
       - main
+      - develop
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
 
     steps:
+
+      # ----------------------------------------
+      # Checkout
+      # ----------------------------------------
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # ----------------------------------------
+      # Setup Node.js
+      # ----------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+          cache: npm
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Build Application
+      # ----------------------------------------
+      # Verify Node.js
+      # ----------------------------------------
+      - name: Verify Node.js
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          node --version
+          npm --version
+
+      # ----------------------------------------
+      # Install dependencies
+      # ----------------------------------------
+      - name: Install Dependencies
+        run: |
+          npm install --legacy-peer-deps
+
+      # ----------------------------------------
+      # Select environment and build
+      # ----------------------------------------
+      - name: Build Application
+        shell: bash
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+
+            echo "======================================"
+            echo "Production deployment"
+            echo "======================================"
+
             npm run build:prod
-            echo "S3_BUCKET=mycircles-web-prod" >> $GITHUB_ENV
-          else
+
+            echo "S3_BUCKET=mycircles-admin-panel-prod" >> "$GITHUB_ENV"
+            echo "CLOUDFRONT_ID=${{ secrets.CLOUDFRONT_ID_PROD }}" >> "$GITHUB_ENV"
+
+          elif [ "${{ github.ref_name }}" = "develop" ]; then
+
+            echo "======================================"
+            echo "Development deployment"
+            echo "======================================"
+
             npm run build:dev
-            echo "S3_BUCKET=mycircles-web-dev" >> $GITHUB_ENV
+
+            echo "S3_BUCKET=mycircles-web-dev" >> "$GITHUB_ENV"
+            echo "CLOUDFRONT_ID=${{ secrets.CLOUDFRONT_ID }}" >> "$GITHUB_ENV"
+
+          else
+
+            echo "Unsupported branch: ${{ github.ref_name }}"
+            exit 1
+
           fi
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          echo "======================================"
+          echo "Build completed"
+          echo "S3 Bucket: $S3_BUCKET"
+          echo "======================================"
 
+      # ----------------------------------------
+      # Configure AWS using OIDC
+      # ----------------------------------------
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ap-south-1
+          role-session-name: GitHubActions-${{ github.run_id }}
+
+      # ----------------------------------------
+      # Verify AWS identity
+      # ----------------------------------------
+      - name: Verify AWS Identity
+        run: |
+          aws sts get-caller-identity
+
+      # ----------------------------------------
+      # Upload to S3
+      # ----------------------------------------
       - name: Upload to S3
         run: |
-          aws s3 sync ./build s3://$S3_BUCKET --delete
+          echo "======================================"
+          echo "Uploading build to S3"
+          echo "Bucket: $S3_BUCKET"
+          echo "======================================"
 
-      # Create CloudFront Invalidation
+          aws s3 sync ./build \
+            "s3://$S3_BUCKET" \
+            --delete
+
+          echo "S3 deployment completed."
+
+      # ----------------------------------------
+      # CloudFront invalidation
+      # ----------------------------------------
       - name: Create CloudFront Invalidation
-        env:
-          CLOUDFRONT_ID: ${{ secrets.CLOUDFRONT_ID }}
-        run: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+        run: |
+          echo "======================================"
+          echo "Creating CloudFront invalidation"
+          echo "Distribution: $CLOUDFRONT_ID"
+          echo "======================================"
+
+          aws cloudfront create-invalidation \
+            --distribution-id "$CLOUDFRONT_ID" \
+            --paths "/*"
+
+          echo "CloudFront invalidation created."
+
+      # ----------------------------------------
+      # Deployment summary
+      # ----------------------------------------
+      - name: Deployment Completed
+        run: |
+          echo "======================================"
+          echo "Frontend deployment successful"
+          echo "======================================"
+          echo "Repository : ${{ github.repository }}"
+          echo "Branch     : ${{ github.ref_name }}"
+          echo "Node       : $(node --version)"
+          echo "S3 Bucket  : $S3_BUCKET"
+          echo "CloudFront : $CLOUDFRONT_ID"
+          echo "======================================"
+
