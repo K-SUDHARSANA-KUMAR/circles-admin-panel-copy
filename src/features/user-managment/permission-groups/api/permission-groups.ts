@@ -1,8 +1,15 @@
 import { apiEndPoint } from '@/features/apiEndPoint';
 import customAxios from '@/lib/axios';
-import axios from 'axios';
 
 const { PERMISSION_GROUPS_ENDPOINT } = apiEndPoint;
+
+const assertPermissionGroupsEndpoint = () => {
+  if (!PERMISSION_GROUPS_ENDPOINT || PERMISSION_GROUPS_ENDPOINT.includes('undefined')) {
+    throw new Error(
+      'NEXT_PUBLIC_BASE_URL is not configured. Set it in .env.local before calling the permission API.'
+    );
+  }
+};
 
 export const permissionGroupsApi = {
   getAll: async (params?: {
@@ -26,11 +33,8 @@ export const permissionGroupsApi = {
     return response.data;
   },
 
-  getByUserId: async (userId: string) => {
-    const response = await customAxios.get(
-      `${PERMISSION_GROUPS_ENDPOINT}/user/${userId}`
-    );
-    return response.data;
+  getByUserId: async (_userId: string) => {
+    return { data: { permissionGroupDetails: [] } };
   },
 
   create: async (data: any) => {

@@ -1,22 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAppSelector } from '@/store/hooks';
 import Loading from '../ui/loading';
 import { useDispatch } from 'react-redux';
 import {
   setAuthData,
+  setDefaultGroupedPermissions,
   setGroupedPermissions,
   setGroupedPermissionsLoading,
 } from '@/store/slices/authSlice';
 import { getAuthFromLocalStorage } from '@/utils/auth-utils';
 import { permissionGroupsApi } from '@/features/user-managment/permission-groups/api/permission-groups';
+import { shouldFetchUserPermissions } from '@/utils/env';
+import { isAxiosError } from 'axios';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   redirectTo?: string;
 }
+
+const isNetworkError = (error: unknown) =>
+  isAxiosError(error) && !error.response && Boolean(error.request);
 
 export const ProtectedRoute = ({
   children,
@@ -31,33 +37,13 @@ export const ProtectedRoute = ({
     groupedPermissionsLoading,
   } = useAppSelector((state) => state.auth);
 
-  // Fetch user permissions from API
-  const fetchUserPermissions = async (userId: string) => {
+  const fetchUserPermissions = async (_userId: string) => {
     try {
       dispatch(setGroupedPermissionsLoading(true));
-      const permissionData = await permissionGroupsApi.getByUserId(userId);
-
-      if (permissionData?.data) {
-        const permissionGroupDetails = permissionData.data.permissionGroupDetails || [];
-        
-        dispatch(
-          setGroupedPermissions({
-            permissionGroupDetails,
-          })
-        );
-      } else {
-        console.warn('No permission data found in API response');
-        dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
-      }
-    } catch (error: any) {
-      // Handle 404 errors gracefully - user might not have permission groups assigned
-      if (error?.response?.status === 404) {
-        console.warn(`No permission groups found for user ${userId}`);
-        dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
-      } else {
-        console.error('Failed to fetch user permissions:', error);
-        dispatch(setGroupedPermissions({ permissionGroupDetails: [] }));
-      }
+      dispatch(setDefaultGroupedPermissions());
+    } catch (error: unknown) {
+      console.error('Failed to set default user permissions:', error);
+      dispatch(setDefaultGroupedPermissions());
     } finally {
       dispatch(setGroupedPermissionsLoading(false));
     }
@@ -72,20 +58,14 @@ export const ProtectedRoute = ({
     } else {
       dispatch(setAuthData(getAuthFromLocalStorage()));
     }
-  }, [isAuthenticated]);
+  }, [dispatch, redirectTo, router]);
 
   useEffect(() => {
-    if (
-      isAuthenticated &&
-      user?.userId &&
-      user?.userId !== 'admin' &&
-      process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL'
-    ) {
-      fetchUserPermissions(user.userId);
+    if (isAuthenticated && shouldFetchUserPermissions(user?.userId)) {
+      fetchUserPermissions(user!.userId!);
     }
   }, [isAuthenticated, user?.userId]);
 
-  // Listen to Redux store changes for logout
   useEffect(() => {
     if (!isReduxAuthenticated && isAuthenticated) {
       setIsAuthenticated(false);
@@ -93,12 +73,12 @@ export const ProtectedRoute = ({
     }
   }, [isReduxAuthenticated, isAuthenticated, router, redirectTo]);
 
-  // Show loading while authenticating or while permissions are loading
-  if (
-    !isAuthenticated ||
-    (process.env.NEXT_PUBLIC_ENVIRONMENT !== 'LOCAL' &&
-      groupedPermissionsLoading)
-  ) {
+  const awaitingPermissions =
+    isAuthenticated &&
+    shouldFetchUserPermissions(user?.userId) &&
+    groupedPermissionsLoading;
+
+  if (!isAuthenticated || awaitingPermissions) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">

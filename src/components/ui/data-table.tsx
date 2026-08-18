@@ -63,6 +63,7 @@ interface DataTableProps<TData, TValue> {
   tableId: string; // <-- Add this prop
   getRowClassName?: (row: any) => string;
   onRowSelectionChange?: (selectedRows: TData[]) => void; // <-- Add row selection support
+  onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -81,6 +82,7 @@ export function DataTable<TData, TValue>({
   tableId,
   getRowClassName,
   onRowSelectionChange,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   if (!tableId) {
     throw new Error(
@@ -286,7 +288,7 @@ export function DataTable<TData, TValue>({
                 <TableRow className="rounded-lg" key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} className="text-white font-bold">
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -305,7 +307,12 @@ export function DataTable<TData, TValue>({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
-                    className={getRowClassName ? getRowClassName(row) : ''}
+                    className={`${getRowClassName ? getRowClassName(row) : ''} ${onRowClick ? 'cursor-pointer' : ''}`}
+                    onClick={(e) => {
+                      if (onRowClick) {
+                        onRowClick(row.original);
+                      }
+                    }}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
@@ -318,7 +325,7 @@ export function DataTable<TData, TValue>({
                   </TableRow>
                 ))
               ) : (
-                <TableRow>
+                <TableRow className="hover:bg-transparent">
                   <TableCell
                     colSpan={columns.length}
                     className="h-80 text-center"
@@ -333,15 +340,15 @@ export function DataTable<TData, TValue>({
       )}
 
       {(totalDisplayItems > 0 || isLoading) && !hidePagination && (
-        <div className="sticky bottom-0 flex items-center justify-between rounded-lg bg-neutral-100 px-2 px-4 py-2">
-          <div className="flex-1 text-sm font-medium text-neutral-600">
+        <div className="sticky bottom-0 flex items-center justify-between rounded-lg px-10 py-2">
+          <div className="flex-1 text-sm font-medium text-white">
             {isLoading
               ? 'Loading...'
               : `Showing ${startItem} to ${endItem} of ${totalDisplayItems} entries`}
           </div>
           <div className="flex items-center space-x-6 lg:space-x-8">
             <div className="flex items-center space-x-2">
-              <p className="text-sm font-medium text-neutral-600">
+              <p className="text-sm font-medium text-white">
                 Rows per page
               </p>
               <Select
@@ -371,11 +378,11 @@ export function DataTable<TData, TValue>({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex w-[100px] items-center justify-center text-sm font-medium text-neutral-600">
+            <div className="flex w-[100px] items-center justify-center text-sm font-medium text-white">
               Page {table.getState().pagination.pageIndex + 1} of{' '}
               {table.getPageCount()}
             </div>
-            <div className="flex items-center space-x-2 text-neutral-600">
+            <div className="flex items-center space-x-2 text-white">
               <Button
                 variant="tertiary"
                 className="hidden h-8 w-8 p-0 lg:flex"
@@ -394,7 +401,7 @@ export function DataTable<TData, TValue>({
                 <span className="sr-only">Go to previous page</span>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <div className="flex w-12 items-center justify-center text-sm font-medium text-neutral-600">
+              <div className="flex w-12 items-center justify-center text-sm font-medium text-white">
                 {table.getState().pagination.pageIndex + 1}
               </div>
               <Button

@@ -97,18 +97,17 @@ export const OutletLogDetailsModal: React.FC<OutletLogDetailsModalProps> = ({
 
         <div className="mt-4 border rounded-lg overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-4 bg-gray-100 px-4 py-2 text-sm font-semibold text-muted-foreground border-b">
+          <div className="grid grid-cols-3 bg-gray-100 px-4 py-2 text-sm font-semibold text-muted-foreground border-b">
             <div>S.No</div>
             <div>Document Type</div>
             <div>Status</div>
-            <div>Updated At</div>
           </div>
 
           {/* Rows */}
           {logs.map((log, idx) => (
             <div
               key={idx}
-              className="grid grid-cols-4 px-4 py-2 text-sm border-b last:border-none"
+              className="grid grid-cols-3 px-4 py-2 text-sm border-b last:border-none"
             >
               <div>{idx + 1}</div>
               <div>{log.title}</div>
@@ -116,7 +115,6 @@ export const OutletLogDetailsModal: React.FC<OutletLogDetailsModalProps> = ({
                 {statusIconMap[log.status].icon}
                 <span>{statusIconMap[log.status].label}</span>
               </div>
-              <div>{log.updatedAt}</div>
             </div>
           ))}
         </div>

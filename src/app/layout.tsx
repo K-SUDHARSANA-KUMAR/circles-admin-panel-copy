@@ -3,24 +3,18 @@ import './globals.css';
 import GenericProvider from '@/providers/generic-provider';
 import QueryProvider from '@/providers/query-provider';
 import { ReduxProvider } from '@/providers/redux-provider';
-import { Montserrat, Inter } from 'next/font/google';
-
+import { DM_Sans } from 'next/font/google';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
-const montserrat = Montserrat({
-  variable: '--font-montserrat',
-  subsets: ['latin'],
-});
-
-const inter = Inter({
-  variable: '--font-inter',
+const dmSans = DM_Sans({
+  variable: '--font-dm-sans',
   subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: 'Circles Admin Panel',
-  description: 'Circles Admin Panel',
+  title: 'The Circles Club Admin Panel',
+  description: 'The Circles Club Admin Panel',
   icons: {
     icon: '/circles_logo.ico',
   },
@@ -33,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${montserrat.variable} ${inter.variable} antialiased overflow-x-hidden`}>
+      <body className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
         <Suspense>
           <ReduxProvider>
             <QueryProvider>

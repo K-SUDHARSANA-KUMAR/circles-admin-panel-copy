@@ -22,6 +22,19 @@ const initialState: IAuthState = {
   isSuperAdmin: false,
 };
 
+const buildGroupedPermissionsFromDefaults = () => {
+  const grouped: Record<string, string[]> = { ...DEFAULT_GROUPED_PERMISSIONS };
+  const groupedMap: Record<string, boolean> = {};
+
+  Object.entries(grouped).forEach(([resource, actions]) => {
+    actions.forEach((action) => {
+      groupedMap[`${resource}:${action}`] = true;
+    });
+  });
+
+  return { grouped, groupedMap };
+};
+
 const isSuperAdminUser = (permissionGroupDetails: any[]): boolean => {
   if (!permissionGroupDetails || !Array.isArray(permissionGroupDetails)) {
     return false;
@@ -63,15 +76,7 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken || null;
 
       if (process.env.NEXT_PUBLIC_ENVIRONMENT === 'LOCAL' || action.payload.user?.userId === 'admin') {
-        const grouped: Record<string, string[]> = { ...DEFAULT_GROUPED_PERMISSIONS };
-        const groupedMap: Record<string, boolean> = {};
-
-        Object.entries(grouped).forEach(([resource, actions]) => {
-          actions.forEach((action) => {
-            groupedMap[`${resource}:${action}`] = true;
-          });
-        });
-
+        const { grouped, groupedMap } = buildGroupedPermissionsFromDefaults();
         state.groupedPermissions = grouped;
         state.groupedPermissionsMap = groupedMap;
         state.groupedPermissionsLoading = false;
@@ -83,6 +88,12 @@ const authSlice = createSlice({
     },
     setGroupedPermissionsLoading(state, action: PayloadAction<boolean>) {
       state.groupedPermissionsLoading = action.payload;
+    },
+    setDefaultGroupedPermissions(state) {
+      const { grouped, groupedMap } = buildGroupedPermissionsFromDefaults();
+      state.groupedPermissions = grouped;
+      state.groupedPermissionsMap = groupedMap;
+      state.groupedPermissionsLoading = false;
     },
     setGroupedPermissions(
       state,
@@ -153,6 +164,7 @@ export const {
   setAuthData,
   setGroupedPermissionsLoading,
   setGroupedPermissions,
+  setDefaultGroupedPermissions,
   clearAuthData,
 } = authSlice.actions;
 export default authSlice.reducer;

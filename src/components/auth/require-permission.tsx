@@ -2,6 +2,7 @@ import accessDenied from '@/assets/svgs/no-access.svg';
 import { MENU_RIGHTS } from '@/constants/permissions.constant';
 import { useOptimizedPermissionChecker } from '@/features/auth/hooks/useHasPermission';
 import { useAppSelector } from '@/store/hooks';
+import { isLocalEnvironment } from '@/utils/env';
 import Link from 'next/link';
 
 interface RequirePermissionProps {
@@ -19,7 +20,7 @@ export const RequirePermission = ({
   const { hasAny } = useOptimizedPermissionChecker();
   const isSuperAdmin = useAppSelector((state) => state.auth.isSuperAdmin);
 
-  if (isSuperAdmin || process.env.NEXT_PUBLIC_ENVIRONMENT === 'LOCAL') {
+  if (isSuperAdmin || isLocalEnvironment()) {
     return <>{children}</>;
   }
 
