@@ -9,7 +9,7 @@ test.describe('Login page', () => {
 
   test('renders the login form', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Log In' })).toBeVisible();
-    await expect(page.getByPlaceholder('eg: irfan@nokha.in')).toBeVisible();
+    await expect(page.getByPlaceholder('eg: irfan@noukha.in')).toBeVisible();
     await expect(page.getByPlaceholder('eg: *********')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Log In' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Forgot Password?' })).toBeVisible();
@@ -43,7 +43,7 @@ test.describe('Login page', () => {
   });
 
   test('rejects invalid credentials', async ({ page }) => {
-    await page.getByPlaceholder('eg: irfan@nokha.in').fill('nope@example.com');
+    await page.getByPlaceholder('eg: irfan@noukha.in').fill('nope@example.com');
     await page.getByPlaceholder('eg: *********').fill('wrong-password');
     await page.getByRole('button', { name: 'Log In' }).click();
 
