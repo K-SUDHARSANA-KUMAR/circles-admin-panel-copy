@@ -62,7 +62,7 @@ const sidebarGroups = [
       },
       {
         title: 'Waitlist Users',
-        url: '/user-management/waitlist',
+        url: '/user-management/waitlist/?tab=pending',
         icon: CheckSquare,
       },
       {

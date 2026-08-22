@@ -115,7 +115,7 @@ export const LoginForm = ({
               <Input
                 type="email"
                 className="pl-10"
-                placeholder="eg: irfan@nokha.in"
+                placeholder="eg: irfan@noukha.in"
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
               />
@@ -276,7 +276,7 @@ export const LoginForm = ({
                   <User className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-500" />
                   <Input
                     className="pl-10"
-                    placeholder="eg: irfan@nokha.in"
+                    placeholder="eg: irfan@noukha.in"
                     {...field}
                   />
                 </div>

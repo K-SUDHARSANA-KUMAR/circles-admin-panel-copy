@@ -20,7 +20,7 @@ setup('authenticate', async ({ page }) => {
   await page.goto('/');
 
   // Login form: email + password are the only inputs in `login` mode.
-  await page.getByPlaceholder('eg: irfan@nokha.in').fill(USERNAME!);
+  await page.getByPlaceholder('eg: irfan@noukha.in').fill(USERNAME!);
   await page.getByPlaceholder('eg: *********').fill(PASSWORD!);
   await page.getByRole('button', { name: 'Log In' }).click();
 
