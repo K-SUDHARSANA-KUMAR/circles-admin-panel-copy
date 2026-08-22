@@ -308,7 +308,7 @@ export default function UsersPage() {
     <ListingPageContainer>
       <ListingSectionHeader
         icon={IconUsers}
-        title="User Management"
+        title="Users"
         subtitle={`${total} registered users`}
       />
 

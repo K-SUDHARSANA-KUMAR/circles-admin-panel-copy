@@ -629,3 +629,31 @@ export async function rejectAndReuploadVerification(
     throw new Error(msg);
   }
 }
+
+export interface DashboardStats {
+  totalUsers: {
+    count: number;
+    growthPercent: number;
+  };
+  activeVenues: {
+    active: number;
+    total: number;
+    growthPercent: number;
+  };
+  pendingVerifications: {
+    count: number;
+  };
+  pendingReports: {
+    count: number;
+  };
+}
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  try {
+    const res = await customAxios.get(`${BASE_URL}/core-service/admin/dashboard/stats`);
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
+}

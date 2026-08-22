@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  IconShoppingCart, 
-  IconUsers, 
-  IconTrendingUp, 
-  IconShieldCheck, 
+import {
+  IconShoppingCart,
+  IconUsers,
+  IconTrendingUp,
+  IconShieldCheck,
   IconFlag,
   IconArrowUpRight,
   IconClock,
@@ -23,16 +23,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import Link from 'next/link';
 
 // Service imports
-import { 
-  fetchCustomers, 
-  fetchWaitlist, 
+import {
+  fetchCustomers,
+  fetchWaitlist,
   fetchProfileUsersGetAll,
   Customer,
   WaitlistUser,
-  ProfileVerificationUser
+  ProfileVerificationUser,
+  fetchDashboardStats
 } from '@/services/user.service';
 import { fetchReports, Report } from '@/services/report.service';
-import { fetchVenues, Venue } from '@/services/venue.service';
+import { fetchVenues, Venue, fetchVenueAttendees } from '@/services/venue.service';
 
 const timeRangeLabels: Record<'7D' | '1M' | '6M', string> = {
   '7D': '7 Day',
@@ -101,52 +102,42 @@ const DashboardPage = () => {
         waitlistData,
         venuesData,
         verificationsData,
-        reportsData
+        reportsData,
+        statsData
       ] = await Promise.all([
         fetchCustomers({ limit: 100 }), // Get recent customers for activities & chart grouping
         fetchWaitlist({ limit: 10 }),    // Get waitlist requests
         fetchVenues({ limit: 20 }),      // Get venues list
         fetchProfileUsersGetAll({ limit: 5 }), // Get profile verifications
-        fetchReports({ limit: 5, status: 'PENDING' }) // Get pending reports
+        fetchReports({ limit: 5, status: 'PENDING' }), // Get pending reports
+        fetchDashboardStats()            // Get dashboard stats
       ]);
 
-      // Accurate count of currently-active (visible) venues, straight from the backend's
-      // own filtered total — not derived from the small `venuesData` page above.
-      const activeVenuesData = await fetchVenues({ isVisible: true, limit: 1 });
-      const activeVenuesTotal = (activeVenuesData as any).total ?? 0;
-      setActiveVenuesOnlyCount(activeVenuesTotal);
-
-      // Set metric card counts (accurate backend totals, unaffected by fetch page size)
-      const totalUsersCount = customersData.total || 0;
+      // Set metric card counts for users using stats API count
+      const totalUsersCount = statsData.totalUsers.count || 0;
       setTotalUsers(totalUsersCount);
 
-      const vTotal = (venuesData as any).total ?? venuesData.length;
-      setActiveVenuesCount(vTotal);
-      setPendingVerificationsCount(verificationsData.total || 0);
-      setPendingReportsCount(reportsData.total || 0);
+      // User Growth Trend Calculation using static previous month end count
+      const PREVIOUS_MONTH_USERS = 500; // Static user count at the end of the previous month
+      const userIncrease = totalUsersCount - PREVIOUS_MONTH_USERS;
+      const userGrowthPercent = PREVIOUS_MONTH_USERS > 0 
+        ? Math.round((userIncrease / PREVIOUS_MONTH_USERS) * 100) 
+        : 0;
+      setUsersTrend(`${userGrowthPercent >= 0 ? '+' : ''}${userGrowthPercent}%`);
+
+      // Set active venues count directly from stats API (which calculates activity by attendees on backend)
+      setActiveVenuesOnlyCount(statsData.activeVenues.active || 0);
+      setActiveVenuesCount(statsData.activeVenues.total || 0);
+      setVenuesTrend(`${statsData.activeVenues.growthPercent >= 0 ? '+' : ''}${statsData.activeVenues.growthPercent}%`);
+
+      setPendingVerificationsCount(statsData.pendingVerifications.count || 0);
+      setPendingReportsCount(statsData.pendingReports.count || 0);
 
       // Save all users for chart grouping
       setAllLoadedUsers(customersData.customers || []);
 
-      // True percentage growth over the last 30 days: how much the total user count
-      // rose compared to what it was 30 days ago (e.g. "Jul 31 -> Aug 13").
-      // % increase = (new users in the window) / (total as it stood before the window) x 100
-      const now = new Date();
-      const DAY_MS = 24 * 60 * 60 * 1000;
       const usersList = customersData.customers || [];
-      const newUsersLast30Days = usersList.filter(
-        (c) => c.createdAt && (now.getTime() - new Date(c.createdAt).getTime()) <= 30 * DAY_MS
-      ).length;
-      const usersBaseline = totalUsersCount - newUsersLast30Days;
-      const userGrowth = usersBaseline > 0
-        ? Math.round((newUsersLast30Days / usersBaseline) * 100)
-        : (newUsersLast30Days > 0 ? 100 : 0);
-      setUsersTrend(`+${userGrowth}%`);
-
-      // Active venues, as a percentage of all venues.
       const venuesList = venuesData || [];
-      const activeVenuesShare = vTotal > 0 ? Math.round((activeVenuesTotal / vTotal) * 100) : 0;
-      setVenuesTrend(`+${activeVenuesShare}%`);
 
       // Combine user activity feed
       const activities: ActivityItem[] = [];
@@ -321,7 +312,7 @@ const DashboardPage = () => {
             <h4 className="font-bold text-base">Error Loading Overview</h4>
             <p className="text-xs text-muted-foreground mt-2">{error}</p>
           </div>
-          <button 
+          <button
             onClick={loadDashboardData}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded transition-all shadow"
           >
@@ -342,11 +333,10 @@ const DashboardPage = () => {
       <div className="flex border-b border-[#333333] gap-6 text-sm font-semibold mb-2">
         <button
           onClick={() => setActiveTab('analytics')}
-          className={`pb-3 transition-colors relative ${
-            activeTab === 'analytics' 
-              ? 'text-white' 
-              : 'text-muted-foreground hover:text-white'
-          }`}
+          className={`pb-3 transition-colors relative ${activeTab === 'analytics'
+            ? 'text-white'
+            : 'text-muted-foreground hover:text-white'
+            }`}
         >
           Analytics
           {activeTab === 'analytics' && (
@@ -355,11 +345,10 @@ const DashboardPage = () => {
         </button>
         <button
           onClick={() => setActiveTab('action-center')}
-          className={`pb-3 transition-colors relative ${
-            activeTab === 'action-center' 
-              ? 'text-white' 
-              : 'text-muted-foreground hover:text-white'
-          }`}
+          className={`pb-3 transition-colors relative ${activeTab === 'action-center'
+            ? 'text-white'
+            : 'text-muted-foreground hover:text-white'
+            }`}
         >
           Action Center
           {activeTab === 'action-center' && (
@@ -370,7 +359,7 @@ const DashboardPage = () => {
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        
+
         {/* Total Users */}
         <Card className="border-primary/50 bg-[#222222] shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]">
           <CardHeader className="flex flex-row items-center gap-3.5 border-b border-[#333333] pb-3">
@@ -413,7 +402,6 @@ const DashboardPage = () => {
               </div>
               <div className="text-2xl font-bold tracking-tight mt-0.5 text-white">
                 {activeVenuesOnlyCount.toLocaleString()}
-                <span className="text-muted-foreground text-base font-medium"> / {activeVenuesCount.toLocaleString()}</span>
               </div>
             </div>
           </CardHeader>
@@ -480,7 +468,7 @@ const DashboardPage = () => {
       {activeTab === 'analytics' ? (
         /* Analytics Tab content */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Signup Velocity Chart */}
           <Card className="border-[#333333] bg-[#222222] lg:col-span-2 overflow-hidden flex flex-col justify-between">
             <CardHeader className="p-5 pb-0 flex flex-row items-start justify-between">
@@ -490,32 +478,31 @@ const DashboardPage = () => {
                   Registered user signup velocity and monthly analytics.
                 </CardDescription>
               </div>
-              
+
               {/* Chart Filters */}
               <div className="flex border border-[#333333] rounded-lg p-0.5 bg-[#171717] text-xs">
                 {(['7D', '1M', '6M'] as const).map((range) => (
                   <button
                     key={range}
                     onClick={() => setTimeRange(range)}
-                    className={`px-3 py-1 rounded-md font-medium transition-all ${
-                      timeRange === range
-                        ? 'bg-[#2a2a2a] text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-white'
-                    }`}
+                    className={`px-3 py-1 rounded-md font-medium transition-all ${timeRange === range
+                      ? 'bg-[#2a2a2a] text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-white'
+                      }`}
                   >
                     {timeRangeLabels[range]}
                   </button>
                 ))}
               </div>
             </CardHeader>
-            
+
             <CardContent className="p-5 pt-6">
               <ChartContainer config={chartConfig} className="h-[280px] w-full">
                 <AreaChart accessibilityLayer data={chartData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.35}/>
-                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
@@ -587,7 +574,7 @@ const DashboardPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Column 1: Pending Profile Verifications */}
             <Card className="border-[#333333] bg-[#222222] flex flex-col justify-between h-[360px]">
               <div>
@@ -608,7 +595,7 @@ const DashboardPage = () => {
                             <span className="text-[10px] text-muted-foreground">{user.email}</span>
                           </div>
                         </div>
-                        <Link 
+                        <Link
                           href={`/user-management/profile-verification?id=${user.id}&search=${encodeURIComponent(user.email)}`}
                           className="px-3 py-1 rounded bg-[#171717] border border-[#333333] text-[10px] font-bold text-muted-foreground hover:text-white hover:border-white/50 transition-colors"
                         >
@@ -622,7 +609,7 @@ const DashboardPage = () => {
                 </CardContent>
               </div>
               <div className="p-4 border-t border-[#333333] bg-[#1a1a1a]/50 text-right">
-                <Link 
+                <Link
                   href="/user-management/profile-verification"
                   className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                 >
@@ -646,7 +633,7 @@ const DashboardPage = () => {
                           <span className="text-xs font-bold text-white truncate">Reported: @{report.reportedUser?.firstName || 'User'}</span>
                           <span className="text-[10px] text-muted-foreground truncate">Reason: {report.reasonCode}</span>
                         </div>
-                        <Link 
+                        <Link
                           href={`/reports?id=${report.id}`}
                           className="px-3 py-1 rounded bg-[#171717] border border-[#333333] text-[10px] font-bold text-muted-foreground hover:text-white hover:border-white/50 transition-colors"
                         >
@@ -660,7 +647,7 @@ const DashboardPage = () => {
                 </CardContent>
               </div>
               <div className="p-4 border-t border-[#333333] bg-[#1a1a1a]/50 text-right">
-                <Link 
+                <Link
                   href="/reports"
                   className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                 >
@@ -684,7 +671,7 @@ const DashboardPage = () => {
                           <span className="text-xs font-bold text-white">{req.name} {req.lastName || ''}</span>
                           <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{req.email}</span>
                         </div>
-                        <Link 
+                        <Link
                           href={`/user-management/waitlist?id=${req.id}`}
                           className="px-3 py-1 rounded bg-[#171717] border border-[#333333] text-[10px] font-bold text-muted-foreground hover:text-white hover:border-white/50 transition-colors"
                         >
@@ -698,7 +685,7 @@ const DashboardPage = () => {
                 </CardContent>
               </div>
               <div className="p-4 border-t border-[#333333] bg-[#1a1a1a]/50 text-right">
-                <Link 
+                <Link
                   href="/user-management/waitlist"
                   className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                 >
@@ -714,5 +701,4 @@ const DashboardPage = () => {
     </section>
   );
 };
-
 export default DashboardPage;
