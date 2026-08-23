@@ -231,7 +231,7 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [cityMap, cityToCountryMap]);
+  }, []);
 
   const prevSearchRef = useRef(debouncedSearch);
   const prevFiltersRef = useRef(activeFilters);
