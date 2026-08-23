@@ -70,7 +70,7 @@ const sidebarGroups = [
           },
           {
             title: 'Waitlist Users',
-            url: '/user-management/waitlist',
+            url: '/user-management/waitlist/?tab=pending',
           },
           {
             title: 'Profile Verification',
