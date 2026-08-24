@@ -8,14 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   IconPlus,
-  IconTrash,
   IconX,
   IconSearch,
   IconTags,
   IconFolderPlus,
   IconChevronRight,
   IconRefresh,
-  IconAlertCircle,
   IconPencil,
 } from '@tabler/icons-react';
 import {
@@ -25,9 +23,7 @@ import {
   fetchInterestsBySearch,
   fetchInterestGroupById,
   createInterestGroup,
-  deleteInterestGroup,
   createSubInterest,
-  deleteSubInterest,
   updateInterestGroup,
   updateSubInterest,
 } from '@/services/interest.service';
@@ -99,11 +95,6 @@ export default function InterestsPage() {
   const [newSubGroupName, setNewSubGroupName] = useState('');
   const [subInputs, setSubInputs] = useState<Record<string, string>>({});
   const [creating, setCreating] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    type: 'group' | 'subInterest';
-    id: string;
-    name: string;
-  } | null>(null);
   const [editTarget, setEditTarget] = useState<{
     type: 'group' | 'subInterest';
     id: string;
@@ -185,24 +176,6 @@ export default function InterestsPage() {
       alert(msg);
     } finally {
       setCreating(false);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    const target = deleteTarget;
-    setDeleteTarget(null);
-    try {
-      if (target.type === 'group') {
-        await deleteInterestGroup(target.id);
-        if (activeGroupId === target.id) setActiveGroupId(null);
-      } else {
-        await deleteSubInterest(target.id);
-      }
-      await loadGroups(searchQuery);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete item.';
-      alert(msg);
     }
   };
 
@@ -449,14 +422,6 @@ export default function InterestsPage() {
                   >
                     <IconPencil size={13} /> Edit Group
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeleteTarget({ type: 'group', id: activeGroup.id, name: activeGroup.name })}
-                    className="h-8 w-8 border border-zinc-800 bg-zinc-900/60 text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded-lg"
-                  >
-                    <IconTrash size={14} />
-                  </Button>
                 </div>
               </div>
 
@@ -503,15 +468,9 @@ export default function InterestsPage() {
                           type="button"
                           onClick={() => { setEditTarget({ type: 'subInterest', id: sub.id, name: sub.name }); setEditName(sub.name); }}
                           className="opacity-0 group-hover/tag:opacity-60 hover:!opacity-100 transition-opacity text-zinc-400 hover:text-primary"
+                          aria-label={`Edit ${sub.name}`}
                         >
                           <IconPencil size={10} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget({ type: 'subInterest', id: sub.id, name: sub.name })}
-                          className="opacity-0 group-hover/tag:opacity-60 hover:!opacity-100 transition-opacity text-zinc-400 hover:text-red-400"
-                        >
-                          <IconX size={11} />
                         </button>
                       </span>
                     ))
@@ -532,26 +491,6 @@ export default function InterestsPage() {
               <p className="text-xs text-zinc-600">Click any group on the left to manage its interests.</p>
             </div>
           )}
-        </div>
-      )}
-
-      {/* ── Delete Modal ──────────────────────────────────────────────── */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <IconAlertCircle size={18} />
-              <span className="text-sm font-bold">Confirm Deletion</span>
-            </div>
-            <p className="text-xs text-zinc-400">
-              Are you sure you want to delete {deleteTarget.type === 'group' ? 'interest group' : 'sub-interest'}{' '}
-              <strong className="text-white">"{deleteTarget.name}"</strong>? This action cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end pt-1">
-              <Button variant="ghost" onClick={() => setDeleteTarget(null)} className="h-8 text-xs font-bold text-zinc-400 hover:text-white">Cancel</Button>
-              <Button variant="destructive" onClick={handleConfirmDelete} className="h-8 text-xs font-bold px-4">Confirm</Button>
-            </div>
-          </div>
         </div>
       )}
 
