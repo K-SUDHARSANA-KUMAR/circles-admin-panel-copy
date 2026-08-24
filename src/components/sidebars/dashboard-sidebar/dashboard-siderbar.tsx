@@ -14,6 +14,9 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {
@@ -26,8 +29,10 @@ import {
   Shield,
   FileText,
   Star,
+  ChevronDown,
 } from 'lucide-react';
 
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import NavKeys from '@/constants/navkeys';
 import { ProfileSection } from '@/components/shared/profile-section';
 
@@ -57,18 +62,21 @@ const sidebarGroups = [
       },
       {
         title: 'Users',
-        url: NavKeys.Users,
         icon: Users,
-      },
-      {
-        title: 'Waitlist Users',
-        url: '/user-management/waitlist/?tab=pending',
-        icon: CheckSquare,
-      },
-      {
-        title: 'Profile Verification',
-        url: '/user-management/profile-verification',
-        icon: CheckSquare,
+        subItems: [
+          {
+            title: 'Users',
+            url: NavKeys.Users,
+          },
+          {
+            title: 'Waitlist Users',
+            url: '/user-management/waitlist/?tab=pending',
+          },
+          {
+            title: 'Profile Verification',
+            url: '/user-management/profile-verification',
+          },
+        ],
       },
       {
         title: 'Admin Users',
@@ -124,12 +132,47 @@ export function DashboardSidebar() {
             </SidebarGroupLabel> */}
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1.5">
-                {group.items.map((item) => {
+                {group.items.map((item: any) => {
+                  if (item.subItems) {
+                    const isSubActive = item.subItems.some((sub: any) => pathname === sub.url || pathname.startsWith(sub.url + '/'));
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <Collapsible defaultOpen={isSubActive} className="group/collapsible w-full">
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton tooltip={item.title} className="h-10 w-full justify-between">
+                              <div className="flex items-center gap-3">
+                                <item.icon className="h-[18px] w-[18px] shrink-0" />
+                                <span className="font-medium text-sm">{item.title}</span>
+                              </div>
+                              <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub className="space-y-1 ml-6 border-l border-zinc-800 pl-3.5 mt-1">
+                              {item.subItems.map((sub: any) => {
+                                const isSubActive = pathname === sub.url || pathname.startsWith(sub.url + '/');
+                                return (
+                                  <SidebarMenuSubItem key={sub.title}>
+                                    <SidebarMenuSubButton asChild isActive={isSubActive} className="h-9">
+                                      <Link href={sub.url}>
+                                        <span className="text-xs font-medium">{sub.title}</span>
+                                      </Link>
+                                    </SidebarMenuSubButton>
+                                  </SidebarMenuSubItem>
+                                );
+                              })}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </SidebarMenuItem>
+                    );
+                  }
+
                   const isActive = pathname === item.url || pathname.startsWith(item.url + '/');
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton isActive={isActive} asChild tooltip={item.title} className="h-10">
-                        <Link href={item.url} className="flex items-center gap-3">
+                        <Link href={item.url!} className="flex items-center gap-3">
                           <item.icon className="h-[18px] w-[18px] shrink-0" />
                           <span className="font-medium text-sm">{item.title}</span>
                         </Link>
