@@ -77,11 +77,13 @@ const getRefreshUrl = () => {
   const configuredUrl = process.env.NEXT_PUBLIC_ADMIN_AUTH_REFRESH_URL;
   if (configuredUrl) return configuredUrl;
 
-  const userServiceUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api/user-service';
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || '').replace(/\/+$/, '');
 
-  return `${userServiceUrl}/admin-auth/refresh-token`;
+  if (!baseUrl) {
+    throw new Error('NEXT_PUBLIC_BASE_URL is not configured; cannot refresh the session.');
+  }
+
+  return `${baseUrl}/user-service/admin-auth/refresh`;
 };
 
 const processQueue = (error: unknown, token: string | null = null) => {
@@ -99,9 +101,16 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 const applyAuthHeaders = (config: InternalAxiosRequestConfig) => {
   const headers = AxiosHeaders.from(config.headers);
-  
-  // Set standard admin API key for all backend requests
-  headers.set('X-Admin-Api-Key', 'local-admin-key-123');
+
+  // Local-development escape hatch only: the backend treats a matching
+  // X-Admin-Api-Key as a full admin principal, bypassing Cognito entirely.
+  // Deployed environments authenticate via the Cognito bearer token below and
+  // must leave NEXT_PUBLIC_ADMIN_API_KEY unset — anything inlined here ships
+  // in the public browser bundle.
+  const adminApiKey = process.env.NEXT_PUBLIC_ADMIN_API_KEY;
+  if (adminApiKey) {
+    headers.set('X-Admin-Api-Key', adminApiKey);
+  }
 
   const accessToken = isBrowser() ? localStorage.getItem('accessToken') : null;
   const idToken = isBrowser() ? localStorage.getItem('idToken') : null;
@@ -161,12 +170,15 @@ const refreshToken = async () => {
     throw new Error('No refresh token available.');
   }
 
+  if (!user?.email) {
+    throw new Error('No stored user email available for token refresh.');
+  }
+
   const response = await refreshAxios.post<RefreshTokenResponse>(
     getRefreshUrl(),
     {
       refreshToken: refreshTokenValue,
-      userId: user?.userId || user?.id,
-      email: user?.email,
+      email: user.email,
     },
     {
       headers: {
