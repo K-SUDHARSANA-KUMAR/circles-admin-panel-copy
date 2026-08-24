@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { fetchCustomerById, approveWaitlistUser } from '@/services/user.service';
+import { fetchCustomerById } from '@/services/user.service';
 import { fetchInterestGroups } from '@/services/interest.service';
 import { fetchCities } from '@/services/cities.service';
-import { IconLoader, IconCheck, IconShieldCheck } from '@tabler/icons-react';
+import { IconShieldCheck } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import UserDetailsView, { type DetailedUser } from '@/components/shared/UserDetailsView';
@@ -16,6 +16,36 @@ import {
   ListingErrorPanel,
   listingStyles,
 } from '@/components/shared/listing-page';
+
+type WaitlistStatus = 'approved' | 'rejected' | 'pending';
+
+const getWaitlistStatus = (waitlistStatus?: string | null): WaitlistStatus => {
+  const normalized = waitlistStatus?.toLowerCase() || '';
+  if (normalized === 'approved') return 'approved';
+  if (normalized === 'rejected') return 'rejected';
+  return 'pending';
+};
+
+const WAITLIST_STATUS_BADGE: Record<
+  WaitlistStatus,
+  { label: string; className: string; dotClassName: string }
+> = {
+  approved: {
+    label: 'Approved',
+    className: 'bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe]',
+    dotClassName: 'bg-[#c084fc]',
+  },
+  rejected: {
+    label: 'Rejected',
+    className: 'bg-red-950/20 border border-red-900/30 text-rose-400',
+    dotClassName: 'bg-rose-500',
+  },
+  pending: {
+    label: 'Pending',
+    className: 'bg-[#2d1f10]/60 border border-[#5f3e15]/50 text-amber-400',
+    dotClassName: 'bg-amber-400',
+  },
+};
 
 export default function WaitlistDetailClient() {
   const router = useRouter();
@@ -28,7 +58,6 @@ export default function WaitlistDetailClient() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [interestMap, setInterestMap] = useState<Record<string, string>>({});
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
-  const [processing, setProcessing] = useState<'approve' | null>(null);
 
   const loadCities = async () => {
     try {
@@ -100,25 +129,6 @@ export default function WaitlistDetailClient() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const handleApprove = async () => {
-    if (!user) return;
-    setProcessing('approve');
-    try {
-      await approveWaitlistUser(user.id);
-      const name = `${user.name || ''} ${user.lastName || ''}`.trim() || 'User';
-      toast.success(`Successfully approved ${name}`);
-      const params = new URLSearchParams();
-      params.set('tab', 'approved');
-      const query = params.toString();
-      router.push(`/user-management/waitlist?${query}`);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to approve user.';
-      toast.error(message);
-    } finally {
-      setProcessing(null);
-    }
-  };
-
   const handleBack = () => {
     const params = new URLSearchParams();
     if (searchParams.get('tab') === 'approved') {
@@ -128,24 +138,19 @@ export default function WaitlistDetailClient() {
     router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
   };
 
-  const isPending = user && !(user.status === 'active' || user.status === 'approved' || user.status === 'verified');
+  const waitlistStatus = getWaitlistStatus(user?.waitlistStatus);
+  const statusBadge = WAITLIST_STATUS_BADGE[waitlistStatus];
 
-  const headerActions = isPending ? (
-    <div className="flex gap-3 shrink-0 flex-wrap">
-      <Button
-        disabled={processing !== null}
-        onClick={handleApprove}
-        className="h-8 px-5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white border-none"
-      >
-        {processing === 'approve' ? (
-          <IconLoader size={12} className="animate-spin" />
-        ) : (
-          <IconCheck size={14} />
-        )}
-        <span>Approve</span>
-      </Button>
-    </div>
-  ) : null;
+  const headerActions = (
+    <span
+      className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[11px] font-semibold select-none ${statusBadge.className}`}
+      aria-label={`Applicant status: ${statusBadge.label}`}
+      role="status"
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dotClassName}`} aria-hidden />
+      {statusBadge.label}
+    </span>
+  );
 
   if (!userId) {
     return (
