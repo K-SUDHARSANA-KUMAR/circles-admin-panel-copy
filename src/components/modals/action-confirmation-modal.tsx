@@ -50,7 +50,7 @@ export const ActionConfirmationModal = ({
             {title}
           </h2>
           
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white">
             {description}
           </p>
         </div>

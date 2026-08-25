@@ -216,8 +216,8 @@ export default function WaitlistPage() {
   const getDetailUrl = (userId: string) => {
     const params = new URLSearchParams();
     params.set('id', userId);
-    if (activeTab === 'approved') {
-      params.set('tab', 'approved');
+    if (activeTab === 'approved' || activeTab === 'pending') {
+      params.set('tab', activeTab);
     }
     return `/user-management/waitlist?${params.toString()}`;
   };
