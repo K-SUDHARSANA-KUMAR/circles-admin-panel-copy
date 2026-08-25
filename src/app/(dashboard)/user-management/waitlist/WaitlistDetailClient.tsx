@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { fetchCustomerById } from '@/services/user.service';
+import { fetchCustomerById, approveWaitlistUser } from '@/services/user.service';
 import { fetchInterestGroups } from '@/services/interest.service';
 import { fetchCities } from '@/services/cities.service';
-import { IconShieldCheck } from '@tabler/icons-react';
+import { IconShieldCheck, IconCheck, IconLoader } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import UserDetailsView, { type DetailedUser } from '@/components/shared/UserDetailsView';
+import { ActionConfirmationModal } from '@/components/modals/action-confirmation-modal';
 import {
   DetailLoadingPanel,
   DetailPageContainer,
@@ -27,7 +28,7 @@ const getWaitlistStatus = (waitlistStatus?: string | null): WaitlistStatus => {
 };
 
 const WAITLIST_STATUS_BADGE: Record<
-  WaitlistStatus,
+  Exclude<WaitlistStatus, 'pending'>,
   { label: string; className: string; dotClassName: string }
 > = {
   approved: {
@@ -39,11 +40,6 @@ const WAITLIST_STATUS_BADGE: Record<
     label: 'Rejected',
     className: 'bg-red-950/20 border border-red-900/30 text-rose-400',
     dotClassName: 'bg-rose-500',
-  },
-  pending: {
-    label: 'Pending',
-    className: 'bg-[#2d1f10]/60 border border-[#5f3e15]/50 text-amber-400',
-    dotClassName: 'bg-amber-400',
   },
 };
 
@@ -58,6 +54,8 @@ export default function WaitlistDetailClient() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [interestMap, setInterestMap] = useState<Record<string, string>>({});
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const loadCities = async () => {
     try {
@@ -131,26 +129,70 @@ export default function WaitlistDetailClient() {
 
   const handleBack = () => {
     const params = new URLSearchParams();
-    if (searchParams.get('tab') === 'approved') {
-      params.set('tab', 'approved');
+    const tab = searchParams.get('tab');
+    if (tab === 'approved' || tab === 'pending') {
+      params.set('tab', tab);
     }
     const query = params.toString();
     router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
   };
 
-  const waitlistStatus = getWaitlistStatus(user?.waitlistStatus);
-  const statusBadge = WAITLIST_STATUS_BADGE[waitlistStatus];
+  const handleOpenApproveConfirm = () => {
+    setIsConfirmOpen(true);
+  };
 
-  const headerActions = (
-    <span
-      className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[11px] font-semibold select-none ${statusBadge.className}`}
-      aria-label={`Applicant status: ${statusBadge.label}`}
-      role="status"
-    >
-      <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dotClassName}`} aria-hidden />
-      {statusBadge.label}
-    </span>
-  );
+  const handleConfirmApprove = async () => {
+    if (!user) return;
+
+    setIsAccepting(true);
+    try {
+      await approveWaitlistUser(user.id);
+      const name = `${user.name || ''} ${user.lastName || ''}`.trim() || 'User';
+      toast.success(`Successfully approved ${name}`);
+      setIsConfirmOpen(false);
+      handleBack();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to approve user.';
+      toast.error(message);
+    } finally {
+      setIsAccepting(false);
+    }
+  };
+
+  const waitlistStatus = getWaitlistStatus(user?.waitlistStatus);
+  const displayName = user
+    ? `${user.name || ''} ${user.lastName || ''}`.trim() || 'this user'
+    : 'this user';
+
+  const headerActions =
+    waitlistStatus === 'pending' ? (
+      <Button
+        type="button"
+        disabled={isAccepting}
+        onClick={handleOpenApproveConfirm}
+        aria-label="Approve waitlist applicant"
+        className="h-8 px-5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white border-none disabled:opacity-60"
+      >
+        {isAccepting ? (
+          <IconLoader size={12} className="animate-spin" aria-hidden />
+        ) : (
+          <IconCheck size={14} aria-hidden />
+        )}
+        <span>{isAccepting ? 'Approving...' : 'Approve'}</span>
+      </Button>
+    ) : (
+      <span
+        className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[11px] font-semibold select-none ${WAITLIST_STATUS_BADGE[waitlistStatus].className}`}
+        aria-label={`Applicant status: ${WAITLIST_STATUS_BADGE[waitlistStatus].label}`}
+        role="status"
+      >
+        <span
+          className={`w-1.5 h-1.5 rounded-full ${WAITLIST_STATUS_BADGE[waitlistStatus].dotClassName}`}
+          aria-hidden
+        />
+        {WAITLIST_STATUS_BADGE[waitlistStatus].label}
+      </span>
+    );
 
   if (!userId) {
     return (
@@ -193,18 +235,31 @@ export default function WaitlistDetailClient() {
   }
 
   return (
-    <UserDetailsView
-      user={user}
-      copiedCode={copiedCode}
-      onCopyCode={() => handleCopyCode(user.referralCode || '')}
-      interestMap={interestMap}
-      cityMap={cityMap}
-      headerActions={headerActions}
-      onBack={handleBack}
-      onReload={loadUserDetails}
-      pageTitle="Waitlist Applicant"
-      pageSubtitle="Review and verify waitlist applicant"
-      backLabel="Back to Waitlist"
-    />
+    <>
+      <UserDetailsView
+        user={user}
+        copiedCode={copiedCode}
+        onCopyCode={() => handleCopyCode(user.referralCode || '')}
+        interestMap={interestMap}
+        cityMap={cityMap}
+        headerActions={headerActions}
+        onBack={handleBack}
+        onReload={loadUserDetails}
+        pageTitle="Waitlist Applicant"
+        pageSubtitle="Review and verify waitlist applicant"
+        backLabel="Back to Waitlist"
+      />
+      <ActionConfirmationModal
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        onConfirm={handleConfirmApprove}
+        title="Approve User"
+        description={`Are you sure you want to approve ${displayName}?`}
+        confirmText="Approve"
+        cancelText="Cancel"
+        isLoading={isAccepting}
+        variant="approve"
+      />
+    </>
   );
 }
