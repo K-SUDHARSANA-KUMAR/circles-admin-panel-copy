@@ -566,6 +566,34 @@ export default function ReportsPage() {
                                 const isPdf = msg.messageType === 'pdf' || (msg.messageType === 'file' && /\.pdf$/i.test(urlPath)) || /\.pdf$/i.test(urlPath);
                                 const isImage = msg.messageType === 'image' || /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(urlPath);
 
+                                // If the message has attachments, render each one
+                                const attachments = msg.attachments && msg.attachments.length > 0 ? msg.attachments : null;
+
+                                if (attachments) {
+                                  return (
+                                    <div className="flex flex-col gap-1.5">
+                                      {attachments.map((att, idx) => {
+                                        const attUrlPath = (att.url || '').toLowerCase().split('?')[0];
+                                        const attIsVideo = att.type === 'video' || /\.(mp4|mov|webm|avi)$/i.test(attUrlPath);
+                                        const attIsPdf = att.type === 'pdf' || att.type === 'file' && /\.pdf$/i.test(attUrlPath);
+                                        const attIsImage = att.type === 'image' || /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(attUrlPath);
+
+                                        if (attIsImage) return <ChatImage key={idx} src={att.url} />;
+                                        if (attIsVideo) return (
+                                          <div key={idx} className="my-1 flex items-center justify-center w-[240px] h-[180px] bg-black/60 rounded-lg border border-zinc-800/80 overflow-hidden">
+                                            <video src={att.url} controls preload="metadata" className="w-full h-full object-contain">
+                                              Your browser does not support the video tag.
+                                            </video>
+                                          </div>
+                                        );
+                                        if (attIsPdf) return <ChatPdf key={idx} src={att.url} />;
+                                        return <ChatImage key={idx} src={att.url} />;
+                                      })}
+                                    </div>
+                                  );
+                                }
+
+                                // Fallback: no attachments array, use msg.text directly
                                 if (isImage) {
                                   return (
                                     <ChatImage src={msg.text} />

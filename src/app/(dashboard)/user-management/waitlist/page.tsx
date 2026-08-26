@@ -32,7 +32,7 @@ import {
 } from '@/components/shared/listing-page';
 import { toast } from 'sonner';
 
-type WaitlistTab = 'pending' | 'approved';
+type WaitlistTab = 'all' | 'pending' | 'approved';
 
 const WAITLIST_TABLE_HEADERS = (
   <tr className="border-b border-[#18181b]">
@@ -70,8 +70,9 @@ export default function WaitlistPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const detailUserId = searchParams.get('id');
+  const tabParam = searchParams.get('tab');
   const activeTab: WaitlistTab =
-    searchParams.get('tab') === 'approved' ? 'approved' : 'pending';
+    tabParam === 'approved' ? 'approved' : tabParam === 'pending' ? 'pending' : 'all';
 
   const [users, setUsers] = useState<WaitlistUser[]>([]);
   const [total, setTotal] = useState(0);
@@ -105,10 +106,10 @@ export default function WaitlistPage() {
 
   const handleTabChange = (tab: WaitlistTab) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (tab === 'approved') {
-      params.set('tab', 'approved');
-    } else {
+    if (tab === 'all') {
       params.delete('tab');
+    } else {
+      params.set('tab', tab);
     }
     const query = params.toString();
     router.push(query ? `/user-management/waitlist?${query}` : '/user-management/waitlist');
@@ -133,10 +134,18 @@ export default function WaitlistPage() {
       // Extract score value
       const scoreVal = filters.score?.min !== undefined ? filters.score.min : (typeof filters.score === 'number' ? filters.score : undefined);
 
+      // Filter by waitlistStatus (pending | approved), not account `status` (e.g. waitlisted)
+      const rawStatus = (filters.status || activeTab || '').toLowerCase();
+      const waitlistStatus =
+        rawStatus === 'pending' || rawStatus === 'approved' || rawStatus === 'rejected'
+          ? rawStatus
+          : undefined;
+
       const filterParams = {
         search: debouncedSearch,
         limit: itemsPerPage,
         skip,
+        waitlistStatus,
         medium: filters.medium,
         minScore: filters.score?.min,
         maxScore: filters.score?.max,
@@ -147,17 +156,8 @@ export default function WaitlistPage() {
 
       const response = await fetchWaitlist(filterParams);
       const allUsers = response.users || [];
-      const filteredUsers = allUsers.filter((user) => {
-        // Status filter (client-side tab logic)
-        const currentStatus = filters.status || activeTab;
-        const matchesStatus = currentStatus === 'approved'
-          ? user.status === 'active'
-          : (user.status === 'waitlisted' || !user.status);
-        return matchesStatus;
-      });
-
-      setUsers(filteredUsers);
-      setTotal(response.total || filteredUsers.length);
+      setUsers(allUsers);
+      setTotal(response.total || allUsers.length);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch waitlist users. Please try again.';
       setError(msg);
@@ -216,8 +216,8 @@ export default function WaitlistPage() {
   const getDetailUrl = (userId: string) => {
     const params = new URLSearchParams();
     params.set('id', userId);
-    if (activeTab === 'approved') {
-      params.set('tab', 'approved');
+    if (activeTab === 'approved' || activeTab === 'pending') {
+      params.set('tab', activeTab);
     }
     return `/user-management/waitlist?${params.toString()}`;
   };
@@ -235,15 +235,18 @@ export default function WaitlistPage() {
         icon={IconShieldCheck}
         title="Waitlist Management"
         subtitle={
-          isApprovedTab
+          activeTab === 'approved'
             ? `${total} approved applicants`
-            : `${total} applicants pending review`
+            : activeTab === 'pending'
+              ? `${total} applicants pending review`
+              : `${total} waitlist applicants`
         }
         trailing={
           <ListingSegmentedTabs
             activeTab={activeTab}
             onTabChange={handleTabChange}
             tabs={[
+              { id: 'all', label: 'All', icon: IconUserSearch },
               { id: 'pending', label: 'Pending', icon: IconShieldCheck },
               { id: 'approved', label: 'Approved', icon: IconUserCheck },
             ]}
@@ -253,9 +256,11 @@ export default function WaitlistPage() {
 
       <ListingToolbar
         countLabel={
-          isApprovedTab
+          activeTab === 'approved'
             ? `${total} Approved Users`
-            : `${total} Pending Verification`
+            : activeTab === 'pending'
+              ? `${total} Pending Verification`
+              : `${total} Applicants`
         }
         showCount={!loading && !error}
         searchPlaceholder="Search by name or phone no..."
@@ -280,7 +285,7 @@ export default function WaitlistPage() {
                   } else if (val === 'pending') {
                     handleTabChange('pending');
                   } else {
-                    handleTabChange('pending');
+                    handleTabChange('all');
                   }
                 }
               };
@@ -364,7 +369,9 @@ export default function WaitlistPage() {
                       (user as { reliabilityScore?: number }).reliabilityScore !== undefined
                         ? (user as { reliabilityScore?: number }).reliabilityScore!
                         : 100;
-                    const status = (user.status || 'pending').toLowerCase();
+                    const waitlistStatus = (user.waitlistStatus || '').toLowerCase();
+                    const isApprovedUser = waitlistStatus === 'approved';
+                    const isRejectedUser = waitlistStatus === 'rejected';
 
                     return (
                       <tr
@@ -405,12 +412,12 @@ export default function WaitlistPage() {
                         </td>
 
                         <td className="py-3 px-6">
-                          {status === 'approved' || status === 'verified' || status === 'active' ? (
+                          {isApprovedUser ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1c122c]/60 border border-[#3b1a60]/50 text-[#d8b4fe] text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
                               Approved
                             </span>
-                          ) : status === 'rejected' || status === 'declined' || status === 'inactive' ? (
+                          ) : isRejectedUser ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-950/20 border border-red-900/30 text-rose-400 text-[11px] font-semibold select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                               Rejected

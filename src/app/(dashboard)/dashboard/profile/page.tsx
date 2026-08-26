@@ -5,16 +5,10 @@ import Link from 'next/link';
 import { useAppSelector } from '@/store/hooks';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { IconUser, IconMail, IconPhone, IconCalendar, IconCircleCheck, IconCamera, IconTrash } from '@tabler/icons-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useRef, useState } from 'react';
+import { IconUser, IconMail, IconCircleCheck } from '@tabler/icons-react';
 
 const ProfilePage = () => {
   const { user } = useAppSelector((state) => state.auth);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Dummy data for missing fields
   const profileData = {
@@ -22,7 +16,7 @@ const ProfilePage = () => {
     dob: "May 15, 1992",
     reliabilityScore: 98,
     phoneNumber: user?.phoneNumber || "+91 98765 43210",
-    email: user?.email || "user@circles.com",
+    email: user?.email || "user@thecirclesclub.com",
     name: user?.name || "User Name",
     interests: [
       { name: "Cricket", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
@@ -32,17 +26,6 @@ const ProfilePage = () => {
       { name: "Fishing", color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20" },
       { name: "Manga", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
     ]
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   return (
@@ -101,55 +84,12 @@ const ProfilePage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-4">
         {/* Left Column: Avatar & Bio */}
         <div className="lg:col-span-4 flex flex-col items-center gap-6">
-          <div className="relative group">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleImageUpload} 
-            />
-            <Popover>
-              <PopoverTrigger asChild>
-                <div className="h-48 w-48 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-4 border-white dark:border-zinc-900 shadow-2xl overflow-hidden glass-card p-1 cursor-pointer hover:ring-4 hover:ring-primary/20 transition-all">
-                   <div className="h-full w-full rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-6xl font-bold text-primary">
-                     {profileImage ? (
-                       <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
-                     ) : (
-                       profileData.name.charAt(0).toUpperCase()
-                     )}
-                   </div>
-                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-2">
-                     <IconCamera size={32} />
-                     <span className="text-[10px] font-bold uppercase tracking-widest">Change Photo</span>
-                   </div>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-2 glass-card border-none shadow-xl" align="center" side="bottom">
-                <div className="flex flex-col gap-1">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full justify-start gap-2 text-xs h-9"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <IconCamera size={16} />
-                    Upload Photo
-                  </Button>
-                  {profileImage && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start gap-2 text-xs h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => setProfileImage(null)}
-                    >
-                      <IconTrash size={16} />
-                      Remove Photo
-                    </Button>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
+          <div className="relative">
+            <div className="h-48 w-48 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-4 border-white dark:border-zinc-900 shadow-2xl overflow-hidden glass-card p-1">
+              <div className="h-full w-full rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-6xl font-bold text-primary">
+                {profileData.name.charAt(0).toUpperCase()}
+              </div>
+            </div>
             <div className="absolute bottom-2 right-4 h-8 w-8 bg-primary rounded-full border-4 border-white dark:border-zinc-900 flex items-center justify-center text-white shadow-lg pointer-events-none">
               <IconCircleCheck size={16} stroke={3} />
             </div>

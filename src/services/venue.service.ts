@@ -33,6 +33,7 @@ export interface ApiVenue {
   updatedAt?: string;
   popularity?: number;
   popularityScore?: number;
+  attendeeCount?: number;
 }
 
 export interface Venue {
@@ -65,6 +66,7 @@ export interface Venue {
   coverImageS3FileName?: string;
   popularity?: number;
   popularityScore?: number;
+  attendeeCount?: number;
 }
 
 // ─── Endpoint Configuration ──────────────────────────────────────────────────
@@ -92,10 +94,10 @@ export function mapApiToVenue(api: ApiVenue): Venue {
   let countryName = '';
   if (api.country) {
     const uc = api.country.toUpperCase();
-    if (uc === 'IN' || uc === 'INDIA') countryName = 'India';
-    else if (uc === 'GB' || uc === 'UK' || uc === 'UNITED KINGDOM') countryName = 'United Kingdom';
-    else if (uc === 'US' || uc === 'USA' || uc === 'UNITED STATES') countryName = 'United States';
-    else if (uc === 'SE' || uc === 'SWEDEN') countryName = 'Sweden';
+    if (uc === 'IN' || uc === 'INDIA') countryName = 'IN';
+    else if (uc === 'GB' || uc === 'UK' || uc === 'UNITED KINGDOM') countryName = 'GB';
+    else if (uc === 'US' || uc === 'USA' || uc === 'UNITED STATES') countryName = 'US';
+    else if (uc === 'SE' || uc === 'SWEDEN') countryName = 'SE';
     else countryName = api.country;
   }
 
@@ -127,17 +129,17 @@ export function mapApiToVenue(api: ApiVenue): Venue {
 
   // Ensure country matches the resolved city name
   if (cityName === 'Coimbatore' || cityName === 'Chennai') {
-    countryName = 'India';
+    countryName = 'IN';
   } else if (cityName === 'London' || cityName === 'Leeds') {
-    countryName = 'United Kingdom';
+    countryName = 'GB';
   } else if (cityName === 'San Francisco' || cityName === 'New York') {
-    countryName = 'United States';
+    countryName = 'US';
   } else if (cityName === 'Stockholm') {
-    countryName = 'Sweden';
+    countryName = 'SE';
   }
 
   if (!countryName) {
-    countryName = 'India';
+    countryName = 'IN';
   }
 
   // Build premium cover image URL
@@ -173,6 +175,7 @@ export function mapApiToVenue(api: ApiVenue): Venue {
     coverImageS3FileName: api.coverImageS3FileName || '',
     popularity: api.popularity,
     popularityScore: api.popularityScore !== undefined ? api.popularityScore : api.popularity,
+    attendeeCount: api.attendeeCount ?? 0,
   };
 }
 
@@ -441,5 +444,37 @@ export async function fetchFeaturedVenues(cityId: string = ''): Promise<Venue[]>
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message || 'Failed to fetch featured venues';
     throw new Error(msg);
+  }
+}
+
+export interface VenueAttendee {
+  id: string;
+  userId: string;
+  userName: string;
+  profilePhoto: string | null;
+  liveMomentId: string;
+  momentText: string;
+  checkedInAt: string | null;
+  distanceMeters: number | null;
+}
+
+export async function fetchVenueAttendees(
+  venueId: string,
+  page: number = 1,
+  limit: number = 20,
+): Promise<{ items: VenueAttendee[]; total: number; page: number; limit: number }> {
+  try {
+    const url = `${BASE_URL}/core-service/venues/${venueId}/attendees?page=${page}&limit=${limit}`;
+    const res = await customAxios.get(url);
+    const data = res.data?.result?.data ?? res.data?.data ?? res.data;
+    return {
+      items: data?.items ?? [],
+      total: data?.total ?? 0,
+      page: data?.page ?? page,
+      limit: data?.limit ?? limit,
+    };
+  } catch (err: any) {
+    console.error('Failed to fetch venue attendees:', err);
+    return { items: [], total: 0, page, limit };
   }
 }

@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight, IconTag } from "@tabler/icons-react";
+import { IconPlus, IconLayoutGrid, IconList, IconBuilding, IconUser, IconPencil, IconRefresh, IconAlertCircle, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight, IconTag, IconUserCheck } from "@tabler/icons-react";
 import {
   ListingPageContainer,
   ListingSectionHeader,
@@ -22,10 +22,11 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import VenueDetailClient from "./VenueDetailClient";
 import { VenueCategoriesSection } from "./venue-categories-section";
-import { fetchVenues, fetchFeaturedVenues, type Venue } from "@/services/venue.service";
+import { fetchVenues, fetchFeaturedVenues, fetchVenueAttendees, type Venue } from "@/services/venue.service";
 import { toast } from "sonner";
 import FilterDropdown from "@/components/common/FilterDropdown";
 import { venueFilters } from "@/components/common/filters/venues.filters";
+import { VenueAttendeesModal } from "@/components/modals/VenueAttendeesModal";
 
 const VenuesPage = () => {
   const router = useRouter();
@@ -38,6 +39,8 @@ const VenuesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'partner'>('all');
+  const [attendeesModalVenueId, setAttendeesModalVenueId] = useState<string | null>(null);
+  const [attendeesModalVenueName, setAttendeesModalVenueName] = useState<string>('');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -103,6 +106,39 @@ const VenuesPage = () => {
     if (detailVenueId) return;
     loadAllVenues(debouncedSearch, currentPage, activeFilters);
   }, [debouncedSearch, currentPage, activeFilters, itemsPerPage, loadAllVenues, detailVenueId]);
+
+  // Fetch live attendee counts for loaded venues and patch into state
+  useEffect(() => {
+    if (!venues.length || loading) return;
+
+    const venuesWithIds = venues.filter((v) => v.id);
+    if (!venuesWithIds.length) return;
+
+    let cancelled = false;
+
+    Promise.all(
+      venuesWithIds.map((v) =>
+        fetchVenueAttendees(v.id!, 1, 1).then((res) => ({
+          id: v.id!,
+          total: res.total,
+        }))
+      )
+    ).then((counts) => {
+      if (cancelled) return;
+      const countMap = new Map(counts.map((c) => [c.id, c.total]));
+      setVenues((prev) =>
+        prev.map((v) =>
+          v.id && countMap.has(v.id)
+            ? { ...v, attendeeCount: countMap.get(v.id)! }
+            : v
+        )
+      );
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [venues.length, loading]);
 
   // Reset pagination to page 1 on search or filter updates
   const prevSearchRef = useRef(debouncedSearch);
@@ -288,7 +324,19 @@ const VenuesPage = () => {
                   <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.city || '—'}</TableCell>
                   <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.country || '—'}</TableCell>
                   <TableCell className="text-right py-5 px-12">
-                    <div className="flex justify-end gap-2.5 opacity-90 group-hover:opacity-100 transition-all duration-200">
+                    <div className="flex justify-end items-center gap-3 opacity-90 group-hover:opacity-100 transition-all duration-200">
+                      <button
+                        className="flex items-center gap-1 text-[11px] font-semibold text-purple-300 bg-purple-950/40 border border-purple-800/40 hover:bg-purple-900/60 px-2.5 py-1 rounded-md transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAttendeesModalVenueId(venue.id || null);
+                          setAttendeesModalVenueName(venue.name);
+                        }}
+                        title="View Checked-in Attendees"
+                      >
+                        <IconUserCheck size={14} />
+                        <span>Attendees ({venue.attendeeCount ?? 0})</span>
+                      </button>
                       <button
                         className="text-[#c084fc] hover:text-[#d8b4fe] hover:scale-110 active:scale-95 transition-all p-1"
                         onClick={(e) => {
@@ -387,14 +435,28 @@ const VenuesPage = () => {
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="flex-1 h-8 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all text-xs font-medium rounded-lg flex items-center justify-center gap-1.5"
+                      className="flex-1 h-8 bg-purple-950/40 border border-purple-800/40 text-purple-200 hover:bg-purple-900/60 hover:text-white transition-all text-xs font-medium rounded-lg flex items-center justify-center gap-1.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAttendeesModalVenueId(venue.id || null);
+                        setAttendeesModalVenueName(venue.name);
+                      }}
+                    >
+                      <IconUserCheck size={13} className="text-purple-300" />
+                      <span>Attendees ({venue.attendeeCount ?? 0})</span>
+                    </Button>
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 px-3"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/dashboard/venues?id=${venue.id}&edit=true`);
                       }}
                     >
                       <IconPencil size={13} />
-                      <span>Edit Venue</span>
+                      <span>Edit</span>
                     </Button>
                   </div>
                 </div>
@@ -436,6 +498,13 @@ const VenuesPage = () => {
       )}
       </>
       )}
+
+      <VenueAttendeesModal
+        isOpen={!!attendeesModalVenueId}
+        onClose={() => setAttendeesModalVenueId(null)}
+        venueId={attendeesModalVenueId}
+        venueName={attendeesModalVenueName}
+      />
     </ListingPageContainer>
   );
 }

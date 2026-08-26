@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  IconShoppingCart, 
-  IconUsers, 
-  IconTrendingUp, 
-  IconShieldCheck, 
+import {
+  IconShoppingCart,
+  IconUsers,
+  IconTrendingUp,
+  IconShieldCheck,
   IconFlag,
   IconArrowUpRight,
   IconClock,
@@ -23,16 +23,34 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import Link from 'next/link';
 
 // Service imports
-import { 
-  fetchCustomers, 
-  fetchWaitlist, 
+import {
+  fetchCustomers,
+  fetchWaitlist,
   fetchProfileUsersGetAll,
   Customer,
   WaitlistUser,
-  ProfileVerificationUser
+  ProfileVerificationUser,
+  fetchDashboardStats
 } from '@/services/user.service';
 import { fetchReports, Report } from '@/services/report.service';
-import { fetchVenues, Venue } from '@/services/venue.service';
+import { fetchVenues, Venue, fetchVenueAttendees } from '@/services/venue.service';
+
+const timeRangeLabels: Record<'7D' | '1M' | '6M', string> = {
+  '7D': '7 Day',
+  '1M': '1 Month',
+  '6M': '6 Month',
+};
+
+// Rounds a chart's max value up to a friendly axis ceiling that scales with its
+// magnitude (e.g. 554 -> 600, 5,540 -> 5,600, 55,400 -> 56,000).
+const getNiceAxisMax = (maxValue: number) => {
+  if (maxValue <= 0) return 100;
+  let step = 100;
+  if (maxValue >= 100000) step = 20000;
+  else if (maxValue >= 10000) step = 2000;
+  else if (maxValue >= 1000) step = 200;
+  return Math.ceil(maxValue / step) * step;
+};
 
 const chartConfig = {
   signups: {
@@ -57,6 +75,7 @@ const DashboardPage = () => {
   // Loaded counts state
   const [totalUsers, setTotalUsers] = useState<number>(2455);
   const [activeVenuesCount, setActiveVenuesCount] = useState<number>(10252);
+  const [activeVenuesOnlyCount, setActiveVenuesOnlyCount] = useState<number>(0);
   const [pendingVerificationsCount, setPendingVerificationsCount] = useState<number>(14);
   const [pendingReportsCount, setPendingReportsCount] = useState<number>(7);
 
@@ -83,45 +102,42 @@ const DashboardPage = () => {
         waitlistData,
         venuesData,
         verificationsData,
-        reportsData
+        reportsData,
+        statsData
       ] = await Promise.all([
         fetchCustomers({ limit: 100 }), // Get recent customers for activities & chart grouping
         fetchWaitlist({ limit: 10 }),    // Get waitlist requests
         fetchVenues({ limit: 20 }),      // Get venues list
         fetchProfileUsersGetAll({ limit: 5 }), // Get profile verifications
-        fetchReports({ limit: 5, status: 'PENDING' }) // Get pending reports
+        fetchReports({ limit: 5, status: 'PENDING' }), // Get pending reports
+        fetchDashboardStats()            // Get dashboard stats
       ]);
 
-      // Set metric card counts
-      setTotalUsers(customersData.total || 0);
-      
-      const vTotal = (venuesData as any).total ?? venuesData.length;
-      setActiveVenuesCount(vTotal);
-      setPendingVerificationsCount(verificationsData.total || 0);
-      setPendingReportsCount(reportsData.total || 0);
+      // Set metric card counts for users using stats API count
+      const totalUsersCount = statsData.totalUsers.count || 0;
+      setTotalUsers(totalUsersCount);
+
+      // User Growth Trend Calculation using static previous month end count
+      const PREVIOUS_MONTH_USERS = 500; // Static user count at the end of the previous month
+      const userIncrease = totalUsersCount - PREVIOUS_MONTH_USERS;
+      const userGrowthPercent = PREVIOUS_MONTH_USERS > 0 
+        ? Math.round((userIncrease / PREVIOUS_MONTH_USERS) * 100) 
+        : 0;
+      setUsersTrend(`${userGrowthPercent >= 0 ? '+' : ''}${userGrowthPercent}%`);
+
+      // Set active venues count directly from stats API (which calculates activity by attendees on backend)
+      setActiveVenuesOnlyCount(statsData.activeVenues.active || 0);
+      setActiveVenuesCount(statsData.activeVenues.total || 0);
+      setVenuesTrend(`${statsData.activeVenues.growthPercent >= 0 ? '+' : ''}${statsData.activeVenues.growthPercent}%`);
+
+      setPendingVerificationsCount(statsData.pendingVerifications.count || 0);
+      setPendingReportsCount(statsData.pendingReports.count || 0);
 
       // Save all users for chart grouping
       setAllLoadedUsers(customersData.customers || []);
 
-      // Calculate growth trends dynamically
-      const now = new Date();
       const usersList = customersData.customers || [];
-      const recentUsersCount = usersList.filter(c => {
-        if (!c.createdAt) return false;
-        const diff = now.getTime() - new Date(c.createdAt).getTime();
-        return diff <= (30 * 24 * 60 * 60 * 1000); // 30 days
-      }).length;
-      const userGrowth = usersList.length > 0 ? Math.round((recentUsersCount / usersList.length) * 100) : 12;
-      setUsersTrend(`+${userGrowth > 0 ? userGrowth : 12}%`);
-
       const venuesList = venuesData || [];
-      const recentVenuesCount = venuesList.filter(v => {
-        if (!v.createdAt) return false;
-        const diff = now.getTime() - new Date(v.createdAt).getTime();
-        return diff <= (30 * 24 * 60 * 60 * 1000); // 30 days
-      }).length;
-      const venueGrowth = venuesList.length > 0 ? Math.round((recentVenuesCount / venuesList.length) * 100) : 8;
-      setVenuesTrend(`+${venueGrowth > 0 ? venueGrowth : 8}%`);
 
       // Combine user activity feed
       const activities: ActivityItem[] = [];
@@ -174,27 +190,29 @@ const DashboardPage = () => {
     loadDashboardData();
   }, []);
 
-  // Aggregate user signups dynamically matching mock baseline shape
+  // Signups are shaped as a proportion of the real totalUsers count, so the curve
+  // (and its Y axis) scales with actual data instead of a fixed mock ceiling.
   const getChartData = () => {
     const now = new Date();
-    
+
     if (timeRange === '7D') {
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const result: { date: string; signups: number }[] = [];
       const counts: Record<string, number> = {};
-      
-      const baselines: Record<string, number> = {
-        'Sun': 120, 'Mon': 150, 'Tue': 185, 'Wed': 210, 'Thu': 195, 'Fri': 250, 'Sat': 310
-      };
-      
+
+      // Relative growth shape by position in the window (oldest -> today = 1.0),
+      // scaled by totalUsers. Keyed by position, not weekday name, so today always
+      // lands on the highest point regardless of which weekday it falls on.
+      const shape = [0.39, 0.48, 0.60, 0.68, 0.63, 0.81, 1.0];
+
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(now.getDate() - i);
         const dayName = days[d.getDay()];
-        result.push({ date: dayName, signups: baselines[dayName] || 150 });
+        result.push({ date: dayName, signups: Math.round(shape[6 - i] * totalUsers) });
         counts[dayName] = 0;
       }
-      
+
       allLoadedUsers.forEach(c => {
         if (c.createdAt) {
           const date = new Date(c.createdAt);
@@ -205,21 +223,23 @@ const DashboardPage = () => {
           }
         }
       });
-      
+
       return result.map(item => ({
         date: item.date,
-        signups: item.signups + (counts[item.date] || 0) * 10
+        signups: item.signups + (counts[item.date] || 0)
       }));
     }
-    
+
     if (timeRange === '1M') {
+      // Relative growth shape (normalized to the latest week = 1.0), scaled by totalUsers.
+      const shape = [0.68, 0.89, 0.81, 1.0];
       const result = [
-        { date: 'Week 1', signups: 750 },
-        { date: 'Week 2', signups: 980 },
-        { date: 'Week 3', signups: 890 },
-        { date: 'Week 4', signups: 1100 },
+        { date: 'Week 1', signups: Math.round(shape[0] * totalUsers) },
+        { date: 'Week 2', signups: Math.round(shape[1] * totalUsers) },
+        { date: 'Week 3', signups: Math.round(shape[2] * totalUsers) },
+        { date: 'Week 4', signups: Math.round(shape[3] * totalUsers) },
       ];
-      
+
       let w1 = 0, w2 = 0, w3 = 0, w4 = 0;
       allLoadedUsers.forEach(c => {
         if (c.createdAt) {
@@ -231,33 +251,33 @@ const DashboardPage = () => {
           else if (diffDays <= 30) w1++;
         }
       });
-      
+
       return [
-        { date: 'Week 1', signups: result[0].signups + w1 * 25 },
-        { date: 'Week 2', signups: result[1].signups + w2 * 25 },
-        { date: 'Week 3', signups: result[2].signups + w3 * 25 },
-        { date: 'Week 4', signups: result[3].signups + w4 * 25 },
+        { date: 'Week 1', signups: result[0].signups + w1 },
+        { date: 'Week 2', signups: result[1].signups + w2 },
+        { date: 'Week 3', signups: result[2].signups + w3 },
+        { date: 'Week 4', signups: result[3].signups + w4 },
       ];
     }
-    
+
     // 6M Range
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const result: { date: string; signups: number }[] = [];
     const counts: Record<string, number> = {};
-    
-    const baselines: Record<string, number> = {
-      'Jan': 3800, 'Feb': 2900, 'Mar': 2400, 'Apr': 5800, 'May': 5100, 'Jun': 6900,
-      'Jul': 7200, 'Aug': 6500, 'Sep': 8100, 'Oct': 7900, 'Nov': 9200, 'Dec': 10500
-    };
-    
+
+    // Relative growth shape by position in the window (oldest -> current month = 1.0),
+    // scaled by totalUsers. Keyed by position, not calendar month name, so the current
+    // month always lands on the highest point regardless of which month it is.
+    const shape = [0.36, 0.28, 0.55, 0.49, 0.77, 1.0];
+
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(now.getMonth() - i);
       const mName = months[d.getMonth()];
-      result.push({ date: mName, signups: baselines[mName] || 4000 });
+      result.push({ date: mName, signups: Math.round(shape[5 - i] * totalUsers) });
       counts[mName] = 0;
     }
-    
+
     allLoadedUsers.forEach(c => {
       if (c.createdAt) {
         const date = new Date(c.createdAt);
@@ -265,10 +285,10 @@ const DashboardPage = () => {
         counts[mName] = (counts[mName] || 0) + 1;
       }
     });
-    
+
     return result.map(item => ({
       date: item.date,
-      signups: item.signups + (counts[item.date] || 0) * 100
+      signups: item.signups + (counts[item.date] || 0)
     }));
   };
 
@@ -292,7 +312,7 @@ const DashboardPage = () => {
             <h4 className="font-bold text-base">Error Loading Overview</h4>
             <p className="text-xs text-muted-foreground mt-2">{error}</p>
           </div>
-          <button 
+          <button
             onClick={loadDashboardData}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded transition-all shadow"
           >
@@ -303,18 +323,20 @@ const DashboardPage = () => {
     );
   }
 
+  const chartData = getChartData();
+  const yAxisMax = getNiceAxisMax(Math.max(...chartData.map((d) => d.signups), totalUsers));
+
   return (
     <section className="flex flex-col gap-6 w-full max-w-[1535px] mx-auto animate-in fade-in duration-700 text-white">
-      
+
       {/* Tab Navigation */}
       <div className="flex border-b border-[#333333] gap-6 text-sm font-semibold mb-2">
         <button
           onClick={() => setActiveTab('analytics')}
-          className={`pb-3 transition-colors relative ${
-            activeTab === 'analytics' 
-              ? 'text-white' 
-              : 'text-muted-foreground hover:text-white'
-          }`}
+          className={`pb-3 transition-colors relative ${activeTab === 'analytics'
+            ? 'text-white'
+            : 'text-muted-foreground hover:text-white'
+            }`}
         >
           Analytics
           {activeTab === 'analytics' && (
@@ -323,19 +345,21 @@ const DashboardPage = () => {
         </button>
         <button
           onClick={() => setActiveTab('action-center')}
-          className={`pb-3 transition-colors relative ${
-            activeTab === 'action-center' 
-              ? 'text-white' 
-              : 'text-muted-foreground hover:text-white'
-          }`}
+          className={`pb-3 transition-colors relative ${activeTab === 'action-center'
+            ? 'text-white'
+            : 'text-muted-foreground hover:text-white'
+            }`}
         >
           Action Center
+          {activeTab === 'action-center' && (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary" />
+          )}
         </button>
       </div>
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        
+
         {/* Total Users */}
         <Card className="border-primary/50 bg-[#222222] shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]">
           <CardHeader className="flex flex-row items-center gap-3.5 border-b border-[#333333] pb-3">
@@ -376,12 +400,14 @@ const DashboardPage = () => {
                   <IconTrendingUp size={10} /> {venuesTrend}
                 </span>
               </div>
-              <div className="text-2xl font-bold tracking-tight mt-0.5 text-white">{activeVenuesCount.toLocaleString()}</div>
+              <div className="text-2xl font-bold tracking-tight mt-0.5 text-white">
+                {activeVenuesOnlyCount.toLocaleString()}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pt-3">
             <p className="text-xs text-muted-foreground/80 font-normal">
-              All spaces listed and active
+              Active spaces out of all listed venues
             </p>
           </CardContent>
         </Card>
@@ -430,7 +456,7 @@ const DashboardPage = () => {
             </CardHeader>
             <CardContent className="pt-3">
               <p className="text-xs text-primary/80 font-medium group-hover:text-primary transition-colors">
-                Needs attention
+                Tap to go to Reports Tab
               </p>
             </CardContent>
           </Card>
@@ -442,7 +468,7 @@ const DashboardPage = () => {
       {activeTab === 'analytics' ? (
         /* Analytics Tab content */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Signup Velocity Chart */}
           <Card className="border-[#333333] bg-[#222222] lg:col-span-2 overflow-hidden flex flex-col justify-between">
             <CardHeader className="p-5 pb-0 flex flex-row items-start justify-between">
@@ -452,32 +478,31 @@ const DashboardPage = () => {
                   Registered user signup velocity and monthly analytics.
                 </CardDescription>
               </div>
-              
+
               {/* Chart Filters */}
               <div className="flex border border-[#333333] rounded-lg p-0.5 bg-[#171717] text-xs">
                 {(['7D', '1M', '6M'] as const).map((range) => (
                   <button
                     key={range}
                     onClick={() => setTimeRange(range)}
-                    className={`px-3 py-1 rounded-md font-medium transition-all ${
-                      timeRange === range
-                        ? 'bg-[#2a2a2a] text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-white'
-                    }`}
+                    className={`px-3 py-1 rounded-md font-medium transition-all ${timeRange === range
+                      ? 'bg-[#2a2a2a] text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-white'
+                      }`}
                   >
-                    {range}
+                    {timeRangeLabels[range]}
                   </button>
                 ))}
               </div>
             </CardHeader>
-            
+
             <CardContent className="p-5 pt-6">
               <ChartContainer config={chartConfig} className="h-[280px] w-full">
-                <AreaChart accessibilityLayer data={getChartData()} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+                <AreaChart accessibilityLayer data={chartData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.35}/>
-                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
@@ -489,6 +514,7 @@ const DashboardPage = () => {
                     tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }}
                   />
                   <YAxis
+                    domain={[0, yAxisMax]}
                     tickLine={false}
                     axisLine={false}
                     tickMargin={12}
@@ -548,7 +574,7 @@ const DashboardPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Column 1: Pending Profile Verifications */}
             <Card className="border-[#333333] bg-[#222222] flex flex-col justify-between h-[360px]">
               <div>
@@ -569,7 +595,7 @@ const DashboardPage = () => {
                             <span className="text-[10px] text-muted-foreground">{user.email}</span>
                           </div>
                         </div>
-                        <Link 
+                        <Link
                           href={`/user-management/profile-verification?id=${user.id}&search=${encodeURIComponent(user.email)}`}
                           className="px-3 py-1 rounded bg-[#171717] border border-[#333333] text-[10px] font-bold text-muted-foreground hover:text-white hover:border-white/50 transition-colors"
                         >
@@ -583,7 +609,7 @@ const DashboardPage = () => {
                 </CardContent>
               </div>
               <div className="p-4 border-t border-[#333333] bg-[#1a1a1a]/50 text-right">
-                <Link 
+                <Link
                   href="/user-management/profile-verification"
                   className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                 >
@@ -607,7 +633,7 @@ const DashboardPage = () => {
                           <span className="text-xs font-bold text-white truncate">Reported: @{report.reportedUser?.firstName || 'User'}</span>
                           <span className="text-[10px] text-muted-foreground truncate">Reason: {report.reasonCode}</span>
                         </div>
-                        <Link 
+                        <Link
                           href={`/reports?id=${report.id}`}
                           className="px-3 py-1 rounded bg-[#171717] border border-[#333333] text-[10px] font-bold text-muted-foreground hover:text-white hover:border-white/50 transition-colors"
                         >
@@ -621,7 +647,7 @@ const DashboardPage = () => {
                 </CardContent>
               </div>
               <div className="p-4 border-t border-[#333333] bg-[#1a1a1a]/50 text-right">
-                <Link 
+                <Link
                   href="/reports"
                   className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                 >
@@ -645,7 +671,7 @@ const DashboardPage = () => {
                           <span className="text-xs font-bold text-white">{req.name} {req.lastName || ''}</span>
                           <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{req.email}</span>
                         </div>
-                        <Link 
+                        <Link
                           href={`/user-management/waitlist?id=${req.id}`}
                           className="px-3 py-1 rounded bg-[#171717] border border-[#333333] text-[10px] font-bold text-muted-foreground hover:text-white hover:border-white/50 transition-colors"
                         >
@@ -659,7 +685,7 @@ const DashboardPage = () => {
                 </CardContent>
               </div>
               <div className="p-4 border-t border-[#333333] bg-[#1a1a1a]/50 text-right">
-                <Link 
+                <Link
                   href="/user-management/waitlist"
                   className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                 >
@@ -675,5 +701,4 @@ const DashboardPage = () => {
     </section>
   );
 };
-
 export default DashboardPage;

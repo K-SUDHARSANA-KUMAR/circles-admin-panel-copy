@@ -17,7 +17,6 @@ export const ROUTES = {
     path: '/user-management/profile-verification',
     heading: 'Profile verification',
   },
-  reviews: { path: '/user-management/reviews', heading: 'Reviews' },
   adminUsers: { path: '/admin-users', heading: 'Admin Users' },
   reports: { path: '/reports', heading: 'Reports & Analytics' },
 } as const;

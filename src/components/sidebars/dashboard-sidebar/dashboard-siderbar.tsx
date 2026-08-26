@@ -14,6 +14,9 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {
@@ -26,10 +29,22 @@ import {
   Shield,
   FileText,
   Star,
+  ChevronDown,
 } from 'lucide-react';
 
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import NavKeys from '@/constants/navkeys';
 import { ProfileSection } from '@/components/shared/profile-section';
+
+const getPathnameOnly = (url: string) => {
+  const path = url.split('?')[0] || '/';
+  return path.length > 1 ? path.replace(/\/$/, '') : path;
+};
+
+const isPathActive = (pathname: string, url: string) => {
+  const target = getPathnameOnly(url);
+  return pathname === target || pathname.startsWith(`${target}/`);
+};
 
 const sidebarGroups = [
   {
@@ -57,23 +72,21 @@ const sidebarGroups = [
       },
       {
         title: 'Users',
-        url: NavKeys.Users,
         icon: Users,
-      },
-      {
-        title: 'Waitlist Users',
-        url: '/user-management/waitlist',
-        icon: CheckSquare,
-      },
-      {
-        title: 'Profile Verification',
-        url: '/user-management/profile-verification',
-        icon: CheckSquare,
-      },
-      {
-        title: 'Reviews',
-        url: '/user-management/reviews',
-        icon: Star,
+        subItems: [
+          {
+            title: 'Users',
+            url: NavKeys.Users,
+          },
+          {
+            title: 'Waitlist Users',
+            url: '/user-management/waitlist/?tab=pending',
+          },
+          {
+            title: 'Profile Verification',
+            url: '/user-management/profile-verification',
+          },
+        ],
       },
       {
         title: 'Admin Users',
@@ -95,7 +108,7 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar collapsible='icon'>
-      <SidebarHeader className="flex flex-row items-center justify-start gap-3 px-6 py-5 h-20 shrink-0">
+      <SidebarHeader className="flex flex-row items-center justify-start gap-3 px-4 py-5 h-20 shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="450 360 600 600" className="h-11 w-11 shrink-0 text-white fill-white transition-all" fill="none">
           <defs>
             <clipPath id="acc1b9bcad"><path d="M 700 750 L 897.824219 750 L 897.824219 946.5 L 700 946.5 Z M 700 750 " clipRule="nonzero"/></clipPath>
@@ -116,8 +129,8 @@ export function DashboardSidebar() {
           <g clipPath="url(#ac7f4b8a29)"><path fill="currentColor" d="M 463 610.371094 C 463 622.667969 465.457031 634.96875 470.378906 647.265625 C 475.296875 639.886719 482.675781 632.507812 490.054688 626.359375 C 487.59375 620.210938 487.59375 615.289062 487.59375 610.371094 C 487.59375 569.789062 520.800781 536.582031 561.382812 536.582031 C 601.96875 536.582031 635.171875 569.789062 635.171875 610.371094 C 635.171875 650.953125 601.96875 684.160156 561.382812 684.160156 C 544.167969 684.160156 528.179688 678.011719 515.878906 668.171875 C 510.960938 674.320312 506.042969 681.699219 503.582031 689.078125 C 519.570312 701.378906 539.246094 708.757812 561.382812 708.757812 C 615.496094 708.757812 659.769531 664.484375 659.769531 610.371094 C 659.769531 556.257812 615.496094 511.988281 561.382812 511.988281 C 507.273438 511.988281 463 556.257812 463 610.371094 Z M 463 610.371094 " fillOpacity="1" fillRule="nonzero"/></g>
           <g clipPath="url(#f717ec524c)"><path fill="currentColor" d="M 633.941406 694 C 635.171875 698.917969 635.171875 703.835938 635.171875 708.757812 C 635.171875 749.339844 601.96875 782.542969 561.382812 782.542969 C 520.800781 782.542969 487.59375 749.339844 487.59375 708.757812 C 487.59375 668.171875 520.800781 634.96875 561.382812 634.96875 C 578.601562 634.96875 594.589844 641.117188 606.886719 650.957031 C 611.804688 644.804688 616.726562 637.425781 619.183594 630.046875 C 603.195312 617.75 582.289062 610.371094 561.382812 610.371094 C 507.273438 610.371094 463 654.644531 463 708.757812 C 463 762.867188 507.273438 807.140625 561.382812 807.140625 C 615.496094 807.140625 659.769531 762.867188 659.769531 708.757812 C 659.769531 696.457031 657.308594 684.160156 652.390625 673.089844 C 647.46875 680.46875 641.320312 687.847656 633.941406 694 Z M 633.941406 694 " fillOpacity="1" fillRule="nonzero"/></g>
         </svg>
-        <span className="font-serif text-3xl font-normal tracking-wide text-white group-data-[collapsible=icon]:hidden">
-          Circles
+        <span className="font-serif text-[26px] font-normal tracking-wide text-white whitespace-nowrap group-data-[collapsible=icon]:hidden">
+          The Circles Club
         </span>
       </SidebarHeader>
       <SidebarContent className="px-4 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -129,12 +142,51 @@ export function DashboardSidebar() {
             </SidebarGroupLabel> */}
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1.5">
-                {group.items.map((item) => {
-                  const isActive = pathname === item.url || pathname.startsWith(item.url + '/');
+                {group.items.map((item: any) => {
+                  if (item.subItems) {
+                    const isGroupActive = item.subItems.some((sub: any) => isPathActive(pathname, sub.url));
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <Collapsible defaultOpen={isGroupActive} className="group/collapsible w-full">
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              tooltip={item.title}
+                              isActive={isGroupActive}
+                              className="h-10 w-full justify-between"
+                            >
+                              <div className="flex items-center gap-3">
+                                <item.icon className="h-[18px] w-[18px] shrink-0" />
+                                <span className="font-medium text-sm">{item.title}</span>
+                              </div>
+                              <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub className="space-y-1 ml-6 border-l border-zinc-800 pl-3.5 mt-1">
+                              {item.subItems.map((sub: any) => {
+                                const isSubActive = isPathActive(pathname, sub.url);
+                                return (
+                                  <SidebarMenuSubItem key={sub.title}>
+                                    <SidebarMenuSubButton asChild isActive={isSubActive} className="h-9">
+                                      <Link href={sub.url}>
+                                        <span className="text-xs font-medium">{sub.title}</span>
+                                      </Link>
+                                    </SidebarMenuSubButton>
+                                  </SidebarMenuSubItem>
+                                );
+                              })}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </SidebarMenuItem>
+                    );
+                  }
+
+                  const isActive = isPathActive(pathname, item.url);
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton isActive={isActive} asChild tooltip={item.title} className="h-10">
-                        <Link href={item.url} className="flex items-center gap-3">
+                        <Link href={item.url!} className="flex items-center gap-3">
                           <item.icon className="h-[18px] w-[18px] shrink-0" />
                           <span className="font-medium text-sm">{item.title}</span>
                         </Link>
