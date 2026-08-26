@@ -6,6 +6,7 @@ export interface Customer {
   email: string;
   phone: string;
   status: string;
+  waitlistStatus?: string;
   name: string;
   lastName?: string;
   reliabilityScore?: number;
@@ -228,6 +229,7 @@ export interface WaitlistUser {
   name: string;
   lastName?: string;
   status: string;
+  waitlistStatus?: string;
   profilePictureUrl?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -243,23 +245,23 @@ export const ADMIN_WAITLIST_URL = `${BASE_URL}/user-service/admin/waitlist`;
 /**
  * Fetches the waitlist users from the backend user-service.
  *
- * Supported backend query parameters (confirmed):
- *   - search   : partial name/phone search
- *   - limit    : page size
- *   - skip     : offset
- *   - status   : user status (e.g. 'pending', 'rejected')
- *   - medium   : referral medium
- *   - minScore : minimum reliability score
- *   - maxScore : maximum reliability score
- *   - cityId   : filter by city UUID (snowflake)
- *
- * NOT supported: country, city (as string)
+ * Supported backend query parameters:
+ *   - search         : partial name/phone search
+ *   - limit          : page size
+ *   - skip           : offset
+ *   - waitlistStatus : waitlist status filter ('pending' | 'approved' | 'rejected')
+ *   - medium         : referral medium
+ *   - minScore       : minimum reliability score
+ *   - maxScore       : maximum reliability score
+ *   - cityNames      : filter by city name(s)
+ *   - countries      : filter by country name(s)
  */
 export async function fetchWaitlist(params?: {
   limit?: number;
   skip?: number;
   search?: string;
-  status?: string;
+  /** Filters by API `waitlistStatus` (pending | approved | rejected) */
+  waitlistStatus?: string;
   medium?: string;
   minScore?: number;
   maxScore?: number;
@@ -278,7 +280,7 @@ export async function fetchWaitlist(params?: {
   qs.set('skip', String(skip));
 
   if (backendSearch) qs.set('search', backendSearch);
-  if (params?.status) qs.set('status', params.status);
+  if (params?.waitlistStatus) qs.set('waitlistStatus', params.waitlistStatus);
   if (params?.medium) qs.set('medium', params.medium);
 
   (params?.cityNames ?? []).forEach((c) => qs.append('cityNames', c));
@@ -623,6 +625,34 @@ export async function rejectAndReuploadVerification(
       reason,
       ...(imageIds?.length ? { imageIds } : {}),
     });
+    return res.data?.result?.data ?? res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;
+    throw new Error(msg);
+  }
+}
+
+export interface DashboardStats {
+  totalUsers: {
+    count: number;
+    growthPercent: number;
+  };
+  activeVenues: {
+    active: number;
+    total: number;
+    growthPercent: number;
+  };
+  pendingVerifications: {
+    count: number;
+  };
+  pendingReports: {
+    count: number;
+  };
+}
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  try {
+    const res = await customAxios.get(`${BASE_URL}/core-service/admin/dashboard/stats`);
     return res.data?.result?.data ?? res.data?.data ?? res.data;
   } catch (err: any) {
     const msg = err.response?.data?.result?.message || err.response?.data?.message || err.message;

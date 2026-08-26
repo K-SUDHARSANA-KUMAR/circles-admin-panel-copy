@@ -231,7 +231,7 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [cityMap, cityToCountryMap]);
+  }, []);
 
   const prevSearchRef = useRef(debouncedSearch);
   const prevFiltersRef = useRef(activeFilters);
@@ -308,7 +308,7 @@ export default function UsersPage() {
     <ListingPageContainer>
       <ListingSectionHeader
         icon={IconUsers}
-        title="User Management"
+        title="Users"
         subtitle={`${total} registered users`}
       />
 

@@ -134,13 +134,18 @@ export default function WaitlistPage() {
       // Extract score value
       const scoreVal = filters.score?.min !== undefined ? filters.score.min : (typeof filters.score === 'number' ? filters.score : undefined);
 
-      const currentStatus = filters.status || activeTab;
+      // Filter by waitlistStatus (pending | approved), not account `status` (e.g. waitlisted)
+      const rawStatus = (filters.status || activeTab || '').toLowerCase();
+      const waitlistStatus =
+        rawStatus === 'pending' || rawStatus === 'approved' || rawStatus === 'rejected'
+          ? rawStatus
+          : undefined;
 
       const filterParams = {
         search: debouncedSearch,
         limit: itemsPerPage,
         skip,
-        status: currentStatus,
+        waitlistStatus,
         medium: filters.medium,
         minScore: filters.score?.min,
         maxScore: filters.score?.max,
@@ -211,8 +216,8 @@ export default function WaitlistPage() {
   const getDetailUrl = (userId: string) => {
     const params = new URLSearchParams();
     params.set('id', userId);
-    if (activeTab === 'approved') {
-      params.set('tab', 'approved');
+    if (activeTab === 'approved' || activeTab === 'pending') {
+      params.set('tab', activeTab);
     }
     return `/user-management/waitlist?${params.toString()}`;
   };
@@ -364,10 +369,9 @@ export default function WaitlistPage() {
                       (user as { reliabilityScore?: number }).reliabilityScore !== undefined
                         ? (user as { reliabilityScore?: number }).reliabilityScore!
                         : 100;
-                    const waitlistStatus = ((user as { waitlistStatus?: string }).waitlistStatus || '').toLowerCase();
-                    const userAccountStatus = (user.status || 'pending').toLowerCase();
-                    const isApprovedUser = userAccountStatus === 'approved' || userAccountStatus === 'verified' || userAccountStatus === 'active' || waitlistStatus === 'approved';
-                    const isRejectedUser = userAccountStatus === 'rejected' || userAccountStatus === 'declined' || userAccountStatus === 'inactive' || waitlistStatus === 'rejected';
+                    const waitlistStatus = (user.waitlistStatus || '').toLowerCase();
+                    const isApprovedUser = waitlistStatus === 'approved';
+                    const isRejectedUser = waitlistStatus === 'rejected';
 
                     return (
                       <tr
