@@ -77,11 +77,16 @@ const getRefreshUrl = () => {
   const configuredUrl = process.env.NEXT_PUBLIC_ADMIN_AUTH_REFRESH_URL;
   if (configuredUrl) return configuredUrl;
 
-  const userServiceUrl =
+  // NEXT_PUBLIC_BASE_URL stops at `/api` (see login.service.ts), so the
+  // `user-service` segment has to be added here too — without it nginx never
+  // routes the call to the service and answers 404/405 with no CORS headers,
+  // which the browser reports as a CORS failure. The route is `refresh`, not
+  // `refresh-token`.
+  const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL ||
-    'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api/user-service';
+    'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api';
 
-  return `${userServiceUrl}/admin-auth/refresh-token`;
+  return `${baseUrl}/user-service/admin-auth/refresh`;
 };
 
 const processQueue = (error: unknown, token: string | null = null) => {
@@ -101,7 +106,10 @@ const applyAuthHeaders = (config: InternalAxiosRequestConfig) => {
   const headers = AxiosHeaders.from(config.headers);
   
   // Set standard admin API key for all backend requests
-  headers.set('X-Admin-Api-Key', 'local-admin-key-123');
+  headers.set(
+    'X-Admin-Api-Key',
+    process.env.NEXT_PUBLIC_ADMIN_API_KEY || 'local-admin-key-123',
+  );
 
   const accessToken = isBrowser() ? localStorage.getItem('accessToken') : null;
   const idToken = isBrowser() ? localStorage.getItem('idToken') : null;
