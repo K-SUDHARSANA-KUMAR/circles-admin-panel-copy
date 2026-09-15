@@ -77,14 +77,11 @@ const getRefreshUrl = () => {
   const configuredUrl = process.env.NEXT_PUBLIC_ADMIN_AUTH_REFRESH_URL;
   if (configuredUrl) return configuredUrl;
 
-  // NEXT_PUBLIC_BASE_URL stops at `/api` (see login.service.ts), so the
-  // `user-service` segment has to be added here too — without it nginx never
-  // routes the call to the service and answers 404/405 with no CORS headers,
-  // which the browser reports as a CORS failure. The route is `refresh`, not
-  // `refresh-token`.
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    'http://ec2-13-48-49-25.eu-north-1.compute.amazonaws.com/api';
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || '').replace(/\/+$/, '');
+
+  if (!baseUrl) {
+    throw new Error('NEXT_PUBLIC_BASE_URL is not configured; cannot refresh the session.');
+  }
 
   return `${baseUrl}/user-service/admin-auth/refresh`;
 };
@@ -104,12 +101,16 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 const applyAuthHeaders = (config: InternalAxiosRequestConfig) => {
   const headers = AxiosHeaders.from(config.headers);
-  
-  // Set standard admin API key for all backend requests
-  headers.set(
-    'X-Admin-Api-Key',
-    process.env.NEXT_PUBLIC_ADMIN_API_KEY || 'local-admin-key-123',
-  );
+
+  // Local-development escape hatch only: the backend treats a matching
+  // X-Admin-Api-Key as a full admin principal, bypassing Cognito entirely.
+  // Deployed environments authenticate via the Cognito bearer token below and
+  // must leave NEXT_PUBLIC_ADMIN_API_KEY unset — anything inlined here ships
+  // in the public browser bundle.
+  const adminApiKey = process.env.NEXT_PUBLIC_ADMIN_API_KEY;
+  if (adminApiKey) {
+    headers.set('X-Admin-Api-Key', adminApiKey);
+  }
 
   const accessToken = isBrowser() ? localStorage.getItem('accessToken') : null;
   const idToken = isBrowser() ? localStorage.getItem('idToken') : null;
