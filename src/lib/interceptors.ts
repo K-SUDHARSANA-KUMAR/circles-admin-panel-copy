@@ -170,12 +170,15 @@ const refreshToken = async () => {
     throw new Error('No refresh token available.');
   }
 
+  if (!user?.email) {
+    throw new Error('No stored user email available for token refresh.');
+  }
+
   const response = await refreshAxios.post<RefreshTokenResponse>(
     getRefreshUrl(),
     {
       refreshToken: refreshTokenValue,
-      userId: user?.userId || user?.id,
-      email: user?.email,
+      email: user.email,
     },
     {
       headers: {
