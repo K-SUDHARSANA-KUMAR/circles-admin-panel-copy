@@ -319,3 +319,83 @@ export async function updateSubInterest(id: string, name: string): Promise<void>
     throw new Error(msg);
   }
 }
+
+// ─── Soft-delete API calls ───────────────────────────────────────────────────
+
+export interface DeletedSubInterest {
+  id: string;
+  name: string;
+  slug: string;
+  deletedAt: string;
+  groupId: string;
+  groupName: string;
+}
+
+export interface DeletedGroup {
+  id: string;
+  name: string;
+  slug: string;
+  deletedAt: string;
+  subInterests: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    deletedAt: string | null;
+  }>;
+}
+
+export interface DeletedInterestsResponse {
+  deletedGroups: DeletedGroup[];
+  deletedSubInterests: DeletedSubInterest[];
+}
+
+/**
+ * Calls PATCH /interest-groups/soft-delete.
+ * If interestIds is omitted or empty, the entire group is soft-deleted.
+ * If interestIds is provided, only those sub-interests are soft-deleted.
+ */
+export async function softDeleteInterests(payload: {
+  interestGroupId: string;
+  interestIds?: string[];
+}): Promise<{ success: boolean; message: string; deletedCount: number }> {
+  try {
+    const res = await customAxios.patch(
+      `${INTEREST_GROUPS_URL}/soft-delete`,
+      payload,
+    );
+    return res.data;
+  } catch (err: any) {
+    const msg =
+      err.response?.data?.result?.message ||
+      err.response?.data?.message ||
+      err.message ||
+      'Failed to soft-delete.';
+    throw new Error(msg);
+  }
+}
+
+/**
+ * Fetches all soft-deleted groups and sub-interests from GET /interest-groups/deleted.
+ */
+export async function fetchDeletedInterests(): Promise<DeletedInterestsResponse> {
+  try {
+    const res = await customAxios.get(`${INTEREST_GROUPS_URL}/deleted`);
+    const raw = res.data;
+    const data = raw?.result?.data ?? raw?.data ?? raw;
+    return {
+      deletedGroups: Array.isArray(data?.deletedGroups)
+        ? data.deletedGroups
+        : [],
+      deletedSubInterests: Array.isArray(data?.deletedSubInterests)
+        ? data.deletedSubInterests
+        : [],
+    };
+  } catch (err: any) {
+    const msg =
+      err.response?.data?.result?.message ||
+      err.response?.data?.message ||
+      err.message ||
+      'Failed to fetch deleted interests.';
+    throw new Error(msg);
+  }
+}
