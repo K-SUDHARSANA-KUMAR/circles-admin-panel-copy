@@ -99,6 +99,7 @@ jobs:
 
       # ----------------------------------------
       # Verify AWS identity
+      # (OIDC trust policy fixed 2026-09-15 for renamed org sub claim)
       # ----------------------------------------
       - name: Verify AWS Identity
         run: |
