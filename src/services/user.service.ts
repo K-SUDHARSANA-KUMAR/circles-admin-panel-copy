@@ -13,6 +13,22 @@ export interface Customer {
   createdAt?: string;
   updatedAt?: string;
   profilePictureUrl?: string | null;
+  subscriptionPlan?: string;
+  subscriptionStatus?: string | null;
+  subscription?: {
+    plan?: string;
+    status?: string | null;
+    expiresAt?: string | null;
+    willRenew?: boolean;
+    productId?: string | null;
+    store?: string | null;
+  };
+  defaultTrial?: {
+    startAt: string | null;
+    endAt: string | null;
+    active: boolean;
+    daysRemaining: number;
+  } | null;
 }
 
 export interface CustomersResponse {
@@ -659,3 +675,39 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
     throw new Error(msg);
   }
 }
+
+export interface AdjustDefaultTrialPayload {
+  months?: number;
+  days?: number;
+  endAt?: string;
+  reason?: string;
+}
+
+export interface AdjustDefaultTrialResponse {
+  userId: string;
+  previousEndAt: string | null;
+  defaultTrialStartAt: string | null;
+  defaultTrialEndAt: string | null;
+  defaultTrialActive: boolean;
+  daysRemaining: number;
+  clamped: boolean;
+}
+
+/**
+ * Adjust a customer's default trial window (Admin PATCH API).
+ * Exactly one of months, days or endAt must be supplied.
+ */
+export async function adjustCustomerDefaultTrial(
+  userId: string,
+  payload: AdjustDefaultTrialPayload
+): Promise<AdjustDefaultTrialResponse> {
+  const url = `${ADMIN_CUSTOMERS_URL}/${userId}/default-trial`;
+  try {
+    const res = await customAxios.patch(url, payload);
+    return res.data?.data ?? res.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.message || err.message || 'Failed to adjust default trial';
+    throw new Error(msg);
+  }
+}
+

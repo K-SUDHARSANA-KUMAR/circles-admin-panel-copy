@@ -10,8 +10,10 @@ import {
   fetchUserDevices,
   sendNotification,
   broadcastNotification,
+  adjustCustomerDefaultTrial,
   type Customer,
   type UserDevice,
+  type AdjustDefaultTrialPayload,
 } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
 import {
@@ -25,6 +27,8 @@ import {
   IconMapPin,
   IconUsers,
   IconBell,
+  IconCalendar,
+  IconClock,
 } from '@tabler/icons-react';
 import {
   ListingPageContainer,
@@ -73,6 +77,15 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false);
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
   const [cityToCountryMap, setCityToCountryMap] = useState<Record<string, string>>({});
+
+  // Trial Adjustment States
+  const [isTrialAdjustOpen, setIsTrialAdjustOpen] = useState(false);
+  const [trialMode, setTrialMode] = useState<'months' | 'days' | 'endAt'>('months');
+  const [trialMonths, setTrialMonths] = useState<string>('1');
+  const [trialDays, setTrialDays] = useState<string>('30');
+  const [trialEndAt, setTrialEndAt] = useState<string>('');
+  const [trialReason, setTrialReason] = useState<string>('');
+  const [isAdjustingTrial, setIsAdjustingTrial] = useState(false);
 
   // Notification Modal States
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -271,10 +284,83 @@ export default function UsersPage() {
     setIsModalOpen(true);
   };
 
+  const handleCancelTrialAdjust = () => {
+    setIsTrialAdjustOpen(false);
+    setTrialMode('months');
+    setTrialMonths('1');
+    setTrialDays('30');
+    setTrialEndAt('');
+    setTrialReason('');
+  };
+
+  const handleConfirmTrialAdjustment = async () => {
+    if (!editingCustomer) return;
+
+    const payload: AdjustDefaultTrialPayload = {};
+    if (trialReason.trim()) {
+      payload.reason = trialReason.trim();
+    }
+
+    if (trialMode === 'months') {
+      const val = Number(trialMonths);
+      if (isNaN(val) || val === 0) {
+        toast.error('Please enter a valid non-zero number of months (-60 to 60)');
+        return;
+      }
+      payload.months = val;
+    } else if (trialMode === 'days') {
+      const val = Number(trialDays);
+      if (isNaN(val) || val === 0) {
+        toast.error('Please enter a valid non-zero number of days (-3650 to 3650)');
+        return;
+      }
+      payload.days = val;
+    } else if (trialMode === 'endAt') {
+      if (!trialEndAt) {
+        toast.error('Please select an end date and time');
+        return;
+      }
+      payload.endAt = new Date(trialEndAt).toISOString();
+    }
+
+    setIsAdjustingTrial(true);
+    try {
+      const res = await adjustCustomerDefaultTrial(editingCustomer.id, payload);
+      toast.success(
+        `Trial window adjusted! ${res.daysRemaining} days remaining${res.clamped ? ' (clamped to start)' : ''}`
+      );
+
+      // Update current customer object
+      setEditingCustomer((prev) =>
+        prev
+          ? {
+              ...prev,
+              defaultTrial: {
+                startAt: res.defaultTrialStartAt,
+                endAt: res.defaultTrialEndAt,
+                active: res.defaultTrialActive,
+                daysRemaining: res.daysRemaining,
+              },
+            }
+          : null
+      );
+
+      handleCancelTrialAdjust();
+      // Reload customers list in background to sync table view
+      await loadCustomers(debouncedSearch, currentPage, itemsPerPage, activeFilters);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to adjust default trial';
+      toast.error(msg);
+    } finally {
+      setIsAdjustingTrial(false);
+    }
+  };
+
   const handleCloseModal = () => {
     setFormData({
       status: 'active'
     });
+    handleCancelTrialAdjust();
     setEditingCustomer(null);
     setIsModalOpen(false);
   };
@@ -625,6 +711,165 @@ export default function UsersPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Trial Adjustment Section — strictly for users currently in active trial, hidden for member users */}
+              {Boolean(
+                editingCustomer.defaultTrial?.active &&
+                (!editingCustomer.subscriptionStatus || editingCustomer.subscriptionStatus === 'free' || editingCustomer.subscriptionStatus === 'trial') &&
+                (!editingCustomer.subscriptionPlan || editingCustomer.subscriptionPlan === 'free') &&
+                (!editingCustomer.subscription?.plan || editingCustomer.subscription?.plan === 'free')
+              ) && (
+                <div className="space-y-3 pt-2 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                      <IconClock size={13} className="text-[#d8b4fe]" />
+                      <span>Free Trial Status</span>
+                    </label>
+                    <span className="text-[10px] font-semibold text-[#d8b4fe] bg-purple-950/40 border border-purple-900/50 px-2 py-0.5 rounded-full">
+                      {editingCustomer.defaultTrial?.daysRemaining ?? 0} days remaining
+                    </span>
+                  </div>
+
+                  {!isTrialAdjustOpen ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsTrialAdjustOpen(true)}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-purple-500/40 bg-purple-950/20 text-[#d8b4fe] hover:bg-purple-900/30 hover:border-purple-500 text-xs font-bold transition-all shadow-md shadow-purple-950/20"
+                    >
+                      <IconCalendar size={15} />
+                      <span>TrialAdjustment</span>
+                    </button>
+                  ) : (
+                    <div className="bg-zinc-900/90 border border-purple-500/40 rounded-lg p-3.5 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                        <div className="flex items-center gap-1.5 text-white font-bold text-xs">
+                          <IconCalendar size={14} className="text-[#d8b4fe]" />
+                          <span>TrialAdjustment</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCancelTrialAdjust}
+                          className="text-zinc-500 hover:text-white text-xs p-1 rounded hover:bg-zinc-800"
+                        >
+                          <IconX size={14} />
+                        </button>
+                      </div>
+
+                      {/* Adjustment Mode Selector */}
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                          Adjustment Type <span className="text-red-500">*</span>
+                        </label>
+                        <div className="grid grid-cols-3 gap-1.5">
+                          {(['months', 'days', 'endAt'] as const).map((mode) => (
+                            <button
+                              key={mode}
+                              type="button"
+                              onClick={() => setTrialMode(mode)}
+                              className={`py-1.5 text-[11px] font-semibold rounded border transition-all ${
+                                trialMode === mode
+                                  ? 'bg-purple-950/50 border-purple-500 text-[#d8b4fe] shadow-sm'
+                                  : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'
+                              }`}
+                            >
+                              {mode === 'months' ? 'Months' : mode === 'days' ? 'Days' : 'Exact Date'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Mode Inputs */}
+                      {trialMode === 'months' && (
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-zinc-400">
+                            Months to shift (positive extends, negative reduces)
+                          </label>
+                          <Input
+                            type="number"
+                            step="1"
+                            min="-60"
+                            max="60"
+                            placeholder="e.g. 1 or -1"
+                            value={trialMonths}
+                            onChange={(e) => setTrialMonths(e.target.value)}
+                            className="h-8 text-xs bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500"
+                          />
+                        </div>
+                      )}
+
+                      {trialMode === 'days' && (
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-zinc-400">
+                            Days to shift (positive extends, negative reduces)
+                          </label>
+                          <Input
+                            type="number"
+                            step="1"
+                            min="-3650"
+                            max="3650"
+                            placeholder="e.g. 30 or -15"
+                            value={trialDays}
+                            onChange={(e) => setTrialDays(e.target.value)}
+                            className="h-8 text-xs bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500"
+                          />
+                        </div>
+                      )}
+
+                      {trialMode === 'endAt' && (
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-zinc-400">
+                            New Trial End Date & Time
+                          </label>
+                          <Input
+                            type="datetime-local"
+                            value={trialEndAt}
+                            onChange={(e) => setTrialEndAt(e.target.value)}
+                            className="h-8 text-xs bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500"
+                          />
+                        </div>
+                      )}
+
+                      {/* Optional Reason Input */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-zinc-400">
+                          Reason (Optional audit log)
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="e.g. User retention extension"
+                          value={trialReason}
+                          onChange={(e) => setTrialReason(e.target.value)}
+                          className="h-8 text-xs bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500"
+                        />
+                      </div>
+
+                      {/* Confirm Process or Cancel */}
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleCancelTrialAdjust}
+                          disabled={isAdjustingTrial}
+                          className="h-7 text-[11px] text-zinc-400 hover:text-white"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleConfirmTrialAdjustment}
+                          disabled={isAdjustingTrial}
+                          className="h-7 text-[11px] font-bold bg-[#d8b4fe] text-[#3b0764] hover:bg-[#c084fc] flex items-center gap-1 px-3"
+                        >
+                          {isAdjustingTrial && <IconLoader size={12} className="animate-spin" />}
+                          <span>{isAdjustingTrial ? 'Processing...' : 'Confirm Process'}</span>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex gap-3 justify-end pt-2 border-t border-white/5">
