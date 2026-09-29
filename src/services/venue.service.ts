@@ -22,6 +22,11 @@ export interface ApiVenue {
   isVisible: boolean;
   coverImageS3FileName?: string;
   coverImageUrl?: string;
+  perkImageS3FileName?: string | null;
+  perkImageUrl?: string | null;
+  perkEnabled?: boolean;
+  perkTitle?: string | null;
+  perkSubtitle?: string | null;
   s3ImageUrl?: string;
   image?: string;
   description?: string;
@@ -64,6 +69,15 @@ export interface Venue {
   createdAt?: string;
   updatedAt?: string;
   coverImageS3FileName?: string;
+  /** Perk artwork (e.g. the NOAM beer mark). Set = this venue carries a perk. */
+  perkImage?: string | null;
+  perkImageFile?: File | null;
+  perkImageS3FileName?: string | null;
+  /** False = deal paused; the artwork is kept but the map stops showing it. */
+  perkEnabled?: boolean;
+  /** Copy shown on the venue detail screen; blank falls back to the app's wording. */
+  perkTitle?: string;
+  perkSubtitle?: string;
   popularity?: number;
   popularityScore?: number;
   attendeeCount?: number;
@@ -173,6 +187,11 @@ export function mapApiToVenue(api: ApiVenue): Venue {
     createdAt: api.createdAt,
     updatedAt: api.updatedAt,
     coverImageS3FileName: api.coverImageS3FileName || '',
+    perkImage: api.perkImageUrl || null,
+    perkImageS3FileName: api.perkImageS3FileName || null,
+    perkEnabled: api.perkEnabled !== false,
+    perkTitle: api.perkTitle || '',
+    perkSubtitle: api.perkSubtitle || '',
     popularity: api.popularity,
     popularityScore: api.popularityScore !== undefined ? api.popularityScore : api.popularity,
     attendeeCount: api.attendeeCount ?? 0,
@@ -316,6 +335,10 @@ export async function createVenue(payload: {
   country: string;
   isVisible: boolean;
   coverImageS3FileName: string;
+  perkImageS3FileName?: string | null;
+  perkEnabled?: boolean;
+  perkTitle?: string | null;
+  perkSubtitle?: string | null;
   isPartner?: boolean;
   description?: string;
 }): Promise<Venue> {
@@ -349,6 +372,10 @@ export async function updateVenue(
     country: string;
     isVisible: boolean;
     coverImageS3FileName: string;
+    perkImageS3FileName: string | null;
+    perkEnabled: boolean;
+    perkTitle: string | null;
+    perkSubtitle: string | null;
     isPartner: boolean;
     description: string;
   }>
