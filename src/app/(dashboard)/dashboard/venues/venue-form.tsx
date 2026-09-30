@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconCheck, IconEdit, IconBuilding } from "@tabler/icons-react";
+import { IconUpload, IconMapPin, IconX, IconInfoCircle, IconCheck, IconEdit, IconBuilding, IconBeer } from "@tabler/icons-react";
 import { DetailPageContainer, DetailPageHeader, detailStyles, listingStyles } from "@/components/shared/listing-page";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
@@ -72,6 +72,12 @@ export interface Venue {
   isPartner?: boolean;
   isVisible?: boolean;
   coverImageS3FileName?: string;
+  perkImage?: string | null;
+  perkImageFile?: File | null;
+  perkImageS3FileName?: string | null;
+  perkEnabled?: boolean;
+  perkTitle?: string;
+  perkSubtitle?: string;
   createdAt?: string;
   updatedAt?: string;
   popularity?: number;
@@ -95,6 +101,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
   const isViewing = currentMode === "view";
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const perkInputRef = useRef<HTMLInputElement>(null);
   
   const [countries, setCountries] = useState<Country[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
@@ -175,6 +182,12 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     isPartner: initialData?.isPartner || false,
     isVisible: initialData?.isVisible !== undefined ? initialData.isVisible : true,
     coverImageS3FileName: initialData?.coverImageS3FileName || "",
+    perkImage: initialData?.perkImage || null,
+    perkImageFile: null as File | null,
+    perkImageS3FileName: initialData?.perkImageS3FileName || null,
+    perkEnabled: initialData?.perkEnabled !== false,
+    perkTitle: initialData?.perkTitle || "",
+    perkSubtitle: initialData?.perkSubtitle || "",
   });
 
 
@@ -262,6 +275,30 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // Perk artwork — the same upload path as the cover, kept separate because the
+  // perk image is what the mobile map draws in place of the venue's photo.
+  const handlePerkImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Perk image must be an image file");
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      perkImage: URL.createObjectURL(file),
+      perkImageFile: file,
+    }));
+  };
+
+  const removePerkImage = () => {
+    if (typeof formData.perkImage === "string" && formData.perkImage.startsWith("blob:")) {
+      URL.revokeObjectURL(formData.perkImage);
+    }
+    setFormData((prev) => ({ ...prev, perkImage: null, perkImageFile: null }));
+    if (perkInputRef.current) perkInputRef.current.value = "";
+  };
+
   const removeInterest = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -294,6 +331,17 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
         });
       }
 
+      // Clearing the image is how a deal ends: null wipes metadata.perkImageS3FileName.
+      let perkImageS3FileName: string | null = formData.perkImage
+        ? formData.perkImageS3FileName || null
+        : null;
+      if (formData.perkImageFile) {
+        perkImageS3FileName = await uploadFile.mutateAsync({
+          file: formData.perkImageFile,
+          folder: "venueperkimages",
+        });
+      }
+
       const payload = {
         name: formData.name.trim(),
         cityId: formData.cityId,
@@ -309,6 +357,11 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
         country: formData.country || "IN",
         isVisible: formData.isVisible !== false,
         coverImageS3FileName: coverImageS3FileName,
+        perkImageS3FileName,
+        perkEnabled: formData.perkEnabled !== false,
+        // Blank means "use the app's own wording", so send null rather than "".
+        perkTitle: formData.perkTitle?.trim() || null,
+        perkSubtitle: formData.perkSubtitle?.trim() || null,
         description: formData.description.trim(),
       };
 
@@ -478,6 +531,118 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                     </h4>
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* Perk artwork — its presence is the perk. The mobile map swaps the
+              venue's pin for this image and shows it to members only. */}
+          <div className="glass-card p-6 flex flex-col gap-4">
+            <Label className="text-base font-bold flex items-center gap-2">
+              <IconBeer size={18} className="text-primary" />
+              Venue Perk
+            </Label>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Brand mark shown on the members&apos; map. Square PNG, transparent
+              background.
+            </p>
+
+            {/* Perk headline and subtitle — configurable with or without artwork */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="perkTitle" className="text-sm font-semibold">Headline</Label>
+                <Input
+                  id="perkTitle"
+                  name="perkTitle"
+                  value={formData.perkTitle || ""}
+                  onChange={handleInputChange}
+                  disabled={isViewing}
+                  maxLength={60}
+                  placeholder="Free perk for members"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="perkSubtitle" className="text-sm font-semibold">Subtitle</Label>
+                <Input
+                  id="perkSubtitle"
+                  name="perkSubtitle"
+                  value={formData.perkSubtitle || ""}
+                  onChange={handleInputChange}
+                  disabled={isViewing}
+                  maxLength={160}
+                  placeholder="Show your membership to claim it."
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Shown on the venue screen in the app. Leave blank to use the
+                app&apos;s default wording.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 rounded-2xl bg-muted/20 border border-border/50 p-4">
+              <div>
+                <p className="text-sm font-bold">Perk live</p>
+                <p className="text-xs text-muted-foreground">
+                  Turn off to pause the deal without deleting the perk details.
+                </p>
+              </div>
+              <Switch
+                checked={formData.perkEnabled !== false}
+                disabled={isViewing}
+                onCheckedChange={(c) => handleSwitchChange("perkEnabled", c)}
+              />
+            </div>
+
+            <input
+              type="file"
+              ref={perkInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handlePerkImageChange}
+            />
+
+            {formData.perkImage ? (
+              <div className="relative group rounded-2xl overflow-hidden border border-border/50 aspect-square max-w-[220px] bg-muted/50 shadow-xl flex items-center justify-center">
+                <img
+                  src={
+                    typeof formData.perkImage === "string" &&
+                    !formData.perkImage.startsWith("http") &&
+                    !formData.perkImage.startsWith("blob:")
+                      ? `https://d2jialh2zz1lcb.cloudfront.net/${formData.perkImage.replace(/^\/+/, "")}`
+                      : (formData.perkImage as string)
+                  }
+                  alt="Venue perk"
+                  className="w-full h-full object-contain p-4"
+                />
+                {!isViewing && (
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="gap-2 rounded-full px-6"
+                      onClick={removePerkImage}
+                    >
+                      <IconX size={18} />
+                      Remove artwork
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : !isViewing ? (
+              <div
+                className="border-2 border-dashed border-border/50 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all aspect-square max-w-[220px] bg-muted/20 shadow-inner"
+                onClick={() => perkInputRef.current?.click()}
+              >
+                <div className="bg-primary/10 p-4 rounded-full text-primary">
+                  <IconBeer size={28} />
+                </div>
+                <p className="text-sm font-semibold text-center">Add perk image</p>
+                <p className="text-xs text-muted-foreground text-center">Square PNG, transparent</p>
+              </div>
+            ) : (
+              <div className="border border-border/50 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 aspect-square max-w-[220px] bg-muted/20 shadow-inner">
+                <IconBeer size={40} className="text-muted-foreground/30" />
+                <span className="text-sm text-muted-foreground/50 font-medium">No perk artwork</span>
               </div>
             )}
           </div>
