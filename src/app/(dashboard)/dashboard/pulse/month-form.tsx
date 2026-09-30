@@ -129,7 +129,8 @@ export const MonthForm = ({
       freeToMember: div(nums.freeConverted, nums.freeEnded),
       cac,
       ltv,
-      ltvCacRatio: cac && ltv ? ltv / cac : null,
+      // Treat ltv = 0 as a valid number when cac > 0 (produces 0.0x rather than —), while cac = 0 or null remains —
+      ltvCacRatio: cac && ltv != null ? ltv / cac : null,
     };
   }, [nums]);
 

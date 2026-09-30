@@ -9,7 +9,6 @@ import {
   IconPencil,
   IconPlus,
   IconRefresh,
-  IconWand,
 } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +16,6 @@ import {
   ListingSectionHeader,
 } from '@/components/shared/listing-page';
 import {
-  autofillAndSavePulse,
   deletePulseEntry,
   downloadPulseExport,
   fetchPulseEntries,
@@ -45,7 +43,6 @@ const PulsePage = () => {
   const [saving, setSaving] = useState(false);
   const [showDefinitions, setShowDefinitions] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [syncing, setSyncing] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -113,21 +110,6 @@ const PulsePage = () => {
     }
   };
 
-  /** Recomputes the selected month from our own data, keeping manual values. */
-  const handleSync = async () => {
-    if (!selectedMonth) return;
-    setSyncing(true);
-    try {
-      await autofillAndSavePulse(selectedMonth);
-      toast.success(`Synced ${monthLabel(selectedMonth)} from our data`);
-      await load();
-    } catch (err: any) {
-      toast.error(err.message || 'Sync failed');
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   const handleExport = async (format: 'csv' | 'xlsx') => {
     setExporting(true);
     try {
@@ -154,29 +136,11 @@ const PulsePage = () => {
             <Button
               variant="outline"
               className="gap-2"
-              onClick={() => handleExport('csv')}
-              disabled={exporting || !entries.length}
-            >
-              <IconDownload size={18} />
-              CSV
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
               onClick={() => handleExport('xlsx')}
               disabled={exporting || !entries.length}
             >
               <IconDownload size={18} />
               Excel
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleSync}
-              disabled={!selected || syncing}
-            >
-              <IconWand size={18} />
-              {syncing ? 'Syncing…' : 'Sync from data'}
             </Button>
             <Button
               variant="outline"

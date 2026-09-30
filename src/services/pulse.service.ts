@@ -52,10 +52,20 @@ export interface PulseEntryWithPrevious extends PulseEntry {
 
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  (apiEndPoint.CITIES_ENDPOINT as string).replace('/cities', '');
-export const PULSE_URL = `${BASE_URL}/user-service/admin/pulse`;
+// Resolve the Pulse base URL, ensuring exactly one `/user-service` segment even when falling back to CITIES_ENDPOINT
+const resolvePulseUrl = (): string => {
+  const configured = (process.env.NEXT_PUBLIC_BASE_URL || '').replace(/\/+$/, '');
+  if (configured) {
+    return configured.endsWith('/user-service')
+      ? `${configured}/admin/pulse`
+      : `${configured}/user-service/admin/pulse`;
+  }
+  const citiesUrl = (apiEndPoint.CITIES_ENDPOINT as string).replace(/\/+$/, '');
+  const rootApi = citiesUrl.replace(/\/user-service\/cities$/, '');
+  return `${rootApi}/user-service/admin/pulse`;
+};
+
+export const PULSE_URL = resolvePulseUrl();
 
 const unwrap = (res: any) => res.data?.result?.data ?? res.data?.data ?? res.data;
 
