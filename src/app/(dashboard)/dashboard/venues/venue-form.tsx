@@ -547,54 +547,51 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
               background.
             </p>
 
-            {formData.perkImage ? (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="perkTitle" className="text-sm font-semibold">Headline</Label>
-                  <Input
-                    id="perkTitle"
-                    name="perkTitle"
-                    value={formData.perkTitle || ""}
-                    onChange={handleInputChange}
-                    disabled={isViewing}
-                    maxLength={60}
-                    placeholder="Free perk for members"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="perkSubtitle" className="text-sm font-semibold">Subtitle</Label>
-                  <Input
-                    id="perkSubtitle"
-                    name="perkSubtitle"
-                    value={formData.perkSubtitle || ""}
-                    onChange={handleInputChange}
-                    disabled={isViewing}
-                    maxLength={160}
-                    placeholder="Show your membership to claim it."
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Shown on the venue screen in the app. Leave blank to use the
-                  app&apos;s default wording.
-                </p>
-              </div>
-            ) : null}
-
-            {formData.perkImage ? (
-              <div className="flex items-center justify-between gap-4 rounded-2xl bg-muted/20 border border-border/50 p-4">
-                <div>
-                  <p className="text-sm font-bold">Perk live</p>
-                  <p className="text-xs text-muted-foreground">
-                    Turn off to pause the deal and keep the image.
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.perkEnabled !== false}
+            {/* Perk headline and subtitle — configurable with or without artwork */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="perkTitle" className="text-sm font-semibold">Headline</Label>
+                <Input
+                  id="perkTitle"
+                  name="perkTitle"
+                  value={formData.perkTitle || ""}
+                  onChange={handleInputChange}
                   disabled={isViewing}
-                  onCheckedChange={(c) => handleSwitchChange("perkEnabled", c)}
+                  maxLength={60}
+                  placeholder="Free perk for members"
                 />
               </div>
-            ) : null}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="perkSubtitle" className="text-sm font-semibold">Subtitle</Label>
+                <Input
+                  id="perkSubtitle"
+                  name="perkSubtitle"
+                  value={formData.perkSubtitle || ""}
+                  onChange={handleInputChange}
+                  disabled={isViewing}
+                  maxLength={160}
+                  placeholder="Show your membership to claim it."
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Shown on the venue screen in the app. Leave blank to use the
+                app&apos;s default wording.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 rounded-2xl bg-muted/20 border border-border/50 p-4">
+              <div>
+                <p className="text-sm font-bold">Perk live</p>
+                <p className="text-xs text-muted-foreground">
+                  Turn off to pause the deal without deleting the perk details.
+                </p>
+              </div>
+              <Switch
+                checked={formData.perkEnabled !== false}
+                disabled={isViewing}
+                onCheckedChange={(c) => handleSwitchChange("perkEnabled", c)}
+              />
+            </div>
 
             <input
               type="file"
@@ -607,7 +604,13 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
             {formData.perkImage ? (
               <div className="relative group rounded-2xl overflow-hidden border border-border/50 aspect-square max-w-[220px] bg-muted/50 shadow-xl flex items-center justify-center">
                 <img
-                  src={formData.perkImage as string}
+                  src={
+                    typeof formData.perkImage === "string" &&
+                    !formData.perkImage.startsWith("http") &&
+                    !formData.perkImage.startsWith("blob:")
+                      ? `https://d2jialh2zz1lcb.cloudfront.net/${formData.perkImage.replace(/^\/+/, "")}`
+                      : (formData.perkImage as string)
+                  }
                   alt="Venue perk"
                   className="w-full h-full object-contain p-4"
                 />
@@ -620,7 +623,7 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                       onClick={removePerkImage}
                     >
                       <IconX size={18} />
-                      Remove perk
+                      Remove artwork
                     </Button>
                   </div>
                 )}
@@ -634,12 +637,12 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                   <IconBeer size={28} />
                 </div>
                 <p className="text-sm font-semibold text-center">Add perk image</p>
-                <p className="text-xs text-muted-foreground text-center">No perk on this venue</p>
+                <p className="text-xs text-muted-foreground text-center">Square PNG, transparent</p>
               </div>
             ) : (
               <div className="border border-border/50 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 aspect-square max-w-[220px] bg-muted/20 shadow-inner">
                 <IconBeer size={40} className="text-muted-foreground/30" />
-                <span className="text-sm text-muted-foreground/50 font-medium">No perk</span>
+                <span className="text-sm text-muted-foreground/50 font-medium">No perk artwork</span>
               </div>
             )}
           </div>
