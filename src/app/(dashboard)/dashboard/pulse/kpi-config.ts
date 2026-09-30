@@ -38,7 +38,7 @@ export interface InputSpec {
 export const INPUT_SPECS: InputSpec[] = [
   { key: 'totalUsers', label: 'Total users (cumulative)', hint: 'Firebase users count, or App Store Connect + Play Console installs' },
   { key: 'newUsers', label: 'New users this month', hint: "Firebase: this month's total − last month's total" },
-  { key: 'activatedUsers', label: 'Activated (of new users)', hint: 'Firebase `activated` event: 5+ friends and 1 plan within 14 days' },
+  { key: 'activatedUsers', label: 'Activated (of new users)', hint: 'Firebase `activated` event: 5+ friends and 1 Live Moment within 14 days' },
   { key: 'invitedUsers', label: 'Invited (of new users)', hint: 'Sign-up source: invite link / ambassador code / event code' },
   { key: 'mau', label: 'Monthly active users', hint: 'Firebase Analytics, 30-day active users' },
   { key: 'fullMembers', label: 'Full members (cumulative)', hint: 'RevenueCat active subscriptions' },

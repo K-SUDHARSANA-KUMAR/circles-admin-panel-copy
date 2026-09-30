@@ -51,12 +51,17 @@ export const KpiCard = ({ spec, history, current, previous }: KpiCardProps) => {
           : 'bg-muted/30 text-muted-foreground border-border/50';
 
   return (
-    <div className="glass-card p-5 flex flex-col gap-3">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {spec.label}
-      </p>
+    <div className="glass-card p-5 flex flex-col justify-between gap-3 relative overflow-hidden transition-all duration-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 group">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/90">
+          {spec.label}
+        </p>
+        <span className="text-[11px] text-muted-foreground/60 group-hover:text-primary/70 transition-colors">
+          {spec.subtitle}
+        </span>
+      </div>
 
-      <p className="text-3xl font-bold tracking-tight">{spec.format(value)}</p>
+      <p className="text-3xl font-bold tracking-tight text-foreground">{spec.format(value)}</p>
 
       <div className="h-10 -mx-1">
         {hasSeries ? (
@@ -81,31 +86,31 @@ export const KpiCard = ({ spec, history, current, previous }: KpiCardProps) => {
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2 flex-wrap">
+      <div className="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-border/30">
         {change == null ? (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground/70 font-medium">
             {previous ? 'no comparison' : 'first entry'}
           </span>
         ) : (
           <span
-            className={`inline-flex items-center gap-1 text-xs font-bold ${
+            className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border ${
               flat
-                ? 'text-muted-foreground'
+                ? 'text-muted-foreground bg-muted/20 border-border/40'
                 : good
-                  ? 'text-emerald-400'
-                  : 'text-red-400'
+                  ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25'
+                  : 'text-red-400 bg-red-500/10 border-red-500/25'
             }`}
           >
             {flat ? (
-              <IconMinus size={14} />
+              <IconMinus size={13} />
             ) : rising ? (
-              <IconArrowUpRight size={14} />
+              <IconArrowUpRight size={13} />
             ) : (
-              <IconArrowDownRight size={14} />
+              <IconArrowDownRight size={13} />
             )}
             {flat ? 'flat' : `${(Math.abs(change) * 100).toFixed(1)}%`}
             {previous && !flat ? (
-              <span className="font-normal text-muted-foreground">
+              <span className="font-normal opacity-75 ml-0.5">
                 vs {monthLabelShort(previous.month)}
               </span>
             ) : null}
@@ -113,12 +118,10 @@ export const KpiCard = ({ spec, history, current, previous }: KpiCardProps) => {
         )}
 
         {isLtv ? (
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${bandClass}`}>
+          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border shadow-sm ${bandClass}`}>
             {fmtRatio(current.kpis.ltvCacRatio)} CAC
           </span>
-        ) : (
-          <span className="text-xs text-muted-foreground">{spec.subtitle}</span>
-        )}
+        ) : null}
       </div>
     </div>
   );

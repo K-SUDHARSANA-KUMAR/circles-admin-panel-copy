@@ -60,7 +60,7 @@ export const MonthForm = ({
   const [values, setValues] = useState<Record<string, string>>(() =>
     entry
       ? INPUT_SPECS.reduce(
-          (acc, s) => ({ ...acc, [s.key]: String((entry as any)[s.key] ?? '') }),
+          (acc, s) => ({ ...acc, [s.key]: String((entry as unknown as Record<string, unknown>)[s.key] ?? '') }),
           {},
         )
       : { ...blank },
@@ -95,8 +95,8 @@ export const MonthForm = ({
       setNotes(draft.notes || []);
       setError(null);
       toast.success(`Filled ${monthLabel(month)} from our data`);
-    } catch (err: any) {
-      toast.error(err.message || 'Auto-fill failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Auto-fill failed');
     } finally {
       setFilling(false);
     }

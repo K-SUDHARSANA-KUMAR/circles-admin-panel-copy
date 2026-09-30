@@ -4,13 +4,24 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   IconActivityHeartbeat,
+  IconCalendar,
   IconChevronDown,
+  IconChevronLeft,
+  IconChevronRight,
   IconDownload,
+  IconLock,
   IconPencil,
   IconPlus,
   IconRefresh,
 } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   ListingPageContainer,
   ListingSectionHeader,
@@ -58,8 +69,8 @@ const PulsePage = () => {
             ? data[data.length - 1].month
             : null,
       );
-    } catch (err: any) {
-      setError(err.message || 'Failed to load Pulse data');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load Pulse data');
     } finally {
       setLoading(false);
     }
@@ -88,8 +99,8 @@ const PulsePage = () => {
       setFormFor(null);
       setSelectedMonth(month);
       await load();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save');
     } finally {
       setSaving(false);
     }
@@ -103,8 +114,8 @@ const PulsePage = () => {
       setFormFor(null);
       setSelectedMonth(null);
       await load();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to delete');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete');
     } finally {
       setSaving(false);
     }
@@ -114,8 +125,8 @@ const PulsePage = () => {
     setExporting(true);
     try {
       await downloadPulseExport(format);
-    } catch (err: any) {
-      toast.error(err.message || 'Export failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Export failed');
     } finally {
       setExporting(false);
     }
@@ -186,24 +197,88 @@ const PulsePage = () => {
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-3 flex-wrap">
-            <label htmlFor="pulse-period" className="text-sm font-semibold">
-              Period
-            </label>
-            <select
-              id="pulse-period"
-              className="h-10 rounded-xl border border-border/50 bg-muted/20 px-3 text-sm"
-              value={selectedMonth ?? ''}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              {[...entries].reverse().map((e) => (
-                <option key={e.month} value={e.month}>
-                  {monthLabel(e.month)}
-                </option>
-              ))}
-            </select>
-            <span className="text-xs text-muted-foreground">
-              Cards show the selected month. Charts and the ledger always show every month.
+          <div className="glass-card p-3.5 sm:p-4 flex items-center justify-between gap-4 flex-wrap border border-white/10 bg-card/60 backdrop-blur-xl rounded-2xl shadow-sm">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20">
+                  <IconCalendar size={18} />
+                </div>
+                <div>
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Active Period</div>
+                  <div className="text-sm font-bold tracking-tight text-foreground">
+                    {selected ? monthLabel(selected.month) : 'Select Month'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-8 w-px bg-border/40 mx-1 hidden sm:block" />
+
+              <div className="flex items-center gap-2">
+                <Select
+                  value={selectedMonth ?? ''}
+                  onValueChange={(val) => setSelectedMonth(val)}
+                >
+                  <SelectTrigger className="w-[190px] h-9 rounded-xl border-border/60 bg-background/50 hover:bg-background/80 hover:border-border transition-all font-medium text-sm">
+                    <SelectValue placeholder="Choose month" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-border/60 bg-[#18181b] backdrop-blur-2xl shadow-2xl p-1 min-w-[210px] z-50">
+                    {[...entries].reverse().map((e) => (
+                      <SelectItem
+                        key={e.month}
+                        value={e.month}
+                        className="rounded-lg text-sm font-medium py-2 px-3 cursor-pointer transition-colors focus:bg-primary/20 focus:text-primary"
+                      >
+                        <div className="flex items-center justify-between w-full gap-3">
+                          <span>{monthLabel(e.month)}</span>
+                          {e.locked ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.5 rounded-full">
+                              <IconLock size={10} /> Locked
+                            </span>
+                          ) : null}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Quick Prev / Next month navigation */}
+                <div className="flex items-center gap-1 bg-background/30 p-0.5 rounded-xl border border-border/40">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg hover:bg-background/80 disabled:opacity-30"
+                    onClick={() => selectedIndex > 0 && setSelectedMonth(entries[selectedIndex - 1].month)}
+                    disabled={selectedIndex <= 0}
+                    title="Previous month"
+                  >
+                    <IconChevronLeft size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg hover:bg-background/80 disabled:opacity-30"
+                    onClick={() => selectedIndex < entries.length - 1 && setSelectedMonth(entries[selectedIndex + 1].month)}
+                    disabled={selectedIndex >= entries.length - 1}
+                    title="Next month"
+                  >
+                    <IconChevronRight size={16} />
+                  </Button>
+                </div>
+              </div>
+
+              {selected?.locked ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/30 shadow-sm">
+                  <IconLock size={12} /> Locked Record
+                </span>
+              ) : selected ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live & Editable
+                </span>
+              ) : null}
+            </div>
+
+            <span className="text-xs text-muted-foreground/80 hidden xl:inline">
+              Cards reflect the selected month • Charts & ledger show all-time history
             </span>
           </div>
 
@@ -292,7 +367,7 @@ const PulsePage = () => {
                 {[
                   ['Total users', 'The cumulative account count you entered.'],
                   ['New users', 'Accounts created in the month.'],
-                  ['Activation rate', 'Activated ÷ new users. Activated = 5+ friends and 1 plan within 14 days.'],
+                  ['Activation rate', 'Activated ÷ new users. Activated = 5+ friends and 1 Live Moment within 14 days.'],
                   ['Invite share', 'Invited ÷ new users, from the sign-up source.'],
                   ['MAU %', 'Monthly active users ÷ total users.'],
                   ['Full members', 'Active paid subscriptions, cumulative.'],
@@ -327,9 +402,9 @@ const PulsePage = () => {
                 ? entries[entries.length - 1].totalUsers
                 : null
               : (() => {
-                  const i = entries.findIndex((e) => e.month === formFor.month);
-                  return i > 0 ? entries[i - 1].totalUsers : null;
-                })()
+                const i = entries.findIndex((e) => e.month === formFor.month);
+                return i > 0 ? entries[i - 1].totalUsers : null;
+              })()
           }
           existingMonths={entries.map((e) => e.month)}
           saving={saving}

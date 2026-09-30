@@ -178,7 +178,7 @@ export const PulseCharts = ({ entries }: { entries: PulseEntry[] }) => {
             <YAxis {...AXIS} tickFormatter={(v: number) => `$${v}`} />
             <Tooltip
               {...tooltipStyle}
-              formatter={(v: number, name: string, item: any) =>
+              formatter={(v: number, name: string, item: { payload?: { ltvCacRatio?: number | null } }) =>
                 name === 'LTV'
                   ? [`${fmtMoney(v)}  (${fmtRatio(item?.payload?.ltvCacRatio)} CAC)`, name]
                   : [fmtMoney(v), name]
