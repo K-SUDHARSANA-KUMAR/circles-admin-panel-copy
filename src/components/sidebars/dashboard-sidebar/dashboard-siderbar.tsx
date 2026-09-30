@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {
+  Activity,
   LayoutDashboard,
   Building,
   MapPin,
@@ -59,6 +60,11 @@ const sidebarGroups = [
         title: 'Venues',
         url: NavKeys.VenuesPage,
         icon: Building,
+      },
+      {
+        title: 'Circles Pulse',
+        url: NavKeys.PulsePage,
+        icon: Activity,
       },
       {
         title: 'Cities',
