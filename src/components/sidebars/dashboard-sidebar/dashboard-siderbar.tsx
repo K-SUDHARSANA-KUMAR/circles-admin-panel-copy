@@ -21,6 +21,7 @@ import {
 import Link from 'next/link';
 import {
   Activity,
+  CalendarDays,
   LayoutDashboard,
   Building,
   MapPin,
@@ -60,6 +61,11 @@ const sidebarGroups = [
         title: 'Venues',
         url: NavKeys.VenuesPage,
         icon: Building,
+      },
+      {
+        title: 'Events',
+        url: NavKeys.EventsPage,
+        icon: CalendarDays,
       },
       {
         title: 'Circles Pulse',
