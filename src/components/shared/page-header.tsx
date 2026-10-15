@@ -15,6 +15,10 @@ const routeMap: Record<string, { title: string; subtitle?: string }> = {
     title: 'Venues',
     subtitle: 'Manage event spaces, locations, and coordinator assignments.',
   },
+  '/dashboard/events': {
+    title: 'Events',
+    subtitle: 'Admin events pinned to the top of All Moments in the app.',
+  },
   '/dashboard/cities': {
     title: 'Cities',
     subtitle: 'Configure and monitor operational city destinations.',
@@ -83,6 +87,7 @@ const getHeaderInfo = (pathname: string) => {
 const segmentLabelMap: Record<string, string> = {
   dashboard: 'Dashboard',
   venues: 'Venues',
+  events: 'Events',
   cities: 'Cities',
   interest: 'Interests',
   profile: 'Profile',

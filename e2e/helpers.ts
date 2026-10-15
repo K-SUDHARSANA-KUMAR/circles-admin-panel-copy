@@ -8,6 +8,8 @@ export const ROUTES = {
   overview: { path: '/dashboard/overview', heading: 'Overview' },
   venues: { path: '/dashboard/venues', heading: 'Venues' },
   venuesCreate: { path: '/dashboard/venues/create', heading: 'Create' },
+  events: { path: '/dashboard/events', heading: 'Events' },
+  eventsCreate: { path: '/dashboard/events/create', heading: 'Create' },
   cities: { path: '/dashboard/cities', heading: 'Cities' },
   interest: { path: '/dashboard/interest', heading: 'Interests' },
   profile: { path: '/dashboard/profile', heading: 'My Profile' },
