@@ -4,11 +4,17 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import WaitlistDetailClient from './WaitlistDetailClient';
+import WaitlistBotPanel from './WaitlistBotPanel';
 import {
   fetchWaitlist,
   type WaitlistUser,
 } from '@/services/user.service';
 import { fetchCities } from '@/services/cities.service';
+import {
+  BOT_OUTCOME_BADGE,
+  fetchWaitlistBotSummaries,
+  type WaitlistBotSummary,
+} from '@/services/waitlist-bot.service';
 import FilterDropdown from '@/components/common/FilterDropdown';
 import { waitlistFilters } from '@/components/common/filters/waitlist.filters';
 
@@ -16,7 +22,6 @@ import {
   IconUser,
   IconPhone,
   IconMapPin,
-  IconAward,
   IconShieldCheck,
   IconUserCheck,
   IconUserSearch,
@@ -57,8 +62,8 @@ const WAITLIST_TABLE_HEADERS = (
     <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[10%]">
       Medium
     </th>
-    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[9%]">
-      Score
+    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[12%]">
+      Bot check
     </th>
     <th className="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-500 py-3 px-6 select-none w-[5%]">
       Actions
@@ -84,6 +89,8 @@ export default function WaitlistPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [cityMap, setCityMap] = useState<Record<string, string>>({});
+  // Latest waitlist-bot decision per listed user (badge + applicant score).
+  const [botSummaries, setBotSummaries] = useState<Record<string, WaitlistBotSummary>>({});
 
   useEffect(() => {
     async function loadCities() {
@@ -158,6 +165,9 @@ export default function WaitlistPage() {
       const allUsers = response.users || [];
       setUsers(allUsers);
       setTotal(response.total || allUsers.length);
+      // Best-effort: badges are extra, the list works without them.
+      const summaries = await fetchWaitlistBotSummaries(allUsers.map((u) => u.id));
+      setBotSummaries(Object.fromEntries(summaries.map((b) => [b.userId, b])));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch waitlist users. Please try again.';
       setError(msg);
@@ -203,16 +213,6 @@ export default function WaitlistPage() {
     loadUsers(activeFilters);
   };
 
-  const getScoreStyle = (score: number) => {
-    if (score >= 80) {
-      return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-    }
-    if (score >= 50) {
-      return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-    }
-    return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
-  };
-
   const getDetailUrl = (userId: string) => {
     const params = new URLSearchParams();
     params.set('id', userId);
@@ -253,6 +253,8 @@ export default function WaitlistPage() {
           />
         }
       />
+
+      <WaitlistBotPanel onRan={handleRefresh} />
 
       <ListingToolbar
         countLabel={
@@ -365,10 +367,8 @@ export default function WaitlistPage() {
                     const country = (user as { country?: string }).country;
                     const code = (user as { referralCode?: string }).referralCode;
                     const medium = (user as { referralMedium?: string }).referralMedium;
-                    const score =
-                      (user as { reliabilityScore?: number }).reliabilityScore !== undefined
-                        ? (user as { reliabilityScore?: number }).reliabilityScore!
-                        : 100;
+                    const bot = botSummaries[user.id];
+                    const botBadge = bot ? BOT_OUTCOME_BADGE[bot.outcome] : null;
                     const waitlistStatus = (user.waitlistStatus || '').toLowerCase();
                     const isApprovedUser = waitlistStatus === 'approved';
                     const isRejectedUser = waitlistStatus === 'rejected';
@@ -470,12 +470,19 @@ export default function WaitlistPage() {
                         </td>
 
                         <td className="py-3 px-6">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-md border ${getScoreStyle(score)} select-none`}
-                          >
-                            <IconAward size={12} className="shrink-0" />
-                            <span>{score}%</span>
-                          </span>
+                          {botBadge ? (
+                            <div className="flex flex-col gap-1" title={bot.reasons.join(' · ') || 'Every check passed'}>
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold w-fit select-none ${botBadge.className}`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${botBadge.dotClassName}`} />
+                                {botBadge.label}
+                              </span>
+                              <span className="text-[10px] text-zinc-500">Score {bot.score}/100</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-zinc-600 select-none">Not checked</span>
+                          )}
                         </td>
 
                         <td className="py-3 px-6 text-center" onClick={(e) => e.stopPropagation()}>

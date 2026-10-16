@@ -56,6 +56,8 @@ interface UserDetailsViewProps {
   pageTitle?: string;
   pageSubtitle?: string;
   backLabel?: string;
+  /** Extra section shown under the profile summary (e.g. the waitlist bot check). */
+  afterSummary?: React.ReactNode;
 }
 
 export default function UserDetailsView({
@@ -70,6 +72,7 @@ export default function UserDetailsView({
   pageTitle = 'User Details',
   pageSubtitle = 'View complete profile and verification data',
   backLabel = 'Back to List',
+  afterSummary,
 }: UserDetailsViewProps) {
   const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
   const score = user.reliabilityScore !== undefined ? user.reliabilityScore : 100;
@@ -188,6 +191,8 @@ export default function UserDetailsView({
           </div>
         </div>
       </div>
+
+      {afterSummary}
 
       {/* Structured Fast Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
