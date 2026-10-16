@@ -33,6 +33,7 @@ import {
   Star,
   ChevronDown,
   UserPlus,
+  PoundSterling,
 } from 'lucide-react';
 
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
@@ -77,6 +78,11 @@ const sidebarGroups = [
         title: 'Pulse Invites',
         url: NavKeys.PulseInvitesPage,
         icon: UserPlus,
+      },
+      {
+        title: 'Pulse Revenue',
+        url: NavKeys.PulseRevenuePage,
+        icon: PoundSterling,
       },
       {
         title: 'Cities',
