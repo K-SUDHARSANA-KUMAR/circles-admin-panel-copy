@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import UserDetailsView, { type DetailedUser } from '@/components/shared/UserDetailsView';
 import { ActionConfirmationModal } from '@/components/modals/action-confirmation-modal';
+import WaitlistBotCheckPanel from './WaitlistBotCheckPanel';
 import {
   DetailLoadingPanel,
   DetailPageContainer,
@@ -248,6 +249,7 @@ export default function WaitlistDetailClient() {
         pageTitle="Waitlist Applicant"
         pageSubtitle="Review and verify waitlist applicant"
         backLabel="Back to Waitlist"
+        afterSummary={<WaitlistBotCheckPanel userId={user.id} onChanged={loadUserDetails} />}
       />
       <ActionConfirmationModal
         open={isConfirmOpen}
