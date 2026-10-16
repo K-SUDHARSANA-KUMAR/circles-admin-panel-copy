@@ -32,6 +32,7 @@ import {
   FileText,
   Star,
   ChevronDown,
+  UserPlus,
   PoundSterling,
 } from 'lucide-react';
 
@@ -72,6 +73,11 @@ const sidebarGroups = [
         title: 'Circles Pulse',
         url: NavKeys.PulsePage,
         icon: Activity,
+      },
+      {
+        title: 'Pulse Invites',
+        url: NavKeys.PulseInvitesPage,
+        icon: UserPlus,
       },
       {
         title: 'Pulse Revenue',
