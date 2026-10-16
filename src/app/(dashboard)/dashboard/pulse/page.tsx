@@ -370,7 +370,7 @@ const PulsePage = () => {
                   ['Activation rate', 'Activated ÷ new users. Activated = 5+ friends and 1 Live Moment within 14 days.'],
                   ['Invite share', 'Invited ÷ new users, from the sign-up source.'],
                   ['MAU %', 'Monthly active users ÷ total users.'],
-                  ['Full members', 'Active paid subscriptions, cumulative.'],
+                  ['Full members', 'Paying members active at month end (the current month counts members active now). Free referral memberships and test purchases are not counted.'],
                   ['Members % of users', 'Full members ÷ total users.'],
                   ['Free period → member', 'Converted ÷ free periods ended in the month.'],
                   ['CAC', 'Acquisition spend ÷ new paying customers. Lower is better.'],
