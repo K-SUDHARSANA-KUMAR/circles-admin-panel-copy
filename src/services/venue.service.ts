@@ -3,6 +3,9 @@ import customAxios from '@/lib/axios';
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
+/** When a venue perk's limit resets, in UK time (midnight / Monday / the 1st). */
+export type PerkPeriod = 'day' | 'week' | 'month';
+
 export interface ApiVenue {
   id?: string;
   venueId?: string;
@@ -27,6 +30,8 @@ export interface ApiVenue {
   perkEnabled?: boolean;
   perkTitle?: string | null;
   perkSubtitle?: string | null;
+  perkLimit?: number | null;
+  perkPeriod?: PerkPeriod | null;
   s3ImageUrl?: string;
   image?: string;
   description?: string;
@@ -78,6 +83,9 @@ export interface Venue {
   /** Copy shown on the venue detail screen; blank falls back to the app's wording. */
   perkTitle?: string;
   perkSubtitle?: string;
+  /** Redeems per member per perkPeriod. Null = not set up, the perk cannot be redeemed. */
+  perkLimit?: number | null;
+  perkPeriod?: PerkPeriod | null;
   popularity?: number;
   popularityScore?: number;
   attendeeCount?: number;
@@ -192,6 +200,8 @@ export function mapApiToVenue(api: ApiVenue): Venue {
     perkEnabled: api.perkEnabled !== false,
     perkTitle: api.perkTitle || '',
     perkSubtitle: api.perkSubtitle || '',
+    perkLimit: api.perkLimit ?? null,
+    perkPeriod: api.perkPeriod ?? null,
     popularity: api.popularity,
     popularityScore: api.popularityScore !== undefined ? api.popularityScore : api.popularity,
     attendeeCount: api.attendeeCount ?? 0,
@@ -339,6 +349,8 @@ export async function createVenue(payload: {
   perkEnabled?: boolean;
   perkTitle?: string | null;
   perkSubtitle?: string | null;
+  perkLimit?: number | null;
+  perkPeriod?: PerkPeriod | null;
   isPartner?: boolean;
   description?: string;
 }): Promise<Venue> {
@@ -376,6 +388,8 @@ export async function updateVenue(
     perkEnabled: boolean;
     perkTitle: string | null;
     perkSubtitle: string | null;
+    perkLimit: number | null;
+    perkPeriod: PerkPeriod | null;
     isPartner: boolean;
     description: string;
   }>
