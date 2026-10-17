@@ -32,6 +32,7 @@ export interface ApiVenue {
   perkSubtitle?: string | null;
   perkLimit?: number | null;
   perkPeriod?: PerkPeriod | null;
+  isPartner?: boolean;
   s3ImageUrl?: string;
   image?: string;
   description?: string;
@@ -190,7 +191,7 @@ export function mapApiToVenue(api: ApiVenue): Venue {
     status: api.status || 'Available',
     manager: api.manager || 'Operational Staff',
     isFeature: false,
-    isPartner: false,
+    isPartner: api.isPartner === true,
     isVisible: api.isVisible !== undefined ? api.isVisible : true,
     createdAt: api.createdAt,
     updatedAt: api.updatedAt,

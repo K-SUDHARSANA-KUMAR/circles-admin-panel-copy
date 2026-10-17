@@ -392,6 +392,8 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
         // Both null = no limit set, so the app shows the perk but cannot redeem it.
         perkLimit,
         perkPeriod,
+        // Partner venues offer the app's "I'm here" check-in.
+        isPartner: formData.isPartner === true,
         description: formData.description.trim(),
       };
 
@@ -800,6 +802,18 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                   id="isVisible"
                   checked={formData.isVisible}
                   onCheckedChange={(c) => handleSwitchChange("isVisible", c)}
+                  disabled={isViewing}
+                />
+              </div>
+              <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-muted/20 shadow-inner">
+                <div>
+                  <Label htmlFor="isPartner" className="font-bold text-base cursor-pointer">Partner venue</Label>
+                  <p className="text-sm text-muted-foreground">Members who switched on check-ins can tap &quot;I&apos;m here&quot; when they are at this venue</p>
+                </div>
+                <Switch
+                  id="isPartner"
+                  checked={formData.isPartner === true}
+                  onCheckedChange={(c) => handleSwitchChange("isPartner", c)}
                   disabled={isViewing}
                 />
               </div>
