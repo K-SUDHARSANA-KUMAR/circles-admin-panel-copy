@@ -18,12 +18,16 @@ import {
 } from "@/components/ui/select";
 import { type City } from "@/services/cities.service";
 import { fetchCountries, type Country } from "@/services/countries.service";
-import { createVenue, updateVenue, fetchVenueCategories, createVenueCategory, type VenueCategory } from "@/services/venue.service";
+import { createVenue, updateVenue, fetchVenueCategories, createVenueCategory, type VenueCategory, type PerkPeriod } from "@/services/venue.service";
 import { fetchAllInterests, type InterestOption } from "@/services/interest.service";
 import { toast } from "sonner";
 import { useFileUpload } from "@/features/common/hooks/useFileUpload";
 import { InfiniteScrollCitySelect } from "@/components/ui/infinite-scroll-city-select";
 import dynamic from "next/dynamic";
+import { VenuePerkActivity } from "./venue-perk-activity";
+
+/** Highest per-member redeem limit the API accepts. */
+const PERK_LIMIT_MAX = 100;
 
 // Dynamically import map components to avoid SSR/window undefined issues
 const LocationPickerModal = dynamic(
@@ -78,6 +82,8 @@ export interface Venue {
   perkEnabled?: boolean;
   perkTitle?: string;
   perkSubtitle?: string;
+  perkLimit?: number | null;
+  perkPeriod?: PerkPeriod | null;
   createdAt?: string;
   updatedAt?: string;
   popularity?: number;
@@ -189,6 +195,14 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
     perkTitle: initialData?.perkTitle || "",
     perkSubtitle: initialData?.perkSubtitle || "",
   });
+
+  // Redeem limit inputs. Empty = no limit set, so the perk cannot be redeemed yet.
+  const [perkLimitText, setPerkLimitText] = useState(
+    initialData?.perkLimit ? String(initialData.perkLimit) : "",
+  );
+  const [perkPeriodInput, setPerkPeriodInput] = useState<PerkPeriod | "">(
+    initialData?.perkPeriod || "",
+  );
 
 
   // Check if coordinates are valid numbers and not zero
@@ -319,6 +333,19 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
       toast.error("Address Line 1 is required");
       return;
     }
+    const perkLimit = perkLimitText.trim() ? Number(perkLimitText.trim()) : null;
+    const perkPeriod = perkPeriodInput || null;
+    if (
+      perkLimit !== null &&
+      (!Number.isInteger(perkLimit) || perkLimit < 1 || perkLimit > PERK_LIMIT_MAX)
+    ) {
+      toast.error(`Redeem limit must be a whole number from 1 to ${PERK_LIMIT_MAX}`);
+      return;
+    }
+    if ((perkLimit === null) !== (perkPeriod === null)) {
+      toast.error("Set both the redeem limit and how often it resets, or leave both empty");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -362,6 +389,9 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
         // Blank means "use the app's own wording", so send null rather than "".
         perkTitle: formData.perkTitle?.trim() || null,
         perkSubtitle: formData.perkSubtitle?.trim() || null,
+        // Both null = no limit set, so the app shows the perk but cannot redeem it.
+        perkLimit,
+        perkPeriod,
         description: formData.description.trim(),
       };
 
@@ -591,6 +621,57 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
                 disabled={isViewing}
                 onCheckedChange={(c) => handleSwitchChange("perkEnabled", c)}
               />
+            </div>
+
+            {/* Per-member redeem limit. Counted per venue, per UK calendar period. */}
+            <div className="flex flex-col gap-3 rounded-2xl bg-muted/20 border border-border/50 p-4">
+              <div>
+                <p className="text-sm font-bold">Redeem limit</p>
+                <p className="text-xs text-muted-foreground">
+                  How many times one member can redeem this perk here, e.g. 2 per
+                  month. Leave both empty while the deal is not agreed: members see
+                  the perk but cannot redeem it.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="perkLimit" className="text-sm font-semibold">Times per member</Label>
+                  <Input
+                    id="perkLimit"
+                    name="perkLimit"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={PERK_LIMIT_MAX}
+                    step={1}
+                    value={perkLimitText}
+                    onChange={(e) => setPerkLimitText(e.target.value)}
+                    disabled={isViewing}
+                    placeholder="Not set"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-sm font-semibold">Resets every</Label>
+                  <Select
+                    value={perkPeriodInput || "none"}
+                    disabled={isViewing}
+                    onValueChange={(v) => setPerkPeriodInput(v === "none" ? "" : (v as PerkPeriod))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Not set" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Not set</SelectItem>
+                      <SelectItem value="day">Day (midnight)</SelectItem>
+                      <SelectItem value="week">Week (Monday)</SelectItem>
+                      <SelectItem value="month">Month (the 1st)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Resets on UK time. A change applies to the next redeem.
+              </p>
             </div>
 
             <input
@@ -1013,6 +1094,11 @@ export const VenueForm = ({ initialData, mode }: VenueFormProps) => {
           </div>
         </div>
       </div>
+
+      {/* Who redeemed the perk here, and screenshots taken of the badge. */}
+      {currentMode !== "create" && formData.id && (
+        <VenuePerkActivity venueId={formData.id} />
+      )}
 
       {/* Location Picker Modal */}
       {!isViewing && (
