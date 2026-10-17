@@ -27,6 +27,8 @@ import { toast } from "sonner";
 import FilterDropdown from "@/components/common/FilterDropdown";
 import { venueFilters } from "@/components/common/filters/venues.filters";
 import { VenueAttendeesModal } from "@/components/modals/VenueAttendeesModal";
+import { fetchVenueVisits, type VenueVisits } from "@/services/venue-visits.service";
+import { VenueVisitsLine } from "./venue-visits-line";
 
 const VenuesPage = () => {
   const router = useRouter();
@@ -41,6 +43,8 @@ const VenuesPage = () => {
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'partner'>('all');
   const [attendeesModalVenueId, setAttendeesModalVenueId] = useState<string | null>(null);
   const [attendeesModalVenueName, setAttendeesModalVenueName] = useState<string>('');
+  const [visitsById, setVisitsById] = useState<Map<string, VenueVisits>>(new Map());
+  const [visitsStatus, setVisitsStatus] = useState<'loading' | 'error' | 'ready'>('loading');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -139,6 +143,35 @@ const VenuesPage = () => {
       cancelled = true;
     };
   }, [venues.length, loading]);
+
+  // Verified visits for the venues on this page (one call for the whole page).
+  // Keyed on the ids, so the attendee-count patch above does not refetch.
+  const venueIdsKey = venues.map((v) => v.id).filter(Boolean).join(',');
+  useEffect(() => {
+    if (loading) return;
+    const ids = venueIdsKey ? venueIdsKey.split(',') : [];
+    if (!ids.length) {
+      setVisitsById(new Map());
+      setVisitsStatus('ready');
+      return;
+    }
+    let cancelled = false;
+    setVisitsStatus('loading');
+    fetchVenueVisits(ids)
+      .then((map) => {
+        if (cancelled) return;
+        setVisitsById(map);
+        setVisitsStatus('ready');
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Failed to load venue visits:', err);
+        setVisitsStatus('error');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [venueIdsKey, loading]);
 
   // Reset pagination to page 1 on search or filter updates
   const prevSearchRef = useRef(debouncedSearch);
@@ -318,6 +351,11 @@ const VenuesPage = () => {
                       {venue.addressLine1 && (
                         <span className="text-xs text-zinc-500 mt-0.5 font-normal">{venue.addressLine1}</span>
                       )}
+                      <VenueVisitsLine
+                        visits={venue.id ? visitsById.get(venue.id) : undefined}
+                        status={visitsStatus}
+                        className="mt-2"
+                      />
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-12 text-sm text-zinc-400 font-normal">{venue.location || '—'}</TableCell>
@@ -429,6 +467,12 @@ const VenuesPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  <VenueVisitsLine
+                    visits={venue.id ? visitsById.get(venue.id) : undefined}
+                    status={visitsStatus}
+                    className="rounded-lg border border-[#18181b] bg-[#09090b] px-3 py-2"
+                  />
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2">

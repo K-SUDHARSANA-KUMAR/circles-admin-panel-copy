@@ -32,8 +32,6 @@ import {
   FileText,
   Star,
   ChevronDown,
-  UserPlus,
-  PoundSterling,
 } from 'lucide-react';
 
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
@@ -70,19 +68,22 @@ const sidebarGroups = [
         icon: CalendarDays,
       },
       {
-        title: 'Circles Pulse',
-        url: NavKeys.PulsePage,
+        title: 'Pulse',
         icon: Activity,
-      },
-      {
-        title: 'Pulse Invites',
-        url: NavKeys.PulseInvitesPage,
-        icon: UserPlus,
-      },
-      {
-        title: 'Pulse Revenue',
-        url: NavKeys.PulseRevenuePage,
-        icon: PoundSterling,
+        subItems: [
+          {
+            title: 'Circles Pulse',
+            url: NavKeys.PulsePage,
+          },
+          {
+            title: 'Pulse Invites',
+            url: NavKeys.PulseInvitesPage,
+          },
+          {
+            title: 'Pulse Revenue',
+            url: NavKeys.PulseRevenuePage,
+          },
+        ],
       },
       {
         title: 'Cities',
