@@ -169,3 +169,74 @@
   }
 }
 
+
+/* ==========================================================================
+ * CRM tab (src/features/crm), from the circles-crm prototype's styles.css.
+ * Colours are prefixed crm- so they never collide with the panel's own tokens
+ * (card, accent...). Base and component classes only apply inside .crm-root.
+ * ========================================================================== */
+@theme {
+  --color-crm-canvas: #000000;
+  --color-crm-panel: #050506;
+  --color-crm-card: #0b0b0d;
+  --color-crm-raised: #131316;
+  --color-crm-hover: #18181c;
+  --color-crm-line: #1e1e23;
+  --color-crm-line-strong: #2b2b31;
+
+  --color-crm-ink: #f4f4f5;
+  --color-crm-ink-2: #a1a1aa;
+  --color-crm-ink-3: #71717a;
+
+  --color-crm-accent: #8b5cf6;
+  --color-crm-accent-strong: #7c3aed;
+  --color-crm-accent-ink: #c4b5fd;
+
+  --color-crm-good: #34d399;
+  --color-crm-bad: #fb7185;
+  --color-crm-warn: #fbbf24;
+  --color-crm-info: #60a5fa;
+}
+
+@layer base {
+  .crm-root,
+  .crm-root *,
+  .crm-root ::before,
+  .crm-root ::after {
+    border-color: var(--color-crm-line);
+  }
+  .crm-root input,
+  .crm-root select,
+  .crm-root textarea {
+    color: var(--color-crm-ink);
+  }
+  .crm-root :focus-visible {
+    outline: 2px solid var(--color-crm-accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .crm-root .card {
+    @apply rounded-2xl border border-crm-line bg-crm-card;
+  }
+  .crm-root .label-caps {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-crm-ink-2;
+  }
+  .crm-root .input {
+    @apply h-10 w-full rounded-xl border border-crm-line-strong bg-crm-raised px-3 text-sm text-crm-ink placeholder:text-crm-ink-3 focus:border-crm-accent focus:outline-none;
+  }
+  .crm-root .textarea {
+    @apply w-full rounded-xl border border-crm-line-strong bg-crm-raised px-3 py-2.5 text-sm leading-relaxed text-crm-ink placeholder:text-crm-ink-3 focus:border-crm-accent focus:outline-none;
+  }
+  .crm-root .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .crm-root .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  /* Safe-area padding for the phone bottom bar. */
+  .crm-root .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}

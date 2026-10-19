@@ -24,6 +24,7 @@ enum NavKeys {
   PulsePage = '/dashboard/pulse',
   PulseInvitesPage = '/dashboard/pulse-invites',
   PulseRevenuePage = '/dashboard/pulse-revenue',
+  CrmPage = '/dashboard/crm',
   InterestPage = '/dashboard/interest',
   CitiesPage = '/dashboard/cities',
   DashboardJourneyPlan = '/dashboard/journey-plan',

@@ -21,6 +21,7 @@ import {
 import Link from 'next/link';
 import {
   Activity,
+  ContactRound,
   CalendarDays,
   LayoutDashboard,
   Building,
@@ -84,6 +85,11 @@ const sidebarGroups = [
             url: NavKeys.PulseRevenuePage,
           },
         ],
+      },
+      {
+        title: 'CRM',
+        url: NavKeys.CrmPage,
+        icon: ContactRound,
       },
       {
         title: 'Cities',
