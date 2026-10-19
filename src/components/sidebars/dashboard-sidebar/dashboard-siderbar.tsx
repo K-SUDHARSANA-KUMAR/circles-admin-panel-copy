@@ -21,6 +21,7 @@ import {
 import Link from 'next/link';
 import {
   Activity,
+  Handshake,
   CalendarDays,
   LayoutDashboard,
   Building,
@@ -84,6 +85,11 @@ const sidebarGroups = [
             url: NavKeys.PulseRevenuePage,
           },
         ],
+      },
+      {
+        title: 'Collaborators',
+        url: NavKeys.CollaboratorsPage,
+        icon: Handshake,
       },
       {
         title: 'Cities',
